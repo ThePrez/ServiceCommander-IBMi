@@ -1,9 +1,7 @@
 package jesseg.ibmi.opensource.yaml;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,6 +10,13 @@ import jesseg.ibmi.opensource.SCException;
 import jesseg.ibmi.opensource.ServiceDefinition;
 import jesseg.ibmi.opensource.utils.AppLogger;
 
+/**
+ * Loads service definitions from <tt>.yaml</tt> files found in any of the global, user, or 
+ * manually-specified directories.
+ * 
+ * @author Jesse Gorzinski
+ *
+ */
 public class YamlServiceDefLoader {
 
     Pattern s_filePattern = Pattern.compile("^([a-z\\-_]+)(\\.yaml)$");

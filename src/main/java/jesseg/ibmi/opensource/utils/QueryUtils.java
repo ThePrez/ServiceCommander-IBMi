@@ -6,6 +6,12 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * A class that uses the <tt>db2util</tt> utility to query the system. This is used for critical queries to check, for
+ * instance, if services are alive. 
+ * 
+ * @author Jesse Gorzinski
+ */
 public class QueryUtils {
 
     private static List<String> deduplicate(List<String> _in) {

@@ -2,7 +2,6 @@ package jesseg.ibmi.opensource.yaml;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +13,12 @@ import jesseg.ibmi.opensource.ServiceDefinition;
 import jesseg.ibmi.opensource.utils.AppLogger;
 import jesseg.ibmi.opensource.utils.StringUtils;
 
+
+/**
+ * A service definition loaded from a .yaml file. 
+ * 
+ * @author Jesse Gorzinski
+ */
 public class YamlServiceDef extends ServiceDefinition {
     private static final int UNSPECIFIED_INT = -1;
     private final File m_source;
@@ -46,8 +51,7 @@ public class YamlServiceDef extends ServiceDefinition {
                 yamlData = yaml.load(fis);
             }
 
-            // First, process all the required options, because these should be fatal if
-            // nonpresent
+            // First, process all the required options, because these should be fatal if nonpresent
             m_startCmd = getRequiredYamlString(yamlData, "start_cmd");
             final String checkAliveType = getRequiredYamlString(yamlData, "check_alive");
             try {

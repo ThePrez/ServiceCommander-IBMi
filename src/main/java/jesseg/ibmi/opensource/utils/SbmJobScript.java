@@ -6,6 +6,12 @@ import java.io.IOException;
 
 import jesseg.ibmi.opensource.AppDirectories;
 
+/**
+ * A simple class to encapsulate a helper script used for submitting jobs to batch. This script file is actually
+ * written out to disk and then executed in order to perform a SBMJOB as needed. 
+ * 
+ * @author Jesse Gorzinski
+ */
 public class SbmJobScript {
 //@formatter:off
 private static String s_qp2term2 = "#!/QOpenSys/usr/bin/sh\n" + 
