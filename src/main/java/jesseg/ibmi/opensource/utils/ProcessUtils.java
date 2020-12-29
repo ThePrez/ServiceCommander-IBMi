@@ -9,8 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Utility functions for making handling of {@link Process} operations more digestible. 
- *  
+ * Utility functions for making handling of {@link Process} operations more digestible.
+ *
  * @author Jesse Gorzinski
  */
 public class ProcessUtils {
