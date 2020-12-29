@@ -9,7 +9,7 @@ check_alive_criteria: zookeeper
 batch_mode: yes
 sbmjob_jobname: zookeeper
 #sbmjob_opts: "JOBD(QGPL/QDFTSVR) JOBQ(QHTTPSVR/QZHBHTTP)"
-dd:
+
 environment_is_inheriting_vars: true
 environment_vars:
   - "JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11"
