@@ -2,6 +2,21 @@ package jesseg.ibmi.opensource;
 
 import java.io.File;
 
+/**
+ * Just a place to keep track of where various directories are that the application uses. 
+ * 
+ * <br>
+ * 
+ * Most notably, there are three places that the tool will search for service definition files:
+ * <ul>
+ *      <li> A global directory (/QOpenSys/etc/services)
+ *      <li> A user-specific directory($HOME/.sc/services)
+ *      <li> If defined, whatever the value of the <tt>services.dir</tt> system property is
+ * </ul>
+ * 
+ * @author Jesse Gorzinski
+ *
+ */
 public enum AppDirectories {
     conf;
     private static File s_globalServicesDir = new File("/QOpenSys/etc/services");
@@ -27,7 +42,7 @@ public enum AppDirectories {
     }
 
     public File getScriptsDirectory() {
-        final File retDir = new File(System.getProperty("user.home", "~") + "/.sc/scripts");
+        final File retDir = new File(System.getProperty("user.home", "~") + "/.sc/.scripts");
         if (!retDir.isDirectory()) {
             retDir.mkdirs();
         }
@@ -35,7 +50,7 @@ public enum AppDirectories {
     }
 
     public File getUserServicesDirOrNull() {
-        return validateDir(new File(System.getProperty("user.home") + "/.services"));
+        return validateDir(new File(System.getProperty("user.home") + "/.sc/services"));
     }
 
     private File validateDir(final File _dir) {
