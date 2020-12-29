@@ -18,3 +18,68 @@ Some of the features of the tool include:
 - Customize the runtime environment variables of your job
 
 # Basic usage
+This tool currently requires you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
+- A global directory (/QOpenSys/etc/services) 
+- A user-specific directory($HOME/.sc/services) 
+- If defined, whatever the value of the `services.dir` system property is. 
+The file name must be in the format of `service_name.yaml`, where "service_name" is the name of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters and underscores.
+
+Usage of the command is summarized as:
+```
+Usage: sc  [options] <operation> <service>
+
+    Valid options include:
+        -v: verbose mode
+
+    Valid operations include:
+        start: start the service (and any dependencies)
+        stop: stop the service (and dependent services)
+        restart: restart the service
+        check: check status of the service
+```
+The above usage assumes this program is written in a script, `sc`. This is not yet implemented. 
+For now, the project can be hand-built with maven (`mvn compile`) and run with maven, specifying
+arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
+
+# Sample .yaml configuration files
+zookeeper.yaml
+```
+name: Apache Zookeeper Server
+dir: /home/JGORZINS/mykafka/kafka_2.13-2.6.0/config
+start_cmd: ../bin/zookeeper-server-start.sh zookeeper.properties
+stop_cmd: ../bin/zookeeper-server-stop.sh zookeeper.properties
+
+check_alive: jobname
+check_alive_criteria: zookeeper
+
+batch_mode: yes
+sbmjob_jobname: zookeeper
+sbmjob_opts: "JOBD(QGPL/QDFTSVR) JOBQ(QHTTPSVR/QZHBHTTP)"
+
+environment_is_inheriting_vars: true
+environment_vars:
+  - "JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11"
+  - "PATH=/QOpenSys/pkgs/lib/jvm/openjdk-11/bin:/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/ccs/bin:/QOpenSys/usr/bin/X11:/usr/sbin:.:/usr/bin"
+```
+kafka.yaml
+```
+name: Apache Kafka bootstrap server
+dir: /home/JGORZINS/mykafka/kafka_2.13-2.6.0/config
+start_cmd: ../bin/kafka-server-start.sh server.properties
+stop_cmd: ../bin/kafka-server-stop.sh server.properties
+
+check_alive: port
+check_alive_criteria: 9092
+
+batch_mode: no
+sbmjob_jobname: Kafka
+sbmjob_opts: "JOBD(QGPL/QDFTSVR) JOBQ(QHTTPSVR/QZHBHTTP)"
+
+environment_vars:
+  - "JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11"
+  - "PATH=/QOpenSys/pkgs/lib/jvm/openjdk-11/bin:/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/ccs/bin:/QOpenSys/usr/bin/X11:/usr/sbin:.:/usr/bin"
+
+service_dependencies:
+  - "zookeeper"
+
+```
