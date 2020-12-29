@@ -2,6 +2,12 @@ package jesseg.ibmi.opensource.utils;
 
 import java.io.PrintStream;
 
+/**
+ * Used to encapsulate console logging activity in verbose and non-verbose mode. Eventually, 
+ * this may also encapsulate writing to log files, alerting, or some other features. 
+ * 
+ * @author Jesse Gorzinski
+ */
 public class AppLogger {
 
     private final PrintStream m_out;

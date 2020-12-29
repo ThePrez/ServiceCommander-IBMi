@@ -1,8 +1,17 @@
 package jesseg.ibmi.opensource;
 
 import java.util.List;
+
+import jesseg.ibmi.opensource.yaml.YamlServiceDef;
+
 import java.util.LinkedList;
 
+/**
+ * Abstract class representing a definition of a service. Since currently only 
+ * .yaml files are supported, the only implementing class is {@link YamlServiceDef}
+ * 
+ * @author Jesse Gorzinski
+ */
 public abstract class ServiceDefinition {
 
 	public enum CheckAliveType {

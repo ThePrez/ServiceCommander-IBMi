@@ -4,11 +4,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Utility functions for making handling of {@link Process} operations more digestible. 
+ *  
+ * @author Jesse Gorzinski
+ */
 public class ProcessUtils {
 
     public static List<String> getStdout(final String _eyecatcher, final Process _p, final AppLogger _logger) throws UnsupportedEncodingException, IOException {

@@ -20,6 +20,11 @@ import jesseg.ibmi.opensource.utils.ProcessUtils;
 import jesseg.ibmi.opensource.utils.SbmJobScript;
 import jesseg.ibmi.opensource.utils.StringUtils;
 
+/**
+ * Where all the work happens
+ * 
+ * @author Jesse Gorzinski
+ */
 public class OperationExecutor {
     public enum Operation {
         START, STOP, RESTART, CHECK, INFO;

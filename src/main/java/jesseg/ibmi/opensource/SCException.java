@@ -2,6 +2,11 @@ package jesseg.ibmi.opensource;
 
 import jesseg.ibmi.opensource.utils.AppLogger;
 
+/**
+ * Custom exception class
+ * 
+ * @author Jesse Gorzinski
+ */
 @SuppressWarnings("serial")
 public class SCException extends Exception {
 
