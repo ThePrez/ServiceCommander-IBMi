@@ -1,0 +1,6 @@
+name: System FTP server
+start_cmd: system 'strtcpsvr *FTP'
+stop_cmd: system 'strtcpsvr *FTP'
+
+check_alive: port
+check_alive_criteria: 21

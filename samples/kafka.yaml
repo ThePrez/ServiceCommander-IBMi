@@ -1,0 +1,18 @@
+name: Apache Kafka bootstrap server
+dir: /home/JGORZINS/mykafka/kafka_2.13-2.6.0/config
+start_cmd: ../bin/kafka-server-start.sh server.properties
+stop_cmd: ../bin/kafka-server-stop.sh server.properties
+
+check_alive: port
+check_alive_criteria: 9092
+
+batch_mode: no
+sbmjob_jobname: Kafka
+sbmjob_opts: "JOBD(QGPL/QDFTSVR) JOBQ(QHTTPSVR/QZHBHTTP)"
+
+environment_vars:
+  - "JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11"
+  - "PATH=/QOpenSys/pkgs/lib/jvm/openjdk-11/bin:/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/ccs/bin:/QOpenSys/usr/bin/X11:/usr/sbin:.:/usr/bin"
+
+service_dependencies:
+  - "zookeeper"
