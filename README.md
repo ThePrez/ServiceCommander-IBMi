@@ -42,44 +42,4 @@ For now, the project can be hand-built with maven (`mvn compile`) and run with m
 arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
 
 # Sample .yaml configuration files
-zookeeper.yaml
-```
-name: Apache Zookeeper Server
-dir: /home/JGORZINS/mykafka/kafka_2.13-2.6.0/config
-start_cmd: ../bin/zookeeper-server-start.sh zookeeper.properties
-stop_cmd: ../bin/zookeeper-server-stop.sh zookeeper.properties
-
-check_alive: jobname
-check_alive_criteria: zookeeper
-
-batch_mode: yes
-sbmjob_jobname: zookeeper
-sbmjob_opts: "JOBD(QGPL/QDFTSVR) JOBQ(QHTTPSVR/QZHBHTTP)"
-
-environment_is_inheriting_vars: true
-environment_vars:
-  - "JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11"
-  - "PATH=/QOpenSys/pkgs/lib/jvm/openjdk-11/bin:/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/ccs/bin:/QOpenSys/usr/bin/X11:/usr/sbin:.:/usr/bin"
-```
-kafka.yaml
-```
-name: Apache Kafka bootstrap server
-dir: /home/JGORZINS/mykafka/kafka_2.13-2.6.0/config
-start_cmd: ../bin/kafka-server-start.sh server.properties
-stop_cmd: ../bin/kafka-server-stop.sh server.properties
-
-check_alive: port
-check_alive_criteria: 9092
-
-batch_mode: no
-sbmjob_jobname: Kafka
-sbmjob_opts: "JOBD(QGPL/QDFTSVR) JOBQ(QHTTPSVR/QZHBHTTP)"
-
-environment_vars:
-  - "JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11"
-  - "PATH=/QOpenSys/pkgs/lib/jvm/openjdk-11/bin:/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/ccs/bin:/QOpenSys/usr/bin/X11:/usr/sbin:.:/usr/bin"
-
-service_dependencies:
-  - "zookeeper"
-
-```
+See the [samples](samples) directory for some sample service definitions. 
