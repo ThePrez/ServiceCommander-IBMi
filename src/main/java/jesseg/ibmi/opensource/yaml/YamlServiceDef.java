@@ -13,9 +13,8 @@ import jesseg.ibmi.opensource.ServiceDefinition;
 import jesseg.ibmi.opensource.utils.AppLogger;
 import jesseg.ibmi.opensource.utils.StringUtils;
 
-
 /**
- * A service definition loaded from a .yaml file. 
+ * A service definition loaded from a .yaml file.
  * 
  * @author Jesse Gorzinski
  */
@@ -73,8 +72,8 @@ public class YamlServiceDef extends ServiceDefinition {
             m_sbmJobOpts = getOptionalYamlString(yamlData, "sbmjob_opts");
             m_batchJobName = getOptionalYamlString(yamlData, "sbmjob_jobname");
 
-            m_envVars = (List<String>) yamlData.get("environment_vars");
-            m_dependencies = (List<String>) yamlData.get("service_dependencies");
+            m_envVars = (List<String>) yamlData.remove("environment_vars");
+            m_dependencies = (List<String>) yamlData.remove("service_dependencies");
             m_isInherintingEnvVars = getOptionalYamlBool(yamlData, "environment_is_inheriting_vars", true);
 
             final String batchMode = getOptionalYamlString(yamlData, "batch_mode");
@@ -87,13 +86,19 @@ public class YamlServiceDef extends ServiceDefinition {
                     throw new IOException("ERROR: Invalid value specified for attribute 'batch_mode': " + batchMode);
                 }
             }
+
+            // Anything left in the parsed yaml at this point is an attribute that we didn't parse. Issue a warning
+            for (final String key : yamlData.keySet()) {
+                _logger.printf_err("WARNING: Unrecognized attribute '%s' in file %s\n", key, _file.getAbsolutePath());
+            }
+
         } catch (final Exception e) {
             throw new SCException(_logger, SCException.FailureType.INVALID_SERVICE_CONFIG, "Invalid configuration for service '%s' from file [%s]: %s", _name, _file.getAbsolutePath(), e.getLocalizedMessage());
         }
     }
 
     private int getOptionalYamlInt(final Map<String, Object> _yamlData, final String _key) throws IOException {
-        final Object data = _yamlData.get(_key);
+        final Object data = _yamlData.remove(_key);
         if (null == data) {
             return UNSPECIFIED_INT;
         }
@@ -108,7 +113,7 @@ public class YamlServiceDef extends ServiceDefinition {
     }
 
     private String getOptionalYamlString(final Map<String, Object> _yamlData, final String _key) {
-        final Object data = _yamlData.get(_key);
+        final Object data = _yamlData.remove(_key);
         if (null == data || StringUtils.isEmpty(data.toString())) {
             return null;
         }
@@ -116,7 +121,7 @@ public class YamlServiceDef extends ServiceDefinition {
     }
 
     private boolean getOptionalYamlBool(final Map<String, Object> _yamlData, final String _key, final boolean _def) {
-        final Object data = _yamlData.get(_key);
+        final Object data = _yamlData.remove(_key);
         if (null == data) {
             return _def;
         }
@@ -128,7 +133,7 @@ public class YamlServiceDef extends ServiceDefinition {
     }
 
     private String getRequiredYamlString(final Map<String, Object> _yamlData, final String _key) throws IOException {
-        final Object data = _yamlData.get(_key);
+        final Object data = _yamlData.remove(_key);
         if (null == data || StringUtils.isEmpty(data.toString())) {
             throw new IOException("Required attribute '" + _key + "' not specified");
         }
