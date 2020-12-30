@@ -32,7 +32,7 @@ public class ServiceCommander {
         System.exit(-1);
     }
 
-    public static void main(final String... _args) throws Exception {
+    public static void main(final String... _args) {
         if (_args.length < 2) {
             printUsageAndExit();
         }
@@ -44,16 +44,19 @@ public class ServiceCommander {
 
         logger.println_verbose("Verbose mode enabled");
         logger.println_verbose("--------------------");
-        
+
         checkApplicationDependencies(logger);
         logger.printf("Performing operation '%s' on service '%s'\n", operation, service);
 
-        final Map<String, ServiceDefinition> serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger);
-
-        final OperationExecutor executioner = new OperationExecutor(Operation.valueOf(operation.toUpperCase().trim()), service, serviceDefs, logger);
-
-        executioner.execute();
-        System.out.println("\n\nMain task completed\n");
+        try {
+            final Map<String, ServiceDefinition> serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger);
+            final OperationExecutor executioner = new OperationExecutor(Operation.valueOf(operation.toUpperCase().trim()), service, serviceDefs, logger);
+            executioner.execute();
+        } catch (SCException e) {
+            logger.println_err(e.getLocalizedMessage());
+            System.exit(-3);
+        }
+        System.out.println("\n\nSuccess!\n");
     }
 
     private static void checkApplicationDependencies(final AppLogger _logger) {
