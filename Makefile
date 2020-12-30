@@ -1,8 +1,8 @@
 
 
 
-target/sc.jar: FORCE
-	mvn package
+target/sc.jar: FORCE /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java
+	JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11 mvn package
 	mv target/sc-*-with-dependencies.jar target/sc.jar
 
 FORCE:
