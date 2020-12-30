@@ -80,7 +80,7 @@ public class OperationExecutor {
                 default:
                     return null;
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (e instanceof SCException) {
                 throw (SCException) e;
             }
@@ -160,7 +160,16 @@ public class OperationExecutor {
 
     private static boolean printServiceStatus(final ServiceDefinition _svc, final AppLogger _logger) throws NumberFormatException, IOException, SCException {
         final boolean isRunning = isServiceRunning(_svc, _logger);
-        _logger.printf("Service '%s' is %s\n", _svc.getFriendlyName(), (isRunning ? "RUNNING" : "NOT RUNNING"));// TODO: handle dependencies here?
+        final String TERM_COLOR_RESET = "\u001B[0m";
+        final String TERM_COLOR_GREEN = "\u001B[32m";
+        final String TERM_COLOR_PURPLE = "\u001B[35m";
+        final String paddedStatusString;
+        if (isRunning) {
+            paddedStatusString = TERM_COLOR_GREEN + StringUtils.spacePad("RUNNING", 23) + TERM_COLOR_RESET;
+        } else {
+            paddedStatusString = TERM_COLOR_PURPLE + StringUtils.spacePad("NOT RUNNING", 23) + TERM_COLOR_RESET;
+        }
+        _logger.printfln("  %s | %s", paddedStatusString, _svc.getFriendlyName());
         return isRunning;
     }
 
@@ -248,7 +257,7 @@ public class OperationExecutor {
             try {
                 m_logger.printf("Attempting to start service dependency '%s' (%s)...\n", dependencyName, dependency.getFriendlyName());
                 new OperationExecutor(Operation.START, dependencyName, m_serviceDefs, m_logger).execute();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new SCException(m_logger, FailureType.ERROR_STARTING_DEPENDENCY, "ERROR: Could not start dependency '%s' for service '%s': %s", dependencyName, _svc.getFriendlyName(), e.getLocalizedMessage());
 
             }
@@ -349,13 +358,13 @@ public class OperationExecutor {
             final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "CALL QSYS2.QCMDEXC('ENDJOB JOB(" + job + ") " + optionString + "')" });
             try {
                 p.waitFor();
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 _logger.exception(e);
             }
         }
     }
 
-    public static boolean isServiceRunning(final ServiceDefinition _svc, AppLogger _logger) throws SCException {
+    public static boolean isServiceRunning(final ServiceDefinition _svc, final AppLogger _logger) throws SCException {
         final CheckAliveType checkType = _svc.getCheckAliveType();
         try {
             if (CheckAliveType.PORT == checkType) {
@@ -363,9 +372,9 @@ public class OperationExecutor {
             } else if (CheckAliveType.JOBNAME == checkType) {
                 return QueryUtils.isJobRunning(_svc.getCheckAliveCriteria(), _logger);
             }
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
             throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", _svc.getFriendlyName(), ioe.getLocalizedMessage());
-        } catch (NumberFormatException nfe) {
+        } catch (final NumberFormatException nfe) {
             throw new SCException(_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", _svc.getFriendlyName(), _svc.getCheckAliveCriteria());
         }
         throw new SCException(_logger, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation has been requested");
