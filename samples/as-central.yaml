@@ -4,3 +4,6 @@ stop_cmd: system 'endhostsvr *CENTRAL'
 
 check_alive: port
 check_alive_criteria: 8470
+
+groups:
+  - "host_servers"
