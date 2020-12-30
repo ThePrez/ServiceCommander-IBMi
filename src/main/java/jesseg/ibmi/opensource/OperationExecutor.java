@@ -169,7 +169,7 @@ public class OperationExecutor {
         final ServiceDefinition mainService = m_serviceDefs.get(m_mainService);
 
         if (null == mainService) {
-            throw new SCException(null, FailureType.MISSING_SERVICE_DEF, "Could not find definition for service '%s'", m_mainService);
+            throw new SCException(m_logger, FailureType.MISSING_SERVICE_DEF, "Could not find definition for service '%s'", m_mainService);
         }
         return mainService;
     }
