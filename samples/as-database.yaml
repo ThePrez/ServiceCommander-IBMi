@@ -1,4 +1,4 @@
-name: System *CENTRAL Host Server
+name: System *DATABASE Host Server
 start_cmd: system 'strhostsvr *DATABASE'
 stop_cmd: system 'endhostsvr *DATABASE'
 
