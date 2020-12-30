@@ -15,7 +15,16 @@ uninstall: clean
 clean:
 	rm -r target
 
-install: sc.bin target/sc.jar
+/QOpenSys/pkgs/bin/db2util:
+	yum install db2util
+
+/QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java:
+	yum install openjdk-11
+
+
+install_runtime_dependencies: /QOpenSys/pkgs/bin/db2util /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java
+
+install: sc.bin target/sc.jar install_runtime_dependencies
 	install -m 555 -o qsys sc.bin /QOpenSys/pkgs/bin/sc
 	mkdir -p /QOpenSys/pkgs/lib/sc
 	chmod 755 /QOpenSys/pkgs/lib/sc
