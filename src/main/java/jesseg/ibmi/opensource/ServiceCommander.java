@@ -46,17 +46,33 @@ public class ServiceCommander {
         logger.println_verbose("--------------------");
 
         checkApplicationDependencies(logger);
-        logger.printf("Performing operation '%s' on service '%s'\n", operation, service);
 
         try {
             final Map<String, ServiceDefinition> serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger);
-            final OperationExecutor executioner = new OperationExecutor(Operation.valueOf(operation.toUpperCase().trim()), service, serviceDefs, logger);
-            executioner.execute();
-        } catch (SCException e) {
-            logger.println_err(e.getLocalizedMessage());
+
+            if (service.equalsIgnoreCase("all")) {
+                SCException lastExc = null;
+                for (final String individualService : serviceDefs.keySet()) {
+                    logger.printf_verbose("Performing operation '%s' on service '%s'\n", operation, individualService);
+                    try {
+                        final OperationExecutor executioner = new OperationExecutor(Operation.valueOf(operation.toUpperCase().trim()), individualService, serviceDefs, logger);
+                        executioner.execute();
+                    } catch (final SCException e) {
+                        lastExc = e;
+                    }
+                }
+                if (null != lastExc) {
+                    throw lastExc;
+                }
+            } else {
+                logger.printf_verbose("Performing operation '%s' on service '%s'\n", operation, service);
+                final OperationExecutor executioner = new OperationExecutor(Operation.valueOf(operation.toUpperCase().trim()), service, serviceDefs, logger);
+                executioner.execute();
+            }
+        } catch (final SCException e) {
             System.exit(-3);
         }
-        System.out.println("\n\nSuccess!\n");
+        System.out.println("\n\nProgram completed successfully\n");
     }
 
     private static void checkApplicationDependencies(final AppLogger _logger) {
