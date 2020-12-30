@@ -18,6 +18,20 @@ Some of the features of the tool include:
 - Customize the runtime environment variables of your job
 - Define custom groups for your services, and perform operations on those groups (by default, a group of "all" is defined)
 
+# Installation
+Assumes your `PATH` environment variable is set up properly, otherwise:
+```
+PATH=/QOpenSys/pkgs/bin:$PATH
+export PATH
+```
+```
+yum install git ca-certificates-mozilla make-gnu
+git clone https://github.com/ThePrez/ServiceCommander-IBMi/
+cd ServiceCommander-IBMi
+make install
+```
+
+
 # Basic usage
 This tool currently requires you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
 - A global directory (/QOpenSys/etc/services) 
@@ -38,9 +52,9 @@ Usage: sc  [options] <operation> <service or group:group_name>
         restart: restart the service
         check: check status of the service
 ```
-The above usage assumes this program is written in a script, `sc`. This is not yet implemented. 
-For now, the project can be hand-built with maven (`mvn compile`) and run with maven, specifying
-arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
+The above usage assumes the program is installed with the above installation steps and is therefore
+launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn compile`), 
+you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
 
 # Sample .yaml configuration files
 See the [samples](samples) directory for some sample service definitions. 
