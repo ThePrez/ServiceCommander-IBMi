@@ -106,11 +106,11 @@ public class ServiceCommander {
     private static void checkApplicationDependencies(final AppLogger _logger) {
         if (!System.getProperty("java.home", "").contains("/pkgs")) {
             _logger.println_err("ERROR: This product will only work with open source Java distributions");
-            System.exit(-1);
+            System.exit(-17);
         }
         if (!new File("/QOpenSys/pkgs/bin/db2util").canExecute()) {
             _logger.println_err("ERROR: Required tool 'db2util' not installed. Please install this RPM");
-            System.exit(-1);
+            System.exit(-18);
         }
     }
 
