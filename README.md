@@ -16,6 +16,7 @@ Some of the features of the tool include:
 - The ability to submit jobs to batch easily, even with custom batch settings (use your own job descriptions, for instance)
 - The ability to check the "liveliness" of your service by either port status or job name
 - Customize the runtime environment variables of your job
+- Define custom groups for your services, and perform operations on those groups (by default, a group of "all" is defined)
 
 # Basic usage
 This tool currently requires you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
@@ -26,7 +27,7 @@ The file name must be in the format of `service_name.yaml`, where "service_name"
 
 Usage of the command is summarized as:
 ```
-Usage: sc  [options] <operation> <service>
+Usage: sc  [options] <operation> <service or group:group_name>
 
     Valid options include:
         -v: verbose mode
