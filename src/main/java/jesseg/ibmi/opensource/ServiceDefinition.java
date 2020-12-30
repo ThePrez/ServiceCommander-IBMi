@@ -46,9 +46,12 @@ public abstract class ServiceDefinition {
 		return true;
 	}
 
-	public List<String> getDependencies() {
-		return new LinkedList<String>();
-	}
+        public List<String> getDependencies() {
+                return new LinkedList<String>();
+        }
+        public List<String> getGroups() {
+            return new LinkedList<String>();
+    }
 
 	public int getStartupWaitTime() {
 		return 60;

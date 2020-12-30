@@ -36,6 +36,7 @@ public class YamlServiceDef extends ServiceDefinition {
     private final List<String> m_dependencies;
     private final String m_batchJobName;
     private final BatchMode m_batchMode;
+    private final List<String> m_groups;
 
     @SuppressWarnings("unchecked")
     public YamlServiceDef(final String _name, final File _file, final AppLogger _logger) throws SCException {
@@ -74,6 +75,9 @@ public class YamlServiceDef extends ServiceDefinition {
 
             m_envVars = (List<String>) yamlData.remove("environment_vars");
             m_dependencies = (List<String>) yamlData.remove("service_dependencies");
+
+            m_groups = (List<String>) yamlData.remove("groups");
+
             m_isInherintingEnvVars = getOptionalYamlBool(yamlData, "environment_is_inheriting_vars", true);
 
             final String batchMode = getOptionalYamlString(yamlData, "batch_mode");
@@ -218,5 +222,10 @@ public class YamlServiceDef extends ServiceDefinition {
     @Override
     public BatchMode getBatchMode() {
         return null == m_batchMode ? super.getBatchMode() : m_batchMode;
+    }
+
+    @Override
+    public List<String> getGroups() {
+        return null == m_groups ? super.getGroups() : m_groups;
     }
 }
