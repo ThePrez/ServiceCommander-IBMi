@@ -53,7 +53,11 @@ public class ServiceCommander {
             if (service.equalsIgnoreCase("all")) {
                 SCException lastExc = null;
                 for (final String individualService : serviceDefs.keySet()) {
-                    logger.printf_verbose("Performing operation '%s' on service '%s'\n", operation, individualService);
+                    if ("check".equalsIgnoreCase(operation)) {
+                        logger.printf_verbose("Performing operation '%s' on service '%s'\n", operation, individualService);
+                    } else {
+                        logger.printf("Performing operation '%s' on service '%s'\n", operation, individualService);
+                    }
                     try {
                         final OperationExecutor executioner = new OperationExecutor(Operation.valueOf(operation.toUpperCase().trim()), individualService, serviceDefs, logger);
                         executioner.execute();
@@ -65,7 +69,11 @@ public class ServiceCommander {
                     throw lastExc;
                 }
             } else {
-                logger.printf_verbose("Performing operation '%s' on service '%s'\n", operation, service);
+                if ("check".equalsIgnoreCase(operation)) {
+                    logger.printf_verbose("Performing operation '%s' on service '%s'\n", operation, service);
+                } else {
+                    logger.printf("Performing operation '%s' on service '%s'\n", operation, service);
+                }
                 final OperationExecutor executioner = new OperationExecutor(Operation.valueOf(operation.toUpperCase().trim()), service, serviceDefs, logger);
                 executioner.execute();
             }
