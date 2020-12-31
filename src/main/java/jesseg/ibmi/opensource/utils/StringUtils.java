@@ -12,6 +12,10 @@ public class StringUtils {
 
     private static final String LOTSA_SPACES = "                                             ";
 
+    // SSH_TTY will be unset in non-SSH environments, and System.console() returns null
+    // when output is being piped
+    private static final boolean s_isTerminalColorsSupported = (null != System.console() && !isEmpty(System.getenv("SSH_TTY")) && !Boolean.getBoolean("sc.disablecolors"));
+
     public static boolean isEmpty(final String _str) {
         return (null == _str) || (_str.trim().isEmpty());
     }
@@ -28,7 +32,7 @@ public class StringUtils {
     }
 
     public enum TerminalColor {
-        GREEN("\u001B[32m"), PURPLE("\u001B[35m"), RED("\u001B[31m"),BRIGHT_RED("\u001b[31;1m"), YELLOW("\u001B[33m"), WHITE("\u001B[37m"), CYAN("\u001B[36m"), BLUE("\u001b[34m");
+        GREEN("\u001B[32m"), PURPLE("\u001B[35m"), RED("\u001B[31m"), BRIGHT_RED("\u001b[31;1m"), YELLOW("\u001B[33m"), WHITE("\u001B[37m"), CYAN("\u001B[36m"), BLUE("\u001b[34m");
 
         private final String m_code;
 
@@ -44,16 +48,10 @@ public class StringUtils {
     private static final String TERM_COLOR_RESET = "\u001B[0m";
 
     public static String colorizeForTerminal(final String _str, final TerminalColor _color) {
-        if (isColorsSupported()) {
+        if (s_isTerminalColorsSupported) {
             return _color.getCode() + _str + TERM_COLOR_RESET;
         } else {
             return _str;
         }
-    }
-
-    private static boolean isColorsSupported() {
-        // SSH_TTY will be unset in non-SSH environments, and System.console() returns null
-        // when output is being piped
-        return null != System.console() && !isEmpty(System.getenv("SSH_TTY"));
     }
 }
