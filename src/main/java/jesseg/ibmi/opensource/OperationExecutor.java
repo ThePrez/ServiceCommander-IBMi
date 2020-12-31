@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedMap;
 
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.BatchMode;
@@ -28,7 +29,7 @@ import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
  */
 public class OperationExecutor {
     public enum Operation {
-        START, STOP, RESTART, CHECK, INFO;
+        START, STOP, RESTART, CHECK, INFO, PERFINFO;
     }
 
     private final Operation m_op;
@@ -73,6 +74,9 @@ public class OperationExecutor {
                     return null;
                 case INFO:
                     printInfo(getMainService(), m_logger);
+                    return null;
+                case PERFINFO:
+                    printPerfInfo(getMainService(), m_logger);
                     return null;
                 case RESTART:
                     stopService(getMainService(), logFile);
@@ -156,6 +160,38 @@ public class OperationExecutor {
         }
         _logger.println("---------------------------------------------------------------------");
         _logger.println();
+        _logger.println();
+    }
+
+    private static List<String> getActiveJobsForService(final ServiceDefinition _svc, final AppLogger _logger) throws SCException {
+        try {
+            if (CheckAliveType.PORT == _svc.getCheckAliveType()) {
+                return QueryUtils.getListeningJobsByPort(_svc.getCheckAliveCriteria(), _logger);
+            } else {
+                return QueryUtils.getJobs(_svc.getCheckAliveCriteria(), _logger);
+            }
+        } catch (final IOException ioe) {
+            throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", _svc.getFriendlyName(), ioe.getLocalizedMessage());
+        } catch (final NumberFormatException nfe) {
+            throw new SCException(_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", _svc.getFriendlyName(), _svc.getCheckAliveCriteria());
+        }
+    }
+
+    private static void printPerfInfo(final ServiceDefinition _svc, final AppLogger _logger) throws SCException, IOException {
+        _logger.println();
+        _logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
+
+        _logger.println(StringUtils.colorizeForTerminal(_svc.getName(), TerminalColor.CYAN) + " (" + _svc.getFriendlyName() + ")");
+        _logger.println();
+        for (String job : getActiveJobsForService(_svc, _logger)) {
+            _logger.println(StringUtils.colorizeForTerminal("Job: " + job, TerminalColor.CYAN));
+            SortedMap<String, String> perfInfo = QueryUtils.getJobPerfInfo(job, _logger);
+            for (Entry<String, String> pi : perfInfo.entrySet()) {
+                _logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), TerminalColor.CYAN) + ": " + pi.getValue());
+            }
+            _logger.println();
+        }
+        _logger.println("---------------------------------------------------------------------");
         _logger.println();
     }
 
@@ -323,7 +359,7 @@ public class OperationExecutor {
         // explicitly launching bash and nohup to let the user specify bashisms (for instance, multiple
         // semicolon-separated commands) in the start command for the service.
         m_logger.println_verbose("running command: " + bashCommand);
-        final Process p = Runtime.getRuntime().exec(new String[] {"/QOpenSys/pkgs/bin/nohup", "/QOpenSys/pkgs/bin/bash", "-c", bashCommand}, envp.toArray(new String[0]), directory);
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/nohup", "/QOpenSys/pkgs/bin/bash", "-c", bashCommand }, envp.toArray(new String[0]), directory);
         final long startTime = new Date().getTime();
         final OutputStream stdin = p.getOutputStream();
         ProcessUtils.pipeStreamsToCurrentProcess(_svc.getName(), p, m_logger);

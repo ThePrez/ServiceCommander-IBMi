@@ -51,6 +51,8 @@ Usage: sc  [options] <operation> <service or group:group_name>
         stop: stop the service (and dependent services)
         restart: restart the service
         check: check status of the service
+        info: print configuration info about the service
+        perfinfo: print basic performance info about the service
 ```
 The above usage assumes the program is installed with the above installation steps and is therefore
 launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn compile`), 

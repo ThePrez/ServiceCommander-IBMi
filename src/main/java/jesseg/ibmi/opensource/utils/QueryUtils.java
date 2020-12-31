@@ -5,6 +5,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import jesseg.ibmi.opensource.SCException;
+import jesseg.ibmi.opensource.SCException.FailureType;
 
 /**
  * A class that uses the <tt>db2util</tt> utility to query the system. This is used for critical queries to check, for
@@ -84,5 +89,26 @@ public class QueryUtils {
 
     public static boolean isListeningOnPort(final String _port, final AppLogger _logger) throws NumberFormatException, IOException {
         return isListeningOnPort(Integer.valueOf(_port.trim()), _logger);
+    }
+
+    public static SortedMap<String, String> getJobPerfInfo(String _job, final AppLogger _logger) throws IOException, SCException {
+        _logger.println_verbose("Getting performance info for job "+_job);
+        String simpleJobName = _job.replaceAll(".*/", "").trim().toUpperCase();
+        String jobName = _job.toUpperCase().trim();
+
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", simpleJobName,"-p", jobName,
+                "SELECT THREAD_COUNT as Threads, ELAPSED_TOTAL_DISK_IO_COUNT, TOTAL_DISK_IO_COUNT, ELAPSED_CPU_PERCENTAGE, TEMPORARY_STORAGE\n" + 
+                "FROM TABLE(QSYS2.ACTIVE_JOB_INFO(JOB_NAME_FILTER => ?, RESET_STATISTICS => 'NO')) as X WHERE JOB_NAME = ?" });
+        final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
+        if(queryResults.isEmpty()) {
+            throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Unable to retrieve performance data for job %s (it may be no longer active)", _job);
+        }
+        String[] perfData = queryResults.get(0).replace("\"","").split(" ");
+        TreeMap<String,String> ret = new TreeMap<>();
+        ret.put("Thread Count", perfData[0]);
+        ret.put("Total Disk IO operations", perfData[2]);
+//        ret.put("CPU Percentage", perfData[3]); //TODO: figure out a way to get this, since there's no "elapsed time" with a db2util invocation
+        ret.put("Temporary Storage (MB)", perfData[4]);
+        return ret;
     }
 }
