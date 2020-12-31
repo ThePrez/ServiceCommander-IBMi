@@ -174,9 +174,7 @@ public class OperationExecutor {
     }
 
     private ServiceDefinition getMainService() throws SCException {
-        // Get service definition for requested service
         final ServiceDefinition mainService = m_serviceDefs.get(m_mainService);
-
         if (null == mainService) {
             throw new SCException(m_logger, FailureType.MISSING_SERVICE_DEF, "Could not find definition for service '%s'", m_mainService);
         }
@@ -185,20 +183,31 @@ public class OperationExecutor {
 
     private void stopService(final ServiceDefinition _svc, final File _logFile) throws IOException, InterruptedException, NumberFormatException, SCException {
 
+        // Stop all dependent services before stopping this one.
         for (final ServiceDefinition dependentService : findKnownDependents(_svc)) {
             m_logger.printf("Attempting to stop dependent service '%s'...\n", dependentService.getFriendlyName());
-            new OperationExecutor(Operation.STOP, dependentService.getName(), m_serviceDefs, m_logger).execute();
+            try {
+                new OperationExecutor(Operation.STOP, dependentService.getName(), m_serviceDefs, m_logger).execute();
+            } catch (final Exception e) {
+                throw new SCException(m_logger, e, FailureType.ERROR_STOPPING_DEPENDENT, "ERROR: Could not start dependent service '%s' in order to stop service service '%s': %s", dependentService.getFriendlyName(), _svc.getFriendlyName(), e.getLocalizedMessage());
+            }
         }
 
+        // If the service is already stopped, hey, we're done! WOOHOO!!
         if (!isServiceRunning(_svc, m_logger)) {
             m_logger.printf("Service '%s' is already stopped\n", _svc.getFriendlyName());
             return;
         }
+        
+        // Log the start time, because we check against this for the timeout condition
         final long startTime = new Date().getTime();
+        
         final String command = _svc.getStopCommand();
         if (StringUtils.isEmpty(command)) {
+            // If the user doesn't provide a custom stop command, that's OK. We go directly to ENDJOB.
             stopViaEndJob(_svc, _svc.getShutdownWaitTime(), m_logger);
         } else {
+            // If the user provided a custom stop command, let's go try to execute it. 
             final File directory = new File(_svc.getWorkingDirectory());
 
             final ArrayList<String> envp = new ArrayList<String>();
@@ -210,20 +219,24 @@ public class OperationExecutor {
             for (final String var : _svc.getEnvironmentVars()) {
                 envp.add(var);
             }
-            // _logger.println("envp of the child is " + envp.toString());
             final Process p = Runtime.getRuntime().exec("/QOpenSys/usr/bin/sh", envp.toArray(new String[0]), directory);
             final OutputStream stdin = p.getOutputStream();
             m_logger.println_verbose("running command: " + command);
             final String bashCommand = ("nohup " + command + " >> " + _logFile.getAbsolutePath() + " 2>&1 &");
             stdin.write(bashCommand.getBytes("UTF-8"));
-            ProcessUtils.pipeStreams(_svc.getName(), p, m_logger);
+            ProcessUtils.pipeStreamsToCurrentProcess(_svc.getName(), p, m_logger);
             stdin.flush();
             stdin.close();
         }
+        
+        // Now, we've tried to end the job. Let's wait for the service to die...
         int secondsToWait = _svc.getShutdownWaitTime();
+        
+        // If an ENDJOB with OPTION(*CNTRLD) fails, or if the custom stop command fails, then we keep track of it here, because we fall baco to ENDJOB with OPTION(*IMMED)
         boolean hasEndJobImmedBeenTried = false;
         while (true) {
             if (!isServiceRunning(_svc, m_logger)) {
+                // HOORAY!!
                 m_logger.printf("Service '%s' successfully stopped\n", _svc.getFriendlyName());
                 return;
             }
@@ -233,6 +246,7 @@ public class OperationExecutor {
                 if (hasEndJobImmedBeenTried) {
                     throw new SCException(m_logger, FailureType.TIMEOUT_ON_SERVICE_STOP, "ERROR: Timed out waiting for service '%s' to stop. Giving up\n", _svc.getFriendlyName());
                 } else {
+                    // OK, we've timed out, so let's try ENDJOB with OPTION(*IMMED) and give it another 20 seconds (arbitrarily hardcoded by programmer)
                     m_logger.printf_err("ERROR: Timed out waiting for service '%s' to stop. Will try harder\n", _svc.getFriendlyName());
                     hasEndJobImmedBeenTried = true;
                     stopViaEndJob(_svc, 0, m_logger);
@@ -306,7 +320,7 @@ public class OperationExecutor {
         m_logger.println_verbose("running command: " + command);
 
         stdin.write(bashCommand.getBytes("UTF-8"));
-        ProcessUtils.pipeStreams(_svc.getName(), p, m_logger);
+        ProcessUtils.pipeStreamsToCurrentProcess(_svc.getName(), p, m_logger);
         stdin.flush();
         stdin.close();
         if (BatchMode.BATCH_QP2SHELL2 == _svc.getBatchMode()) {

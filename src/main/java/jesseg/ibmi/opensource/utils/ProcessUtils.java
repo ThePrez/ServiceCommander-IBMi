@@ -36,7 +36,7 @@ public class ProcessUtils {
         return ret;
     }
 
-    public static void pipeStreams(final String _eyecatcher, final Process _p, final AppLogger _logger) {
+    public static void pipeStreamsToCurrentProcess(final String _eyecatcher, final Process _p, final AppLogger _logger) {
         final Thread stderrThread = new Thread() {
             @Override
             public void run() {
