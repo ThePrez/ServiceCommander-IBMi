@@ -71,7 +71,7 @@ The following attributes may be specified in the service definition (`.yaml`) fi
 - `name`: A "friendly" name of the service
 - `dir`: The working directory in which to run the startup/shutdown commands
 
-### Optional
+### Optional:
 - `stop_cmd`: The service shutdown command. If unspecified, the service will be located by port number or job name.
 - `startup_wait_time`: The wait time, in seconds, to wait for the service to start up (the default is 60 seconds if unspecified)
 - `stop_wait_time`: The wait time, in seconds, to wait for the service to stop (the default is 45 seconds if unspecified)
