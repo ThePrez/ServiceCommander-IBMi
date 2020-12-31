@@ -58,3 +58,25 @@ you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.ar
 
 # Sample .yaml configuration files
 See the [samples](samples) directory for some sample service definitions. 
+
+# YAML File Format
+
+The following attributes may be specified in the service definition (`.yaml`) file:
+### Required:
+- `start_cmd`: the command used to start the service
+- `check_alive`: the technique used to check whether the service is alive or not. This is either "jobname" or "port".
+- `check_alive_criteria`: The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname".
+
+### Optional
+- `name`: A "friendly" name of the service
+- `dir`: The working directory in which to run the startup/shutdown commands
+- `stop_cmd`: The service shutdown command. If unspecified, the service will be located by port number or job name.
+- `startup_wait_time`: The wait time, in seconds, to wait for the service to start up (the default is 60 seconds if unspecified)
+- `stop_wait_time`: The wait time, in seconds, to wait for the service to stop (the default is 45 seconds if unspecified)
+- `batch_mode`: Whether or not to submit the service to batch
+- `sbmjob_jobname`: If submitting to batch, the custom job name to be used for the batch job
+- `sbmjob_opts`: If submitting to batch, custom options for the SBMJOB command (for instance, a custom JOBD) 
+- `environment_is_inheriting_vars`: Whether the service inherits environment variables from the current environment (default is true)
+- `environment_vars`: Custom environment variables to be set when launching the service. Specify as an array of strings in `"KEY=VALUE"` format
+- `service_dependencies`: An array of services that this service depends on. This is the simple name of the service (for instance, if the dependency is defined as "myservice", then it is expected to be defined in a file named `myservice.yaml`), not the "friendly" name of the service.
+- `groups`: Custom groups that this service belongs to. Groups can be used to start and stop sets of services in a single operation. Specify as an array of strings.
