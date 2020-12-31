@@ -25,7 +25,7 @@ clean:
 	yum install -y openjdk-11
 
 /QOpenSys/pkgs/bin/nohup:
-	yum install coreutils-gnu
+	yum install -y coreutils-gnu
 
 install_runtime_dependencies: /QOpenSys/pkgs/bin/db2util /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/bin/nohup
 
