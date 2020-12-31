@@ -16,13 +16,13 @@ clean:
 	rm -r target
 
 /QOpenSys/pkgs/bin/mvn:
-	yum install maven
+	yum install -y maven
 
 /QOpenSys/pkgs/bin/db2util:
-	yum install db2util
+	yum install -y db2util
 
 /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java:
-	yum install openjdk-11
+	yum install -y openjdk-11
 
 /QOpenSys/pkgs/bin/nohup:
 	yum install coreutils-gnu
