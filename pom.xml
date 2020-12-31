@@ -38,7 +38,7 @@
         </configuration>
       </plugin>
 
-			<!-- Allows the program to be run via 'mvn compile exec:java' -->
+      <!-- Allows the program to be run via 'mvn compile exec:java' -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
@@ -49,7 +49,7 @@
         </configuration>
       </plugin>
 
-			<!-- Allows the program to be built into a single executable jar -->
+      <!-- Allows the program to be built into a single executable jar -->
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
