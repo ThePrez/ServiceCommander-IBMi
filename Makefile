@@ -24,8 +24,10 @@ clean:
 /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java:
 	yum install openjdk-11
 
+/QOpenSys/pkgs/bin/nohup:
+	yum install coreutils-gnu
 
-install_runtime_dependencies: /QOpenSys/pkgs/bin/db2util /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java
+install_runtime_dependencies: /QOpenSys/pkgs/bin/db2util /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/bin/nohup
 
 install: sc.bin target/sc.jar install_runtime_dependencies
 	install -m 555 -o qsys sc.bin /QOpenSys/pkgs/bin/sc
