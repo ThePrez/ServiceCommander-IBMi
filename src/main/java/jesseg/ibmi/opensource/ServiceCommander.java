@@ -29,8 +29,8 @@ public class ServiceCommander {
 				+ "        start: start the service (and any dependencies)\n"
 				+ "        stop: stop the service (and dependent services)\n"
 				+ "        restart: restart the service\n"
-                                + "        check: check status of the service\n";
-                                + "        info: check status of the service\n";
+                                + "        check: check status of the service\n"
+                                + "        info: print configuration info about the service\n";
 		// @formatter:on
         System.err.println(usage);
         System.exit(-1);
