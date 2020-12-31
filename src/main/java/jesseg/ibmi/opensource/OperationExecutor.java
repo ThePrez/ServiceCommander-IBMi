@@ -103,53 +103,53 @@ public class OperationExecutor {
     private static void printInfo(final ServiceDefinition _svc, final AppLogger _logger) {
         _logger.println();
         _logger.println();
-        _logger.println("---------------------------------------------------------------------");
-        _logger.println(_svc.getName() + " (" + _svc.getFriendlyName() + ")");
+        _logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
+        _logger.println(StringUtils.colorizeForTerminal(_svc.getName(), TerminalColor.CYAN) + " (" + _svc.getFriendlyName() + ")");
         _logger.println();
         _logger.println();
-        _logger.println("Defined in: " + _svc.getSource());
+        _logger.println(StringUtils.colorizeForTerminal("Defined in: ", TerminalColor.CYAN) + _svc.getSource());
         _logger.println();
-        _logger.println("Working Directory: " + _svc.getWorkingDirectory());
+        _logger.println(StringUtils.colorizeForTerminal("Working Directory: ", TerminalColor.CYAN) + _svc.getWorkingDirectory());
         _logger.println();
-        _logger.println("Startup Command: " + _svc.getStartCommand());
-        _logger.println("Startup Wait Time (s): " + _svc.getStartupWaitTime());
+        _logger.println(StringUtils.colorizeForTerminal("Startup Command: ", TerminalColor.CYAN) + _svc.getStartCommand());
+        _logger.println(StringUtils.colorizeForTerminal("Startup Wait Time (s): ", TerminalColor.CYAN) + _svc.getStartupWaitTime());
         _logger.println();
         final String shutdownCommand = _svc.getStopCommand();
         if (!StringUtils.isEmpty(shutdownCommand)) {
-            _logger.println("Shutdown Command: " + shutdownCommand);
+            _logger.println(StringUtils.colorizeForTerminal("Shutdown Command: ", TerminalColor.CYAN) + shutdownCommand);
         }
-        _logger.println("Shutdown Wait Time (s): " + _svc.getShutdownWaitTime());
+        _logger.println(StringUtils.colorizeForTerminal("Shutdown Wait Time (s): ", TerminalColor.CYAN) + _svc.getShutdownWaitTime());
         _logger.println();
-        _logger.println("Check-alive type: " + _svc.getCheckAliveType().name());
-        _logger.println("Check-alive condition: " + _svc.getCheckAliveCriteria());
+        _logger.println(StringUtils.colorizeForTerminal("Check-alive type: ", TerminalColor.CYAN) + _svc.getCheckAliveType().name());
+        _logger.println(StringUtils.colorizeForTerminal("Check-alive condition: ", TerminalColor.CYAN) + _svc.getCheckAliveCriteria());
         final BatchMode batchMode = _svc.getBatchMode();
         if (BatchMode.NO_BATCH == batchMode) {
-            _logger.println("Batch Mode: <not running in batch>");
+            _logger.println(StringUtils.colorizeForTerminal("Batch Mode: ", TerminalColor.CYAN) + "<not running in batch>");
         } else {
-            _logger.println("Batch Mode: <submitted to batch>");
+            _logger.println(StringUtils.colorizeForTerminal("Batch Mode: ", TerminalColor.CYAN) + "<submitted to batch>");
             String batchJobName = _svc.getBatchJobName();
             if (StringUtils.isEmpty(batchJobName)) {
                 batchJobName = "<default>";
             }
-            _logger.println("    Batch Job Name: " + batchJobName);
+            _logger.println(StringUtils.colorizeForTerminal("    Batch Job Name: ", TerminalColor.CYAN) + batchJobName);
             final String sbmjobOpts = _svc.getSbmJobOpts();
             if (!StringUtils.isEmpty(sbmjobOpts)) {
-                _logger.println("    SBMJOB options: " + sbmjobOpts);
+                _logger.println(StringUtils.colorizeForTerminal("    SBMJOB options: ", TerminalColor.CYAN) + sbmjobOpts);
             }
         }
         final List<String> dependencies = _svc.getDependencies();
         if (!dependencies.isEmpty()) {
             _logger.println();
-            _logger.println("Depends on the following services:");
+            _logger.println(StringUtils.colorizeForTerminal("Depends on the following services:", TerminalColor.CYAN));
             for (final String dependency : dependencies) {
                 _logger.println("    " + dependency);
             }
         }
         _logger.println();
-        _logger.println("Inherits environment variables?: " + _svc.isInheritingEnvironmentVars());
+        _logger.println(StringUtils.colorizeForTerminal("Inherits environment variables?: ", TerminalColor.CYAN) + _svc.isInheritingEnvironmentVars());
         final List<String> envVars = _svc.getEnvironmentVars();
         if (!envVars.isEmpty()) {
-            _logger.println("Custom environment variables:");
+            _logger.println(StringUtils.colorizeForTerminal("Custom environment variables:", TerminalColor.CYAN));
             for (final String envVar : envVars) {
                 _logger.println("    " + envVar);
             }
@@ -163,9 +163,9 @@ public class OperationExecutor {
         final boolean isRunning = isServiceRunning(_svc, _logger);
         final String paddedStatusString;
         if (isRunning) {
-            paddedStatusString = StringUtils.colorize(StringUtils.spacePad("RUNNING", 23), TerminalColor.GREEN);
+            paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("RUNNING", 23), TerminalColor.GREEN);
         } else {
-            paddedStatusString = StringUtils.colorize(StringUtils.spacePad("NOT RUNNING", 23), TerminalColor.PURPLE);
+            paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("NOT RUNNING", 23), TerminalColor.PURPLE);
         }
         _logger.printfln("  %s | %s", paddedStatusString, _svc.getFriendlyName());
         return isRunning;

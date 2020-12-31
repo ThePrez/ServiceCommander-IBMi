@@ -28,7 +28,7 @@ public class StringUtils {
     }
 
     public enum TerminalColor {
-        GREEN("\u001B[32m"), PURPLE("\u001B[35m"), RED("\u001B[31m"),BRIGHT_RED("\u001b[31;1m"), YELLOW("\u001B[33m"), WHITE("\u001B[37m"), CYAN("\u001B[36m");
+        GREEN("\u001B[32m"), PURPLE("\u001B[35m"), RED("\u001B[31m"),BRIGHT_RED("\u001b[31;1m"), YELLOW("\u001B[33m"), WHITE("\u001B[37m"), CYAN("\u001B[36m"), BLUE("\u001b[34m");
 
         private final String m_code;
 
@@ -43,7 +43,7 @@ public class StringUtils {
 
     private static final String TERM_COLOR_RESET = "\u001B[0m";
 
-    public static String colorize(final String _str, final TerminalColor _color) {
+    public static String colorizeForTerminal(final String _str, final TerminalColor _color) {
         if (isColorsSupported()) {
             return _color.getCode() + _str + TERM_COLOR_RESET;
         } else {

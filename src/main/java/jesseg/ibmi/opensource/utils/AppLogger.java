@@ -36,11 +36,11 @@ public class AppLogger {
     }
 
     public PrintStream printf_err(final String _fmt, final Object... _args) {
-        return m_err.printf(StringUtils.colorize(_fmt, TerminalColor.BRIGHT_RED), _args);
+        return m_err.printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.BRIGHT_RED), _args);
     }
 
     public PrintStream printf_warn(final String _fmt, final Object... _args) {
-        return m_err.printf(StringUtils.colorize(_fmt, TerminalColor.YELLOW), _args);
+        return m_err.printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.YELLOW), _args);
     }
 
     public PrintStream println_err() {
@@ -77,28 +77,28 @@ public class AppLogger {
         if (!m_verbose) {
             return m_err;
         }
-        return m_err.printf(StringUtils.colorize(_fmt, TerminalColor.BRIGHT_RED), _args);
+        return m_err.printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.BRIGHT_RED), _args);
     }
 
     public PrintStream printf_warn_verbose(final String _fmt, final Object... _args) {
         if (!m_verbose) {
             return m_err;
         }
-        return m_err.printf(StringUtils.colorize(_fmt, TerminalColor.YELLOW), _args);
+        return m_err.printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.YELLOW), _args);
     }
 
     public void println_err_verbose(final String _msg) {
         if (!m_verbose) {
             return;
         }
-        m_err.println(StringUtils.colorize(_msg, TerminalColor.BRIGHT_RED));
+        m_err.println(StringUtils.colorizeForTerminal(_msg, TerminalColor.BRIGHT_RED));
     }
 
     public void println_warn_verbose(final String _msg) {
         if (!m_verbose) {
             return;
         }
-        m_err.println(StringUtils.colorize(_msg, TerminalColor.YELLOW));
+        m_err.println(StringUtils.colorizeForTerminal(_msg, TerminalColor.YELLOW));
     }
 
     public PrintStream printfln_err_verbose(final String _fmt, final Object... _args) {
@@ -114,11 +114,11 @@ public class AppLogger {
     }
 
     public void println_err(String _str) {
-        m_err.println(StringUtils.colorize(_str, TerminalColor.BRIGHT_RED));
+        m_err.println(StringUtils.colorizeForTerminal(_str, TerminalColor.BRIGHT_RED));
     }
 
     public void println_warn(String _str) {
-        m_err.println(StringUtils.colorize(_str, TerminalColor.YELLOW));
+        m_err.println(StringUtils.colorizeForTerminal(_str, TerminalColor.YELLOW));
     }
 
     public void exception(Throwable _exc) {
@@ -126,6 +126,6 @@ public class AppLogger {
     }
 
     public void printf_success(String _fmt, Object... _args) {
-        printf(StringUtils.colorize(_fmt, TerminalColor.GREEN), _args);
+        printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.GREEN), _args);
     }
 }
