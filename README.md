@@ -56,6 +56,32 @@ The above usage assumes the program is installed with the above installation ste
 launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn compile`), 
 you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
 
+# Usage examples
+Start the service named `kafka`:
+```
+sc start kafka
+```
+Stop the service named `zookeeper`:
+```
+sc stop zookeeper
+```
+Check status of all configured services (all services belong to a special group named "all")
+```
+sc check group:all
+```
+Try to start all configured services
+```
+sc start group:all
+```
+Print information about all configured services
+```
+sc info group:all
+```
+Try to start all services in "host_servers" group
+```
+sc start group:host_servers
+```
+
 # Sample .yaml configuration files
 See the [samples](samples) directory for some sample service definitions. 
 
