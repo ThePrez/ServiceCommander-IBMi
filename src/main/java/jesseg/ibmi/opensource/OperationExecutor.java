@@ -93,7 +93,7 @@ public class OperationExecutor {
                         logFile.delete();
                         logFile.deleteOnExit();
                     } else {
-                        m_logger.println("For details, see log file at: " + logFile.getAbsolutePath());
+                        m_logger.println("For details, see log file at: " + StringUtils.colorizeForTerminal(logFile.getAbsolutePath(), TerminalColor.CYAN));
                     }
                 }
             }
