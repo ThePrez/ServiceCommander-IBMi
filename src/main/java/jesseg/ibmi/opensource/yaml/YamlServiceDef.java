@@ -93,7 +93,7 @@ public class YamlServiceDef extends ServiceDefinition {
 
             // Anything left in the parsed yaml at this point is an attribute that we didn't parse. Issue a warning
             for (final String key : yamlData.keySet()) {
-                _logger.printf_err("WARNING: Unrecognized attribute '%s' in file %s\n", key, _file.getAbsolutePath());
+                _logger.printf_warn("WARNING: Unrecognized attribute '%s' in file %s\n", key, _file.getAbsolutePath());
             }
 
         } catch (final Exception e) {

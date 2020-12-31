@@ -2,9 +2,11 @@ package jesseg.ibmi.opensource.utils;
 
 import java.io.PrintStream;
 
+import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
+
 /**
- * Used to encapsulate console logging activity in verbose and non-verbose mode. Eventually, 
- * this may also encapsulate writing to log files, alerting, or some other features. 
+ * Used to encapsulate console logging activity in verbose and non-verbose mode. Eventually,
+ * this may also encapsulate writing to log files, alerting, or some other features.
  * 
  * @author Jesse Gorzinski
  */
@@ -34,7 +36,11 @@ public class AppLogger {
     }
 
     public PrintStream printf_err(final String _fmt, final Object... _args) {
-        return m_err.printf(_fmt, _args);
+        return m_err.printf(StringUtils.colorize(_fmt, TerminalColor.BRIGHT_RED), _args);
+    }
+
+    public PrintStream printf_warn(final String _fmt, final Object... _args) {
+        return m_err.printf(StringUtils.colorize(_fmt, TerminalColor.YELLOW), _args);
     }
 
     public PrintStream println_err() {
@@ -43,6 +49,10 @@ public class AppLogger {
 
     public PrintStream printfln_err(final String _fmt, final Object... _args) {
         return printf_err(_fmt + "\n", _args);
+    }
+
+    public PrintStream printfln_warn(final String _fmt, final Object... _args) {
+        return printf_warn(_fmt + "\n", _args);
     }
 
     public PrintStream printf_verbose(final String _fmt, final Object... _args) {
@@ -67,18 +77,36 @@ public class AppLogger {
         if (!m_verbose) {
             return m_err;
         }
-        return m_err.printf(_fmt, _args);
+        return m_err.printf(StringUtils.colorize(_fmt, TerminalColor.BRIGHT_RED), _args);
+    }
+
+    public PrintStream printf_warn_verbose(final String _fmt, final Object... _args) {
+        if (!m_verbose) {
+            return m_err;
+        }
+        return m_err.printf(StringUtils.colorize(_fmt, TerminalColor.YELLOW), _args);
     }
 
     public void println_err_verbose(final String _msg) {
         if (!m_verbose) {
             return;
         }
-        m_err.println(_msg);
+        m_err.println(StringUtils.colorize(_msg, TerminalColor.BRIGHT_RED));
+    }
+
+    public void println_warn_verbose(final String _msg) {
+        if (!m_verbose) {
+            return;
+        }
+        m_err.println(StringUtils.colorize(_msg, TerminalColor.YELLOW));
     }
 
     public PrintStream printfln_err_verbose(final String _fmt, final Object... _args) {
         return printf_err_verbose(_fmt + "\n", _args);
+    }
+
+    public PrintStream printfln_warn_verbose(final String _fmt, final Object... _args) {
+        return printf_warn_verbose(_fmt + "\n", _args);
     }
 
     public void println(String _str) {
@@ -86,10 +114,18 @@ public class AppLogger {
     }
 
     public void println_err(String _str) {
-        m_err.println(_str);
+        m_err.println(StringUtils.colorize(_str, TerminalColor.BRIGHT_RED));
+    }
+
+    public void println_warn(String _str) {
+        m_err.println(StringUtils.colorize(_str, TerminalColor.YELLOW));
     }
 
     public void exception(Throwable _exc) {
         _exc.printStackTrace(System.err);
+    }
+
+    public void printf_success(String _fmt, Object... _args) {
+        printf(StringUtils.colorize(_fmt, TerminalColor.GREEN), _args);
     }
 }

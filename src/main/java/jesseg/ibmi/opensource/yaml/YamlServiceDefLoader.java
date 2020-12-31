@@ -38,7 +38,7 @@ public class YamlServiceDefLoader {
             final String fileName = f.getName();
             final Matcher m = s_filePattern.matcher(fileName);
             if (!m.find()) {
-                _logger.println_err("WARNING: Ignoring file: " + f.getAbsolutePath());
+                _logger.println_warn("WARNING: Ignoring file: " + f.getAbsolutePath());
                 continue;
             }
             final String serviceName = m.group(1);

@@ -19,6 +19,7 @@ import jesseg.ibmi.opensource.utils.AppLogger;
 import jesseg.ibmi.opensource.utils.ProcessUtils;
 import jesseg.ibmi.opensource.utils.SbmJobScript;
 import jesseg.ibmi.opensource.utils.StringUtils;
+import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
 
 /**
  * Where all the work happens
@@ -160,14 +161,11 @@ public class OperationExecutor {
 
     private static boolean printServiceStatus(final ServiceDefinition _svc, final AppLogger _logger) throws NumberFormatException, IOException, SCException {
         final boolean isRunning = isServiceRunning(_svc, _logger);
-        final String TERM_COLOR_RESET = "\u001B[0m";
-        final String TERM_COLOR_GREEN = "\u001B[32m";
-        final String TERM_COLOR_PURPLE = "\u001B[35m";
         final String paddedStatusString;
         if (isRunning) {
-            paddedStatusString = TERM_COLOR_GREEN + StringUtils.spacePad("RUNNING", 23) + TERM_COLOR_RESET;
+            paddedStatusString = StringUtils.colorize(StringUtils.spacePad("RUNNING", 23), TerminalColor.GREEN);
         } else {
-            paddedStatusString = TERM_COLOR_PURPLE + StringUtils.spacePad("NOT RUNNING", 23) + TERM_COLOR_RESET;
+            paddedStatusString = StringUtils.colorize(StringUtils.spacePad("NOT RUNNING", 23), TerminalColor.PURPLE);
         }
         _logger.printfln("  %s | %s", paddedStatusString, _svc.getFriendlyName());
         return isRunning;
@@ -237,7 +235,7 @@ public class OperationExecutor {
         while (true) {
             if (!isServiceRunning(_svc, m_logger)) {
                 // HOORAY!!
-                m_logger.printf("Service '%s' successfully stopped\n", _svc.getFriendlyName());
+                m_logger.printf_success("Service '%s' successfully stopped\n", _svc.getFriendlyName());
                 return;
             }
 
@@ -247,7 +245,7 @@ public class OperationExecutor {
                     throw new SCException(m_logger, FailureType.TIMEOUT_ON_SERVICE_STOP, "ERROR: Timed out waiting for service '%s' to stop. Giving up\n", _svc.getFriendlyName());
                 } else {
                     // OK, we've timed out, so let's try ENDJOB with OPTION(*IMMED) and give it another 20 seconds (arbitrarily hardcoded by programmer)
-                    m_logger.printf_err("ERROR: Timed out waiting for service '%s' to stop. Will try harder\n", _svc.getFriendlyName());
+                    m_logger.printf_warn("WARNING: Timed out waiting for service '%s' to stop. Will try harder\n", _svc.getFriendlyName());
                     hasEndJobImmedBeenTried = true;
                     stopViaEndJob(_svc, 0, m_logger);
                     secondsToWait += 20;
@@ -342,7 +340,7 @@ public class OperationExecutor {
         final int secondsToWait = _svc.getStartupWaitTime();
         while (true) {
             if (isServiceRunning(_svc, m_logger)) {
-                m_logger.printf("Service '%s' successfully started\n", _svc.getFriendlyName());
+                m_logger.printf_success("Service '%s' successfully started\n", _svc.getFriendlyName());
                 return;
             }
             final long currentTime = new Date().getTime();
