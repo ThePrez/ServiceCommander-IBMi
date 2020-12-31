@@ -198,16 +198,16 @@ public class OperationExecutor {
             m_logger.printf("Service '%s' is already stopped\n", _svc.getFriendlyName());
             return;
         }
-        
+
         // Log the start time, because we check against this for the timeout condition
         final long startTime = new Date().getTime();
-        
+
         final String command = _svc.getStopCommand();
         if (StringUtils.isEmpty(command)) {
             // If the user doesn't provide a custom stop command, that's OK. We go directly to ENDJOB.
             stopViaEndJob(_svc, _svc.getShutdownWaitTime(), m_logger);
         } else {
-            // If the user provided a custom stop command, let's go try to execute it. 
+            // If the user provided a custom stop command, let's go try to execute it.
             final File directory = new File(_svc.getWorkingDirectory());
 
             final ArrayList<String> envp = new ArrayList<String>();
@@ -228,10 +228,10 @@ public class OperationExecutor {
             stdin.flush();
             stdin.close();
         }
-        
+
         // Now, we've tried to end the job. Let's wait for the service to die...
         int secondsToWait = _svc.getShutdownWaitTime();
-        
+
         // If an ENDJOB with OPTION(*CNTRLD) fails, or if the custom stop command fails, then we keep track of it here, because we fall baco to ENDJOB with OPTION(*IMMED)
         boolean hasEndJobImmedBeenTried = false;
         while (true) {
@@ -263,6 +263,7 @@ public class OperationExecutor {
 
     private void startService(final ServiceDefinition _svc, final File _logFile) throws InterruptedException, IOException, SCException {
 
+        // Start all dependencies before starting this one
         for (final String dependencyName : _svc.getDependencies()) {
             final ServiceDefinition dependency = m_serviceDefs.get(dependencyName);
             if (null == dependency) {
@@ -273,7 +274,6 @@ public class OperationExecutor {
                 new OperationExecutor(Operation.START, dependencyName, m_serviceDefs, m_logger).execute();
             } catch (final Exception e) {
                 throw new SCException(m_logger, FailureType.ERROR_STARTING_DEPENDENCY, "ERROR: Could not start dependency '%s' for service '%s': %s", dependencyName, _svc.getFriendlyName(), e.getLocalizedMessage());
-
             }
         }
 
@@ -284,6 +284,7 @@ public class OperationExecutor {
         final String command = _svc.getStartCommand();
         final File directory = new File(_svc.getWorkingDirectory());
 
+        // Set up the environment variable list for the child process
         final ArrayList<String> envp = new ArrayList<String>();
         if (_svc.isInheritingEnvironmentVars()) {
             for (final Entry<String, String> l : System.getenv().entrySet()) {
@@ -296,8 +297,11 @@ public class OperationExecutor {
 
         final String bashCommand;
         if (BatchMode.NO_BATCH == _svc.getBatchMode()) {
+            // If we're not submitting to batch, it's a simple nohup and redirect to our log file.
             bashCommand = ("nohup " + command + " >> " + _logFile.getAbsolutePath() + " 2>&1 &");
-        } else if (BatchMode.BATCH_QP2SHELL2 == _svc.getBatchMode()) {
+        } else {
+            // If we're submitting to batch, we stuff special values into the SBMJOB_JOBNAME and SBMJOB_OPTS environment
+            // variables that are ultimately used by our helper script (see the SbmJobScript class)
             final String batchJobName = _svc.getBatchJobName();
             if (!StringUtils.isEmpty(batchJobName)) {
                 m_logger.printfln_err_verbose("using custom batch job name");
@@ -308,24 +312,33 @@ public class OperationExecutor {
                 m_logger.printfln_err_verbose("using custom sbmJobOpts: " + sbmJobOpts);
                 envp.add("SBMJOB_OPTS=" + sbmJobOpts.trim()); // TODO: job name validation
             }
+
+            // In the case of submitting to batch, we don't redirect to log files, based on the assumption that
+            // the user prefers output going to spooled files, which seems natural for batch jobs. This may be
+            // an incorrect assumption, however, and it may be a future TODO to change this behavior.
             bashCommand = ("exec " + SbmJobScript.getQp2() + " " + command);
-        } else {
-            throw new SCException(m_logger, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation has been requested");
         }
         m_logger.println_verbose("envp of the child is " + envp.toString());
 
+        // Now we're ready to actually launch our new process. We take advantage of the shell here by
+        // explicitly launching /QOpenSys/usr/bin/sh, then piping the command to it's standard input stream.
         final Process p = Runtime.getRuntime().exec("/QOpenSys/usr/bin/sh", envp.toArray(new String[0]), directory);
         final long startTime = new Date().getTime();
         final OutputStream stdin = p.getOutputStream();
         m_logger.println_verbose("running command: " + command);
-
         stdin.write(bashCommand.getBytes("UTF-8"));
         ProcessUtils.pipeStreamsToCurrentProcess(_svc.getName(), p, m_logger);
         stdin.flush();
         stdin.close();
+
+        // Now, it's just time to wait...
         if (BatchMode.BATCH_QP2SHELL2 == _svc.getBatchMode()) {
-            Thread.sleep(5000L); // Just to make sure the submitted job has some "sticking power"
+            // Just to make sure the submitted job has some "sticking power"
+            Thread.sleep(5000L);
+        } else {
+            Thread.sleep(1000L);
         }
+
         final int secondsToWait = _svc.getStartupWaitTime();
         while (true) {
             if (isServiceRunning(_svc, m_logger)) {
@@ -337,7 +350,7 @@ public class OperationExecutor {
                 throw new SCException(m_logger, FailureType.TIMEOUT_ON_SERVICE_STARTUP, "ERROR: Timed out waiting for service '%s' to start\n", _svc.getFriendlyName());
             }
             try {
-                Thread.sleep(1000L);
+                Thread.sleep(2000L);
             } catch (final InterruptedException e) {
                 m_logger.exception(e);
             }
