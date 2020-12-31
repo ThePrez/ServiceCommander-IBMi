@@ -63,7 +63,7 @@ public class ServiceCommander {
         } catch (final SCException e) {
             System.exit(-3);
         }
-        System.out.println("\n");
+        logger.println();
     }
 
     private static Set<String> getServicesInGroup(final String _group, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) {

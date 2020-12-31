@@ -12,8 +12,7 @@ public class StringUtils {
 
     private static final String LOTSA_SPACES = "                                             ";
 
-    // SSH_TTY will be unset in non-SSH environments, and System.console() returns null
-    // when output is being piped
+    // SSH_TTY will be unset in non-SSH environments, and System.console() returns null when output is being piped
     private static final boolean s_isTerminalColorsSupported = (null != System.console() && !isEmpty(System.getenv("SSH_TTY")) && !Boolean.getBoolean("sc.disablecolors"));
 
     public static boolean isEmpty(final String _str) {
@@ -42,6 +41,18 @@ public class StringUtils {
 
         String getCode() {
             return m_code;
+        }
+
+        public static String stripCodesFromString(final String _str) {
+            if (!s_isTerminalColorsSupported) {
+                return _str;
+            }
+            String ret = _str;
+            for (TerminalColor color : values()) {
+                ret = ret.replace(color.m_code, "");
+            }
+            ret.replace(TERM_COLOR_RESET, "");
+            return ret;
         }
     }
 
