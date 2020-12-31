@@ -29,7 +29,8 @@ public class ServiceCommander {
 				+ "        start: start the service (and any dependencies)\n"
 				+ "        stop: stop the service (and dependent services)\n"
 				+ "        restart: restart the service\n"
-				+ "        check: check status of the service\n";
+                                + "        check: check status of the service\n";
+                                + "        info: check status of the service\n";
 		// @formatter:on
         System.err.println(usage);
         System.exit(-1);
@@ -103,11 +104,38 @@ public class ServiceCommander {
         }
     }
 
+    /**
+     * Checks key dependencies that the application cannot function without. In the case of a missing dependency,
+     * this function will cause JVM exit.
+     * 
+     * @param _logger
+     */
     private static void checkApplicationDependencies(final AppLogger _logger) {
+        // Why does this program require OSS Java distributions?
+        // Why can't it just work with JV1?
+        //
+        // Well, the answer lies in how JV1 implements java.lang.Runtime.exec(). JV1's implementation, for
+        // legacy compatibility reasons, unconditionally spawns an ILE job that will then (if needed) call
+        // back into PASE. In this design, handling of environment variables between the parent and child
+        // jobs is unpredictable and things can get "lost" in the transition from Java to ILE, then back to PASE
+        // (remember that ILE and PASE maintain their own environment variable table).
+        //
+        // The only way to cleanly implement and control the environment variable set for child processes
+        // is to rely on the much more "normal" implementation in OpenJDK, which follows MUCH closer to
+        // UNIX-style expectations.
         if (!System.getProperty("java.home", "").contains("/pkgs")) {
             _logger.println_err("ERROR: This product will only work with open source Java distributions");
             System.exit(-17);
         }
+
+        // Why does this program require db2util?
+        // Why can't it just work with JT400?
+        //
+        // Well, the answer lies within authentication. At the time of authorship of this tool, the JtOpen
+        // project (aka "JT400," among other names) does not support connecting using the special value
+        // '*CURRENT' as the userid/password with the open source Java implementation. Rather than
+        // requiring the user to log in somehow to make database queries (used to check for job liveliness),
+        // it's a lot easier to use db2util.
         if (!new File("/QOpenSys/pkgs/bin/db2util").canExecute()) {
             _logger.println_err("ERROR: Required tool 'db2util' not installed. Please install this RPM");
             System.exit(-18);

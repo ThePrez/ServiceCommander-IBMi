@@ -87,7 +87,7 @@ public class YamlServiceDef extends ServiceDefinition {
                 try {
                     m_batchMode = BatchMode.guessFromConfigString(batchMode);
                 } catch (final Exception e) {
-                    throw new IOException("ERROR: Invalid value specified for attribute 'batch_mode': " + batchMode);
+                    throw new IOException("Invalid value specified for attribute 'batch_mode': " + batchMode);
                 }
             }
 
