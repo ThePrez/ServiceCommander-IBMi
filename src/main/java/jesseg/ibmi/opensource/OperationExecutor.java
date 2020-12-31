@@ -326,7 +326,6 @@ public class OperationExecutor {
         final Process p = Runtime.getRuntime().exec(new String[] {"/QOpenSys/pkgs/bin/nohup", "/QOpenSys/pkgs/bin/bash", "-c", bashCommand}, envp.toArray(new String[0]), directory);
         final long startTime = new Date().getTime();
         final OutputStream stdin = p.getOutputStream();
-        stdin.write(bashCommand.getBytes("UTF-8"));
         ProcessUtils.pipeStreamsToCurrentProcess(_svc.getName(), p, m_logger);
         stdin.flush();
         stdin.close();
