@@ -140,6 +140,10 @@ public class ServiceCommander {
             _logger.println_err("ERROR: Required tool 'db2util' not installed. Please install this RPM");
             System.exit(-18);
         }
+        if (!new File("/QOpenSys/pkgs/bin/nohup").canExecute()) {
+            _logger.println_err("ERROR: Required tool 'nohup' not installed. Please install coreutils-gnu RPM");
+            System.exit(-19);
+        }
     }
 
 }

@@ -296,7 +296,7 @@ public class OperationExecutor {
         final String bashCommand;
         if (BatchMode.NO_BATCH == _svc.getBatchMode()) {
             // If we're not submitting to batch, it's a simple nohup and redirect to our log file.
-            bashCommand = ("nohup " + command + " >> " + _logFile.getAbsolutePath() + " 2>&1 &");
+            bashCommand = command + " >> " + _logFile.getAbsolutePath() + " 2>&1";
         } else {
             // If we're submitting to batch, we stuff special values into the SBMJOB_JOBNAME and SBMJOB_OPTS environment
             // variables that are ultimately used by our helper script (see the SbmJobScript class)
@@ -315,15 +315,17 @@ public class OperationExecutor {
             // the user prefers output going to spooled files, which seems natural for batch jobs. This may be
             // an incorrect assumption, however, and it may be a future TODO to change this behavior.
             bashCommand = ("exec " + SbmJobScript.getQp2() + " " + command);
+
         }
         m_logger.println_verbose("envp of the child is " + envp.toString());
 
         // Now we're ready to actually launch our new process. We take advantage of the shell here by
-        // explicitly launching /QOpenSys/usr/bin/sh, then piping the command to it's standard input stream.
-        final Process p = Runtime.getRuntime().exec("/QOpenSys/usr/bin/sh", envp.toArray(new String[0]), directory);
+        // explicitly launching bash and nohup to let the user specify bashisms (for instance, multiple
+        // semicolon-separated commands) in the start command for the service.
+        m_logger.println_verbose("running command: " + bashCommand);
+        final Process p = Runtime.getRuntime().exec(new String[] {"/QOpenSys/pkgs/bin/nohup", "/QOpenSys/pkgs/bin/bash", "-c", bashCommand}, envp.toArray(new String[0]), directory);
         final long startTime = new Date().getTime();
         final OutputStream stdin = p.getOutputStream();
-        m_logger.println_verbose("running command: " + command);
         stdin.write(bashCommand.getBytes("UTF-8"));
         ProcessUtils.pipeStreamsToCurrentProcess(_svc.getName(), p, m_logger);
         stdin.flush();
