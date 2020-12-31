@@ -1,0 +1,11 @@
+name: PostgreSQL Server
+start_cmd: pg_ctl start
+stop_cmd: pg_ctl stop
+
+check_alive: port
+# default port is 5432
+check_alive_criteria: 5432
+
+environment_vars:
+# Path to the database configuration files
+- PGDATA=/path/to/datadir
