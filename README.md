@@ -25,6 +25,7 @@ Assumes your `PATH` environment variable is set up properly, otherwise:
 PATH=/QOpenSys/pkgs/bin:$PATH
 export PATH
 ```
+Currently, the only way to install is from source. You can do so with the following steps:
 ```
 yum install git ca-certificates-mozilla make-gnu
 git clone https://github.com/ThePrez/ServiceCommander-IBMi/
