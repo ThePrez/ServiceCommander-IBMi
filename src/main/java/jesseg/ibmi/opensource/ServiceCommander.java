@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
+import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.utils.AppLogger;
 import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
 
@@ -43,7 +44,7 @@ public class ServiceCommander {
         }
 
         final LinkedList<String> args = new LinkedList<String>(Arrays.asList(_args));
-        final String service = args.removeLast().trim();
+        String service = args.removeLast().trim();
         final String operation = args.removeLast().trim();
         final AppLogger logger = new AppLogger(args.contains("-v"));
 
@@ -54,8 +55,15 @@ public class ServiceCommander {
 
         try {
             final Map<String, ServiceDefinition> serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger);
-            final Operation op = Operation.valueOf(operation.toUpperCase().trim()); // TODO: better input validation
-
+            final Operation op;
+            try {
+                op = Operation.valueOf(operation.toUpperCase().trim());
+            } catch (IllegalArgumentException e) {
+                throw new SCException(logger, e, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation '%s' requested", operation);
+            }
+            if (service.trim().equalsIgnoreCase("all") && null == serviceDefs.get("all")) { // let "all" be shorthand for "group:all"
+                service = "group:all";
+            }
             if (service.toLowerCase().startsWith("group:")) {
                 performOperationsOnServices(op, getServicesInGroup(service.substring("group:".length()).trim(), serviceDefs, logger), serviceDefs, logger);
             } else {
