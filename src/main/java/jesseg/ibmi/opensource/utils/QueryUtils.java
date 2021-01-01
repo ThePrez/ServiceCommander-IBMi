@@ -3,6 +3,7 @@ package jesseg.ibmi.opensource.utils;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -134,7 +135,7 @@ public class QueryUtils {
             throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Unable to retrieve performance data for job %s (it may be no longer active)", _job);
         }
         final TreeMap<String, String> ret = new TreeMap<>();
-        ret.put("->Sampling time(s)", queryResults.get(0));
+        ret.put("->Sampling time (s)", queryResults.get(0));
         ret.put("Thread Count", queryResults.get(1));
         ret.put("Disk I/O operations during sampling time", queryResults.get(2));
         ret.put("Total Disk I/O operations", queryResults.get(3));
@@ -150,12 +151,13 @@ public class QueryUtils {
             return ret;
         }
         final List<String> javaPerfData = Arrays.asList(javaQueryResults.get(0).replace("\"", "").split("\\s"));
-        ret.put("Java Heap Current Size (MB)", javaPerfData.get(0));
-        ret.put("Java Heap In Use, MB)", javaPerfData.get(1));
-        ret.put("Java Heap Maximum Size (MB)", javaPerfData.get(2));
-        ret.put("Java Shared Class Size (Kb)", javaPerfData.get(3));
-        ret.put("Malloc'ed Memory estimate (Kb)", javaPerfData.get(4));
-        ret.put("Java JIT Memory (MB)", javaPerfData.get(5));
+        final NumberFormat formatter = NumberFormat.getInstance();
+        ret.put("Java Heap Current Size (MB)", formatter.format(Long.parseLong(javaPerfData.get(0))));
+        ret.put("Java Heap In Use (Kb)",    formatter.format(Long.parseLong(javaPerfData.get(1))));
+        ret.put("Java Heap Maximum Size (Kb)", formatter.format(Long.parseLong(javaPerfData.get(2))));
+        ret.put("Java Shared Class Size (Kb)", formatter.format(Long.parseLong(javaPerfData.get(3))));
+        ret.put("Malloc'ed Memory estimate (Kb)", formatter.format(Long.parseLong(javaPerfData.get(4))));
+        ret.put("Java JIT Memory (KB)", formatter.format(Long.parseLong(javaPerfData.get(5))));
         ret.put("Java GC Cycle Number", javaPerfData.get(6));
         ret.put("Java GC Total Time (ms)", javaPerfData.get(7));
         return ret;
