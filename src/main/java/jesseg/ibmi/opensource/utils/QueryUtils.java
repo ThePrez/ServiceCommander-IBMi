@@ -137,8 +137,8 @@ public class QueryUtils {
         final TreeMap<String, String> ret = new TreeMap<>();
         ret.put("->Sampling time(s)", queryResults.get(0));
         ret.put("Thread Count", queryResults.get(1));
-        ret.put("Disk IO operations during sampling time", queryResults.get(2));
-        ret.put("Total Disk IO operations", queryResults.get(3));
+        ret.put("Disk I/O operations during sampling time", queryResults.get(2));
+        ret.put("Total Disk I/O operations", queryResults.get(3));
         ret.put("CPU Usage (%)", queryResults.get(4));
         ret.put("Temporary Storage (MB)", queryResults.get(5));
         ret.put("Job active since", queryResults.get(6));
