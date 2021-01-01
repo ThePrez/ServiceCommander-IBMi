@@ -22,14 +22,14 @@ private static String s_qp2term2 = "#!/QOpenSys/usr/bin/sh\n" +
 			"SBMJOB_OPTS=\"JOB($SBMJOB_JOBNAME) $SBMJOB_OPTS\"\n" + 
 			"QIBM_USE_DESCRIPTOR_STDIO=N\n" + 
 			"export QIBM_USE_DESCRIPTOR_STDIO\n" + 
-			"exec /QOpenSys/usr/bin/system -kpiveO \"SBMJOB CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '-c' 'cd $(pwd) && env && exec $*')) CPYENVVAR(*YES) PRTDEV(*USRPRF) ALWMLTTHD(*YES) $SBMJOB_OPTS\"";
+			"exec /QOpenSys/usr/bin/system -kpiveO \"SBMJOB CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-c' 'cd $(pwd) && env && exec $*')) CPYENVVAR(*YES) PRTDEV(*USRPRF) ALWMLTTHD(*YES) $SBMJOB_OPTS\"";
 //@formatter:on
     public static File getQp2() throws IOException {
         final File scriptsDir = AppDirectories.conf.getScriptsDirectory();
         if (!scriptsDir.isDirectory()) {
             scriptsDir.mkdirs();
         }
-        final File script = new File(scriptsDir.getAbsolutePath() + "/batch_qp2.sh");
+        final File script = new File(scriptsDir.getAbsolutePath() + "/batch_qp2.v1.sh"); //bump the version if the script contents change
         if (script.exists() && script.length() > 20) {
             return script;
         }
