@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +33,11 @@ public class OperationExecutor {
     public enum Operation {
         START(true), STOP(true), RESTART(true), CHECK(false), INFO(false), PERFINFO(false);
         private final boolean m_isChangingSystemState;
-        Operation(final boolean _isChangingSystemState){ m_isChangingSystemState=_isChangingSystemState;}
+
+        Operation(final boolean _isChangingSystemState) {
+            m_isChangingSystemState = _isChangingSystemState;
+        }
+
         public boolean isChangingSystemState() {
             return m_isChangingSystemState;
         }
@@ -188,7 +193,7 @@ public class OperationExecutor {
         _logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
 
         _logger.println(StringUtils.colorizeForTerminal(_svc.getName(), TerminalColor.CYAN) + " (" + _svc.getFriendlyName() + ")");
-        if(!isServiceRunning(_svc, _logger)) {
+        if (!isServiceRunning(_svc, _logger)) {
             _logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
         }
         _logger.println();
@@ -331,7 +336,9 @@ public class OperationExecutor {
         final ArrayList<String> envp = new ArrayList<String>();
         if (_svc.isInheritingEnvironmentVars()) {
             for (final Entry<String, String> l : System.getenv().entrySet()) {
-                envp.add(l.getKey() + "=" + l.getValue());
+                if (!isEnvvarProhibitedFromInheritance(l.getKey())) {
+                    envp.add(l.getKey() + "=" + l.getValue());
+                }
             }
         }
         for (final String var : _svc.getEnvironmentVars()) {
@@ -399,6 +406,11 @@ public class OperationExecutor {
                 m_logger.exception(e);
             }
         }
+    }
+
+    private static boolean isEnvvarProhibitedFromInheritance(String _var) {
+        List<String> prohibited = Arrays.asList("LIBPATH", "LD_LIBRARY_PATH");
+        return prohibited.contains(_var);
     }
 
     private static void stopViaEndJob(final ServiceDefinition _svc, final int _waitTime, final AppLogger _logger) throws IOException {
