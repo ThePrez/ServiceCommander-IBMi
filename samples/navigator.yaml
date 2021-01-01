@@ -1,0 +1,5 @@
+name: IBM Navigator for i
+start_cmd: system 'STRTCPSVR SERVER(*HTTP) RESTART(*HTTP) HTTPSVR(*ADMIN)'
+
+check_alive: jobname
+check_alive_criteria: QHTTPSVR/ADMIN2
