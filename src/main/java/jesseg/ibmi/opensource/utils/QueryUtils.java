@@ -1,6 +1,8 @@
 package jesseg.ibmi.opensource.utils;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -13,14 +15,14 @@ import jesseg.ibmi.opensource.SCException.FailureType;
 
 /**
  * A class that uses the <tt>db2util</tt> utility to query the system. This is used for critical queries to check, for
- * instance, if services are alive. 
+ * instance, if services are alive.
  * 
  * @author Jesse Gorzinski
  */
 public class QueryUtils {
 
-    private static List<String> deduplicate(List<String> _in) {
-        HashSet<String> s = new HashSet<String>();
+    private static List<String> deduplicate(final List<String> _in) {
+        final HashSet<String> s = new HashSet<String>();
         s.addAll(_in);
         return Arrays.asList(s.toArray(new String[0]));
     }
@@ -91,24 +93,55 @@ public class QueryUtils {
         return isListeningOnPort(Integer.valueOf(_port.trim()), _logger);
     }
 
-    public static SortedMap<String, String> getJobPerfInfo(String _job, final AppLogger _logger) throws IOException, SCException {
-        _logger.println_verbose("Getting performance info for job "+_job);
-        String simpleJobName = _job.replaceAll(".*/", "").trim().toUpperCase();
-        String jobName = _job.toUpperCase().trim();
+    public static SortedMap<String, String> getJobPerfInfo(final String _job, final AppLogger _logger, final int _sampleTime) throws IOException, SCException {
+        _logger.println_verbose("Getting performance info for job " + _job);
+        final File pythonInterpreter = new File("/QOpenSys/pkgs/bin/python3");
+        if(!pythonInterpreter.canExecute()) {
+            throw new SCException(_logger, FailureType.UNSUPPORTED_OPERATION, "This operation requires Python 3 to be installed");
+        }
+        else if(!new File("/QOpenSys/pkgs/lib/python3.6/site-packages/ibm_db.so").exists()) {
+            throw new SCException(_logger, FailureType.UNSUPPORTED_OPERATION, "This operation requires the python3-ibm_db RPM to be installed");
+        }
+        final String simpleJobName = _job.replaceAll(".*/", "").trim().toUpperCase();
+        final String jobName = _job.toUpperCase().trim();
+//@formatter:off
+        final String pythonCode = String.format(
+                "import ibm_db_dbi as db2\n"
+              + "from ibm_db import SQL_ATTR_TXN_ISOLATION, SQL_TXN_NO_COMMIT\n"
+              + "import time\n" + "jobname = \"%s\"\n" + "full_jobname = \"%s\"\n"
+              + "sql = \"\"\"SELECT ELAPSED_TIME, THREAD_COUNT, ELAPSED_TOTAL_DISK_IO_COUNT, TOTAL_DISK_IO_COUNT, ELAPSED_CPU_PERCENTAGE, TEMPORARY_STORAGE, JOB_ACTIVE_TIME FROM TABLE(QSYS2.ACTIVE_JOB_INFO(JOB_NAME_FILTER => ?, RESET_STATISTICS => 'NO', DETAILED_INFO => 'ALL')) as X WHERE JOB_NAME = ?\"\"\"\n" 
+              + "conn = db2.connect()\n" + "conn.set_option({ SQL_ATTR_TXN_ISOLATION: SQL_TXN_NO_COMMIT })\n"
+              + "cursor = conn.cursor()\n" + "try:\n"
+              + "    cursor.execute(sql, (jobname, full_jobname))\n"
+              + "    cursor.fetchall()\n"
+              + "    time.sleep(%d)\n"
+              + "    cursor.execute(sql, (jobname, full_jobname))\n"
+              + "    for row in cursor:\n"
+              + "        for item in row:\n"
+              + "            print(str(item))\n"
+              + "finally:\n"
+              + "    cursor.close()\n"
+              + "    conn.close()",
+                simpleJobName, jobName, _sampleTime);
+//@formatter:on
+        final Process p = Runtime.getRuntime().exec(pythonInterpreter.getAbsolutePath());
+        final OutputStream stdin = p.getOutputStream();
+        stdin.write(pythonCode.getBytes("UTF-8"));
+        stdin.flush();
+        stdin.close();
 
-        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", simpleJobName,"-p", jobName,
-                "SELECT THREAD_COUNT as Threads, ELAPSED_TOTAL_DISK_IO_COUNT, TOTAL_DISK_IO_COUNT, ELAPSED_CPU_PERCENTAGE, TEMPORARY_STORAGE\n" + 
-                "FROM TABLE(QSYS2.ACTIVE_JOB_INFO(JOB_NAME_FILTER => ?, RESET_STATISTICS => 'NO')) as X WHERE JOB_NAME = ?" });
-        final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
-        if(queryResults.isEmpty()) {
+        final List<String> queryResults = ProcessUtils.getStdout("python3", p, _logger);
+        if (queryResults.isEmpty()) {
             throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Unable to retrieve performance data for job %s (it may be no longer active)", _job);
         }
-        String[] perfData = queryResults.get(0).replace("\"","").split(" ");
-        TreeMap<String,String> ret = new TreeMap<>();
-        ret.put("Thread Count", perfData[0]);
-        ret.put("Total Disk IO operations", perfData[2]);
-//        ret.put("CPU Percentage", perfData[3]); //TODO: figure out a way to get this, since there's no "elapsed time" with a db2util invocation
-        ret.put("Temporary Storage (MB)", perfData[4]);
+        final TreeMap<String, String> ret = new TreeMap<>();
+        ret.put("->Sampling time(s)", queryResults.get(0));
+        ret.put("Thread Count", queryResults.get(1));
+        ret.put("Disk IO operations during sampling time", queryResults.get(2));
+        ret.put("Total Disk IO operations", queryResults.get(3));
+        ret.put("CPU Usage (%)", queryResults.get(4));
+        ret.put("Temporary Storage (MB)", queryResults.get(5));
+        ret.put("Job active since", queryResults.get(6));
         return ret;
     }
 }

@@ -182,10 +182,13 @@ public class OperationExecutor {
         _logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
 
         _logger.println(StringUtils.colorizeForTerminal(_svc.getName(), TerminalColor.CYAN) + " (" + _svc.getFriendlyName() + ")");
+        if(!isServiceRunning(_svc, _logger)) {
+            _logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
+        }
         _logger.println();
         for (String job : getActiveJobsForService(_svc, _logger)) {
             _logger.println(StringUtils.colorizeForTerminal("Job: " + job, TerminalColor.CYAN));
-            SortedMap<String, String> perfInfo = QueryUtils.getJobPerfInfo(job, _logger);
+            SortedMap<String, String> perfInfo = QueryUtils.getJobPerfInfo(job, _logger, Integer.getInteger("sc.perfsamplingtime", 1));
             for (Entry<String, String> pi : perfInfo.entrySet()) {
                 _logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), TerminalColor.CYAN) + ": " + pi.getValue());
             }
