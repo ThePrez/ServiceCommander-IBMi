@@ -212,7 +212,7 @@ public class OperationExecutor {
         } else {
             paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("NOT RUNNING", 23), TerminalColor.PURPLE);
         }
-        _logger.printfln("  %s | %s", paddedStatusString, _svc.getFriendlyName());
+        _logger.printfln("  %s | %s (%s)", paddedStatusString, _svc.getName(), _svc.getFriendlyName());
         return isRunning;
     }
 
