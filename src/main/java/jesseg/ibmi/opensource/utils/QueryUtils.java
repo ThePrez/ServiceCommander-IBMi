@@ -96,10 +96,9 @@ public class QueryUtils {
     public static SortedMap<String, String> getJobPerfInfo(final String _job, final AppLogger _logger, final int _sampleTime) throws IOException, SCException {
         _logger.println_verbose("Getting performance info for job " + _job);
         final File pythonInterpreter = new File("/QOpenSys/pkgs/bin/python3");
-        if(!pythonInterpreter.canExecute()) {
+        if (!pythonInterpreter.canExecute()) {
             throw new SCException(_logger, FailureType.UNSUPPORTED_OPERATION, "This operation requires Python 3 to be installed");
-        }
-        else if(!new File("/QOpenSys/pkgs/lib/python3.6/site-packages/ibm_db.so").exists()) {
+        } else if (!new File("/QOpenSys/pkgs/lib/python3.6/site-packages/ibm_db.so").exists()) {
             throw new SCException(_logger, FailureType.UNSUPPORTED_OPERATION, "This operation requires the python3-ibm_db RPM to be installed");
         }
         final String simpleJobName = _job.replaceAll(".*/", "").trim().toUpperCase();
@@ -142,6 +141,23 @@ public class QueryUtils {
         ret.put("CPU Usage (%)", queryResults.get(4));
         ret.put("Temporary Storage (MB)", queryResults.get(5));
         ret.put("Job active since", queryResults.get(6));
+
+        // Now fetch JVM properties!
+
+        final Process pJava = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + jobName, "SELECT CURRENT_HEAP_SIZE, IN_USE_HEAP_SIZE, MAX_HEAP_SIZE, SHARED_CLASS_SIZE, MALLOC_MEMORY_SIZE, JIT_MEMORY_SIZE, GC_CYCLE_NUMBER, TOTAL_GC_TIME from QSYS2.JVM_INFO where JOB_NAME =  ?" });
+        final List<String> javaQueryResults = ProcessUtils.getStdout("db2util", pJava, _logger);
+        if (javaQueryResults.isEmpty()) {
+            return ret;
+        }
+        final List<String> javaPerfData = Arrays.asList(javaQueryResults.get(0).replace("\"", "").split("\\s"));
+        ret.put("Java Heap Current Size (MB)", javaPerfData.get(0));
+        ret.put("Java Heap In Use, MB)", javaPerfData.get(1));
+        ret.put("Java Heap Maximum Size (MB)", javaPerfData.get(2));
+        ret.put("Java Shared Class Size (Kb)", javaPerfData.get(3));
+        ret.put("Malloc'ed Memory estimate (Kb)", javaPerfData.get(4));
+        ret.put("Java JIT Memory (MB)", javaPerfData.get(5));
+        ret.put("Java GC Cycle Number", javaPerfData.get(6));
+        ret.put("Java GC Total Time (ms)", javaPerfData.get(7));
         return ret;
     }
 }
