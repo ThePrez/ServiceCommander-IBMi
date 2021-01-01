@@ -17,6 +17,7 @@ Some of the features of the tool include:
 - The ability to check the "liveliness" of your service by either port status or job name
 - Customize the runtime environment variables of your job
 - Define custom groups for your services, and perform operations on those groups (by default, a group of "all" is defined)
+- Query basic performance attributes of the services
 
 # Installation
 Assumes your `PATH` environment variable is set up properly, otherwise:
@@ -37,7 +38,7 @@ This tool currently requires you to define any services of interest in `.yaml` f
 - A global directory (/QOpenSys/etc/sc/services)
 - A user-specific directory($HOME/.sc/services)
 - If defined, whatever the value of the `services.dir` system property is. 
-The file name must be in the format of `service_name.yaml`, where "service_name" is the name of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters and underscores.
+The file name must be in the format of `service_name.yaml`, where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, hyphens, and underscores.
 
 Usage of the command is summarized as:
 ```
