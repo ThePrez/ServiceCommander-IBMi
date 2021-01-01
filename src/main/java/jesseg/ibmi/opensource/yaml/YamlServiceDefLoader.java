@@ -44,7 +44,6 @@ public class YamlServiceDefLoader {
             final String serviceName = m.group(1);
             ret.put(serviceName, new YamlServiceDef(serviceName, f, _logger));
         }
-        ret.putAll(loadFromDirectory(AppDirectories.conf.getGlobalServicesDirOrNull(), _logger));
         return ret;
     }
 }
