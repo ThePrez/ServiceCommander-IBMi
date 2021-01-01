@@ -9,7 +9,7 @@ import java.io.File;
  * 
  * Most notably, there are three places that the tool will search for service definition files:
  * <ul>
- *      <li> A global directory (/QOpenSys/etc/services)
+ *      <li> A global directory (/QOpenSys/etc/sc/services)
  *      <li> A user-specific directory($HOME/.sc/services)
  *      <li> If defined, whatever the value of the <tt>services.dir</tt> system property is
  * </ul>
@@ -19,7 +19,7 @@ import java.io.File;
  */
 public enum AppDirectories {
     conf;
-    private static File s_globalServicesDir = new File("/QOpenSys/etc/services");
+    private static File s_globalServicesDir = new File("/QOpenSys/etc/sc/services");
 
     public File getCustomServicesDirOrNull() {
         final String servicesDir = System.getProperty("services.dir", null);

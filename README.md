@@ -34,8 +34,8 @@ make install
 
 # Basic usage
 This tool currently requires you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
-- A global directory (/QOpenSys/etc/services) 
-- A user-specific directory($HOME/.sc/services) 
+- A global directory (/QOpenSys/etc/sc/services)
+- A user-specific directory($HOME/.sc/services)
 - If defined, whatever the value of the `services.dir` system property is. 
 The file name must be in the format of `service_name.yaml`, where "service_name" is the name of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters and underscores.
 
