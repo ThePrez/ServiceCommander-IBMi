@@ -88,10 +88,10 @@ public class ServiceCommander {
     private static void performOperationsOnServices(final Operation _op, final Set<String> _services, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) throws SCException {
         SCException lastExc = null;
         for (final String service : _services) {
-            if (Operation.CHECK == _op) {
-                _logger.printf_verbose("Performing operation '%s' on service '%s'\n", _op.name(), service);
-            } else {
+            if (_op.isChangingSystemState()) {
                 _logger.printf("Performing operation '%s' on service '%s'\n", _op.name(), service);
+            } else {
+                _logger.printf_verbose("Performing operation '%s' on service '%s'\n", _op.name(), service);
             }
             try {
                 final OperationExecutor executioner = new OperationExecutor(_op, service, _serviceDefs, _logger);

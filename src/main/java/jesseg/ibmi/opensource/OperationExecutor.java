@@ -28,8 +28,14 @@ import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
  * @author Jesse Gorzinski
  */
 public class OperationExecutor {
+
     public enum Operation {
-        START, STOP, RESTART, CHECK, INFO, PERFINFO;
+        START(true), STOP(true), RESTART(true), CHECK(false), INFO(false), PERFINFO(false);
+        private final boolean m_isChangingSystemState;
+        Operation(final boolean _isChangingSystemState){ m_isChangingSystemState=_isChangingSystemState;}
+        public boolean isChangingSystemState() {
+            return m_isChangingSystemState;
+        }
     }
 
     private final Operation m_op;
