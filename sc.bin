@@ -1,2 +1,2 @@
-#!/QOpenSys/pkgs/bin/bash 
-exec /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java -jar /QOpenSys/pkgs/lib/sc/sc.jar $*
+#!/QOpenSys/pkgs/bin/bash
+exec /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java -jar $(dirname $0)/../lib/sc/sc.jar $*
