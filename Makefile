@@ -10,7 +10,7 @@ FORCE:
 all: target/sc.jar
 
 uninstall: clean
-	rm -r /QOpenSys/pkgs/lib/sc /QOpenSys/pkgs/bin/sc
+	rm -r ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/pkgs/bin/sc
 
 clean:
 	rm -r target
@@ -30,11 +30,7 @@ clean:
 install_runtime_dependencies: /QOpenSys/pkgs/bin/db2util /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/bin/nohup
 
 install: sc.bin target/sc.jar install_runtime_dependencies
-	install -m 555 -o qsys sc.bin /QOpenSys/pkgs/bin/sc
-	mkdir -p /QOpenSys/pkgs/lib/sc
-	chmod 755 /QOpenSys/pkgs/lib/sc
-	install -m 444 target/sc.jar -o qsys /QOpenSys/pkgs/lib/sc/sc.jar
-	chown -R qsys /QOpenSys/pkgs/lib/sc
+	install -m 755 -o qsys -D -d ${INSTALL_ROOT}/QOpenSys/pkgs/bin ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services
+	install -m 555 -o qsys sc.bin ${INSTALL_ROOT}/QOpenSys/pkgs/bin/sc
+	install -m 444 -o qsys target/sc.jar ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/sc.jar
 
-
-	
