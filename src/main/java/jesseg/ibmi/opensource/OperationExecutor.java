@@ -409,7 +409,7 @@ public class OperationExecutor {
     }
 
     private static boolean isEnvvarProhibitedFromInheritance(String _var) {
-        List<String> prohibited = Arrays.asList("LIBPATH", "LD_LIBRARY_PATH");
+        List<String> prohibited = Arrays.asList("LIBPATH", "LD_LIBRARY_PATH", "JAVA_HOME", "SSH_TTY", "SSH_CLIENT", "SSH_CONNECTION", "SHELL", "SHLVL");
         return prohibited.contains(_var);
     }
 
