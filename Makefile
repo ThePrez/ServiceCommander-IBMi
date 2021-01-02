@@ -3,7 +3,7 @@
 
 target/sc.jar: FORCE /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/bin/mvn
 	JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11 /QOpenSys/pkgs/bin/mvn package
-	mv target/sc-*-with-dependencies.jar target/sc.jar
+	cp target/sc-*-with-dependencies.jar target/sc.jar
 
 FORCE:
 
