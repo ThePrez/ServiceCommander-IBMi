@@ -33,6 +33,20 @@ cd ServiceCommander-IBMi
 make install
 ```
 
+# System Requirements
+For most of the features of this tool, the following is required to be installed (the `make install` of the installation steps should handle these for you):
+- db2util (`yum install db2util`)
+- OpenJDK (`yum install openjdk-11`)
+- bash (`yum install bash`)
+- GNU coreutils (`yum install coreutils-gnu`)
+
+The performance information support (`perfinfo`) has additional requirements, including:
+- Python 3 with the ibm_db database connector (`yum install python3-ibm_db`)
+- Required operating system support, which depends on your IBM i operating system level, as follows:
+    - IBM i 7.4: included with base OS
+    - IBM i 7.3: Group PTF SF99703 Level 11
+    - IBM i 7.2: Group PTF SF99702 Level 23
+    - IBM i 7.1 (and earlier): not supported
 
 # Basic usage
 This tool currently requires you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:

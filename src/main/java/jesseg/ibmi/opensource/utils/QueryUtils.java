@@ -110,8 +110,10 @@ public class QueryUtils {
               + "from ibm_db import SQL_ATTR_TXN_ISOLATION, SQL_TXN_NO_COMMIT\n"
               + "import time\n" + "jobname = \"%s\"\n" + "full_jobname = \"%s\"\n"
               + "sql = \"\"\"SELECT ELAPSED_TIME, THREAD_COUNT, ELAPSED_TOTAL_DISK_IO_COUNT, TOTAL_DISK_IO_COUNT, ELAPSED_CPU_PERCENTAGE, TEMPORARY_STORAGE, JOB_ACTIVE_TIME FROM TABLE(QSYS2.ACTIVE_JOB_INFO(JOB_NAME_FILTER => ?, RESET_STATISTICS => 'NO', DETAILED_INFO => 'ALL')) as X WHERE JOB_NAME = ?\"\"\"\n" 
-              + "conn = db2.connect()\n" + "conn.set_option({ SQL_ATTR_TXN_ISOLATION: SQL_TXN_NO_COMMIT })\n"
-              + "cursor = conn.cursor()\n" + "try:\n"
+              + "conn = db2.connect()\n"
+              + "conn.set_option({ SQL_ATTR_TXN_ISOLATION: SQL_TXN_NO_COMMIT })\n"
+              + "cursor = conn.cursor()\n"
+              + "try:\n"
               + "    cursor.execute(sql, (jobname, full_jobname))\n"
               + "    cursor.fetchall()\n"
               + "    time.sleep(%d)\n"
@@ -132,7 +134,7 @@ public class QueryUtils {
 
         final List<String> queryResults = ProcessUtils.getStdout("python3", p, _logger);
         if (queryResults.isEmpty()) {
-            throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Unable to retrieve performance data for job %s (it may be no longer active)", _job);
+            throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Unable to retrieve performance data for job %s. The job may no longer be active, or you may be missing required operating system support. The required operating system capability is included in IBM i 7.4. For IBM i 7.3, it is available with group PTF SF99703 Level 11. For IBM i 7.2, it is available with group PTF SF99702 Level 23.", _job);
         }
         final TreeMap<String, String> ret = new TreeMap<>();
         ret.put("->Sampling time (s)", queryResults.get(0));
