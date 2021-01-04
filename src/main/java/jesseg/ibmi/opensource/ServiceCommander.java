@@ -11,6 +11,7 @@ import java.util.Set;
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.utils.AppLogger;
+import jesseg.ibmi.opensource.utils.StringUtils;
 import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
 
 /**
@@ -88,7 +89,27 @@ public class ServiceCommander {
         final LinkedList<String> args = new LinkedList<String>(Arrays.asList(_args));
         String service = args.removeLast().trim();
         final String operation = args.removeLast().trim();
-        final AppLogger logger = new AppLogger(args.contains("-v"));
+
+        // Process all bool-type arguments, including "-v" to initialize our logger
+        System.setProperty(StringUtils.PROP_DISABLE_COLORS, "" + Boolean.valueOf(args.remove("--disable-colors")));
+        System.setProperty(OperationExecutor.PROP_BATCHOUTPUT_SPLF, "" + Boolean.valueOf(args.remove("--batch-output-splf")));
+        if(args.remove("-h") || args.remove("--help")) {
+            printUsageAndExit();
+        }
+        final AppLogger logger = new AppLogger(args.remove("-v"));
+
+        for (final String remainingArg : args) {
+            if (remainingArg.startsWith("--performance-sampletime=")) {
+                try {
+                    final float value = Float.parseFloat(remainingArg.replaceAll(".*=", ""));
+                    System.setProperty(OperationExecutor.PROP_SAMPLE_TIME, String.format("%.2f", value));
+                } catch (final Exception e) {
+                    logger.printfln_warn("WARNING: Value specified for sample time argument is not valid: %s", remainingArg);
+                }
+            } else {
+                logger.printfln_warn("WARNING: Argument '%s' unrecognized and will be ignored", remainingArg);
+            }
+        }
 
         logger.println_verbose("Verbose mode enabled");
         logger.println_verbose("--------------------");
@@ -142,7 +163,11 @@ public class ServiceCommander {
 		final String usage = "Usage: sc  [options] <operation> <service>\n" +
 		"\n"
 		                + "    Valid options include:\n"
-				+ "        -v: verbose mode\n" + "\n"
+                                + "        -v: verbose mode\n"
+                                + "        --disable-colors: disable colored output\n"
+                                + "        --batch-output-splf: send output to *SPLF when submitting jobs to batch (instead of log)\n"
+                                + "        --performance-sampletime=x.x: sampling time(s) when gathering performance info (default is 1)\n"
+                                + "\n"
 		                + "    Valid operations include:\n"
 				+ "        start: start the service (and any dependencies)\n"
 				+ "        stop: stop the service (and dependent services)\n"

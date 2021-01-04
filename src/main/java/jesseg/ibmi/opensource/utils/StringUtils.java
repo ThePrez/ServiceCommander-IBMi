@@ -7,11 +7,14 @@ package jesseg.ibmi.opensource.utils;
  *
  */
 public class StringUtils {
-
+    /**
+     * System property that can be used for disabling terminal colorizations
+     */
+    public static final String PROP_DISABLE_COLORS = "sc.disablecolors";
     private static final String LOTSA_SPACES = "                                             ";
 
     // SSH_TTY will be unset in non-SSH environments, and System.console() returns null when output is being piped
-    private static final boolean s_isTerminalColorsSupported = (null != System.console() && !isEmpty(System.getenv("SSH_TTY")) && !Boolean.getBoolean("sc.disablecolors"));
+    private static final boolean s_isTerminalColorsSupported = (null != System.console() && !isEmpty(System.getenv("SSH_TTY")) && !Boolean.getBoolean(PROP_DISABLE_COLORS));
 
     public static boolean isEmpty(final String _str) {
         return (null == _str) || (_str.trim().isEmpty());

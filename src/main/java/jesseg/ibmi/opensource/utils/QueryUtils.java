@@ -94,7 +94,7 @@ public class QueryUtils {
         return isListeningOnPort(Integer.valueOf(_port.trim()), _logger);
     }
 
-    public static SortedMap<String, String> getJobPerfInfo(final String _job, final AppLogger _logger, final int _sampleTime) throws IOException, SCException {
+    public static SortedMap<String, String> getJobPerfInfo(final String _job, final AppLogger _logger, final float _sampleTime) throws IOException, SCException {
         _logger.println_verbose("Getting performance info for job " + _job);
         final File pythonInterpreter = new File("/QOpenSys/pkgs/bin/python3");
         if (!pythonInterpreter.canExecute()) {
@@ -116,7 +116,7 @@ public class QueryUtils {
               + "try:\n"
               + "    cursor.execute(sql, (jobname, full_jobname))\n"
               + "    cursor.fetchall()\n"
-              + "    time.sleep(%d)\n"
+              + "    time.sleep(%.2f)\n"
               + "    cursor.execute(sql, (jobname, full_jobname))\n"
               + "    for row in cursor:\n"
               + "        for item in row:\n"

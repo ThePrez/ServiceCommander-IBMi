@@ -43,6 +43,9 @@ public class OperationExecutor {
         }
     }
 
+    static final String PROP_BATCHOUTPUT_SPLF = "sc.batchoutput.splf";
+    static final String PROP_SAMPLE_TIME = "sc.perfsamplingtime";
+
     private final Operation m_op;
     private final String m_mainService;
     private final Map<String, ServiceDefinition> m_serviceDefs;
@@ -199,7 +202,7 @@ public class OperationExecutor {
         _logger.println();
         for (final String job : getActiveJobsForService(_svc, _logger)) {
             _logger.println(StringUtils.colorizeForTerminal("Job: " + job, TerminalColor.CYAN));
-            final SortedMap<String, String> perfInfo = QueryUtils.getJobPerfInfo(job, _logger, Integer.getInteger("sc.perfsamplingtime", 1));
+            final SortedMap<String, String> perfInfo = QueryUtils.getJobPerfInfo(job, _logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0")));
             for (final Entry<String, String> pi : perfInfo.entrySet()) {
                 _logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), TerminalColor.CYAN) + ": " + pi.getValue());
             }
@@ -365,7 +368,7 @@ public class OperationExecutor {
             // In the case of submitting to batch, it's unclear whether the user would want to redirect the output of the command
             // to spooled files or whether they'd prefer the more i-traditional approach of output going to spooled files,
             // which is arguably more natural for batch jobs.
-            if (Boolean.getBoolean("sc.batchoutput.splf")) {
+            if (Boolean.getBoolean(PROP_BATCHOUTPUT_SPLF)) {
                 bashCommand = ("exec " + SbmJobScript.getQp2() + " " + command);
             } else {
                 final char quoteChar = command.contains("'") ? '\"' : '\'';
