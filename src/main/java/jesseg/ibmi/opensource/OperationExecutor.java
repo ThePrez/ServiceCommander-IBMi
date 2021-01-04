@@ -354,12 +354,12 @@ public class OperationExecutor {
             final String batchJobName = _svc.getBatchJobName();
             if (!StringUtils.isEmpty(batchJobName)) {
                 m_logger.printfln_verbose("using custom batch job name: " + batchJobName);
-                envp.add("SBMJOB_JOBNAME=" + batchJobName.trim()); // TODO: job name validation
+                envp.add("SBMJOB_JOBNAME=" + validateJobName(batchJobName.trim().toUpperCase()));
             }
             final String sbmJobOpts = _svc.getSbmJobOpts();
             if (!StringUtils.isEmpty(sbmJobOpts)) {
                 m_logger.printfln_verbose("using custom sbmJobOpts: " + sbmJobOpts);
-                envp.add("SBMJOB_OPTS=" + sbmJobOpts.trim()); // TODO: job name validation
+                envp.add("SBMJOB_OPTS=" + sbmJobOpts.trim());
             }
 
             // In the case of submitting to batch, it's unclear whether the user would want to redirect the output of the command
@@ -410,6 +410,12 @@ public class OperationExecutor {
                 m_logger.exception(e);
             }
         }
+    }
+
+    private String validateJobName(final String _jobName) throws SCException {
+        if(!_jobName.matches("^[0-9A-Z#]{1,10}$"))
+            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid custom job name '%s' specified", _jobName);
+        return _jobName;
     }
 
     private static boolean isEnvvarProhibitedFromInheritance(String _var) {
