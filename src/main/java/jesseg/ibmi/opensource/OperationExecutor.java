@@ -267,11 +267,10 @@ public class OperationExecutor {
             for (final String var : _svc.getEnvironmentVars()) {
                 envp.add(var);
             }
-            final Process p = Runtime.getRuntime().exec("/QOpenSys/usr/bin/sh", envp.toArray(new String[0]), directory); //TODO: rework how we launch the process, like we did for service starting
-            final OutputStream stdin = p.getOutputStream();
             m_logger.println_verbose("running command: " + command);
-            final String bashCommand = ("nohup " + command + " >> " + _logFile.getAbsolutePath() + " 2>&1 &");
-            stdin.write(bashCommand.getBytes("UTF-8"));
+            final String bashCommand = command + " >> " + _logFile.getAbsolutePath() + " 2>&1";
+            final Process p = Runtime.getRuntime().exec(new String[] {"/QOpenSys/pkgs/bin/bash", "-c", bashCommand }, envp.toArray(new String[0]), directory);
+            final OutputStream stdin = p.getOutputStream();
             ProcessUtils.pipeStreamsToCurrentProcess(_svc.getName(), p, m_logger);
             stdin.flush();
             stdin.close();
