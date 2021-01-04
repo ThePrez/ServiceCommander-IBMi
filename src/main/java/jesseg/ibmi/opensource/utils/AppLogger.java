@@ -109,23 +109,23 @@ public class AppLogger {
         return printf_warn_verbose(_fmt + "\n", _args);
     }
 
-    public void println(String _str) {
+    public void println(final String _str) {
         m_out.println(_str);
     }
 
-    public void println_err(String _str) {
+    public void println_err(final String _str) {
         m_err.println(StringUtils.colorizeForTerminal(_str, TerminalColor.BRIGHT_RED));
     }
 
-    public void println_warn(String _str) {
+    public void println_warn(final String _str) {
         m_err.println(StringUtils.colorizeForTerminal(_str, TerminalColor.YELLOW));
     }
 
-    public void exception(Throwable _exc) {
+    public void exception(final Throwable _exc) {
         _exc.printStackTrace(System.err);
     }
 
-    public void printf_success(String _fmt, Object... _args) {
+    public void printf_success(final String _fmt, final Object... _args) {
         printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.GREEN), _args);
     }
 }

@@ -1,10 +1,9 @@
 package jesseg.ibmi.opensource;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import jesseg.ibmi.opensource.yaml.YamlServiceDef;
-
-import java.util.LinkedList;
 
 /**
  * Abstract class representing a definition of a service. Since currently only

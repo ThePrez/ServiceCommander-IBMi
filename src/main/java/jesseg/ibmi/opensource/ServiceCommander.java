@@ -58,7 +58,7 @@ public class ServiceCommander {
             final Operation op;
             try {
                 op = Operation.valueOf(operation.toUpperCase().trim());
-            } catch (IllegalArgumentException e) {
+            } catch (final IllegalArgumentException e) {
                 throw new SCException(logger, e, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation '%s' requested", operation);
             }
             if (service.trim().equalsIgnoreCase("all") && null == serviceDefs.get("all")) { // let "all" be shorthand for "group:all"

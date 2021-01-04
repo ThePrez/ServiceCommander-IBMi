@@ -1,7 +1,5 @@
 package jesseg.ibmi.opensource.utils;
 
-import java.io.Console;
-
 /**
  * Simple string utilities. Not much here.
  * 
@@ -48,7 +46,7 @@ public class StringUtils {
                 return _str;
             }
             String ret = _str;
-            for (TerminalColor color : values()) {
+            for (final TerminalColor color : values()) {
                 ret = ret.replace(color.m_code, "");
             }
             ret.replace(TERM_COLOR_RESET, "");
