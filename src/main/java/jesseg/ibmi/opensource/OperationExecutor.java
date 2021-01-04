@@ -197,10 +197,10 @@ public class OperationExecutor {
             _logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
         }
         _logger.println();
-        for (String job : getActiveJobsForService(_svc, _logger)) {
+        for (final String job : getActiveJobsForService(_svc, _logger)) {
             _logger.println(StringUtils.colorizeForTerminal("Job: " + job, TerminalColor.CYAN));
-            SortedMap<String, String> perfInfo = QueryUtils.getJobPerfInfo(job, _logger, Integer.getInteger("sc.perfsamplingtime", 1));
-            for (Entry<String, String> pi : perfInfo.entrySet()) {
+            final SortedMap<String, String> perfInfo = QueryUtils.getJobPerfInfo(job, _logger, Integer.getInteger("sc.perfsamplingtime", 1));
+            for (final Entry<String, String> pi : perfInfo.entrySet()) {
                 _logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), TerminalColor.CYAN) + ": " + pi.getValue());
             }
             _logger.println();
@@ -413,13 +413,14 @@ public class OperationExecutor {
     }
 
     private String validateJobName(final String _jobName) throws SCException {
-        if(!_jobName.matches("^[0-9A-Z#]{1,10}$"))
+        if (!_jobName.matches("^[0-9A-Z#]{1,10}$")) {
             throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid custom job name '%s' specified", _jobName);
+        }
         return _jobName;
     }
 
-    private static boolean isEnvvarProhibitedFromInheritance(String _var) {
-        List<String> prohibited = Arrays.asList("LIBPATH", "LD_LIBRARY_PATH", "JAVA_HOME", "SSH_TTY", "SSH_CLIENT", "SSH_CONNECTION", "SHELL", "SHLVL");
+    private static boolean isEnvvarProhibitedFromInheritance(final String _var) {
+        final List<String> prohibited = Arrays.asList("LIBPATH", "LD_LIBRARY_PATH", "JAVA_HOME", "SSH_TTY", "SSH_CLIENT", "SSH_CONNECTION", "SHELL", "SHLVL");
         return prohibited.contains(_var);
     }
 
