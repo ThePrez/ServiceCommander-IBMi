@@ -11,7 +11,7 @@ import jesseg.ibmi.opensource.ServiceDefinition;
 import jesseg.ibmi.opensource.utils.AppLogger;
 
 /**
- * Loads service definitions from <tt>.yaml</tt> files found in any of the global, user, or 
+ * Loads service definitions from <tt>.yaml</tt> files found in any of the global, user, or
  * manually-specified directories.
  * 
  * @author Jesse Gorzinski

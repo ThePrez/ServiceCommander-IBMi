@@ -155,7 +155,7 @@ public class QueryUtils {
         final List<String> javaPerfData = Arrays.asList(javaQueryResults.get(0).replace("\"", "").split("\\s"));
         final NumberFormat formatter = NumberFormat.getInstance();
         ret.put("Java Heap Current Size (MB)", formatter.format(Long.parseLong(javaPerfData.get(0))));
-        ret.put("Java Heap In Use (Kb)",    formatter.format(Long.parseLong(javaPerfData.get(1))));
+        ret.put("Java Heap In Use (Kb)", formatter.format(Long.parseLong(javaPerfData.get(1))));
         ret.put("Java Heap Maximum Size (Kb)", formatter.format(Long.parseLong(javaPerfData.get(2))));
         ret.put("Java Shared Class Size (Kb)", formatter.format(Long.parseLong(javaPerfData.get(3))));
         ret.put("Malloc'ed Memory estimate (Kb)", formatter.format(Long.parseLong(javaPerfData.get(4))));

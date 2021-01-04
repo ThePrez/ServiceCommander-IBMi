@@ -8,7 +8,7 @@ import jesseg.ibmi.opensource.AppDirectories;
 
 /**
  * A simple class to encapsulate a helper script used for submitting jobs to batch. This script file is actually
- * written out to disk and then executed in order to perform a SBMJOB as needed. 
+ * written out to disk and then executed in order to perform a SBMJOB as needed.
  * 
  * @author Jesse Gorzinski
  */
@@ -29,7 +29,7 @@ private static String s_qp2term2 = "#!/QOpenSys/usr/bin/sh\n" +
         if (!scriptsDir.isDirectory()) {
             scriptsDir.mkdirs();
         }
-        final File script = new File(scriptsDir.getAbsolutePath() + "/batch_qp2.v1.sh"); //bump the version if the script contents change
+        final File script = new File(scriptsDir.getAbsolutePath() + "/batch_qp2.v1.sh"); // bump the version if the script contents change
         if (script.exists() && script.length() > 20) {
             return script;
         }

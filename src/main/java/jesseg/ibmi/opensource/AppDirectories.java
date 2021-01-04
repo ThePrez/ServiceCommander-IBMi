@@ -3,15 +3,15 @@ package jesseg.ibmi.opensource;
 import java.io.File;
 
 /**
- * Just a place to keep track of where various directories are that the application uses. 
+ * Just a place to keep track of where various directories are that the application uses.
  * 
  * <br>
  * 
  * Most notably, there are three places that the tool will search for service definition files:
  * <ul>
- *      <li> A global directory (/QOpenSys/etc/sc/services)
- *      <li> A user-specific directory($HOME/.sc/services)
- *      <li> If defined, whatever the value of the <tt>services.dir</tt> system property is
+ * <li> A global directory (/QOpenSys/etc/sc/services)
+ * <li> A user-specific directory($HOME/.sc/services)
+ * <li> If defined, whatever the value of the <tt>services.dir</tt> system property is
  * </ul>
  * 
  * @author Jesse Gorzinski
