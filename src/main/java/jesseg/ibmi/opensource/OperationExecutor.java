@@ -368,8 +368,8 @@ public class OperationExecutor {
             if (Boolean.getBoolean("sc.batchoutput.splf")) {
                 bashCommand = ("exec " + SbmJobScript.getQp2() + " " + command);
             } else {
-                //BUGBUG, we probably have an issue here if the command contains single quotes //TODO
-                bashCommand = ("exec " + SbmJobScript.getQp2() + " '" + command + " >> " + _logFile.getAbsolutePath() + " 2>&1'");
+                final char quoteChar = command.contains("'") ? '\"' : '\'';
+                bashCommand = ("exec " + SbmJobScript.getQp2() + " " + quoteChar + command + " >> " + _logFile.getAbsolutePath() + " 2>&1" + quoteChar);
             }
 
         }
