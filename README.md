@@ -61,6 +61,9 @@ Usage: sc  [options] <operation> <service or group:group_name>
 
     Valid options include:
         -v: verbose mode
+        --disable-colors: disable colored output
+        --batch-output-splf: send output to *SPLF when submitting jobs to batch (instead of log)
+        --performance-sampletime=x.x: sampling time(s) when gathering performance info (default is 1)
 
     Valid operations include:
         start: start the service (and any dependencies)
