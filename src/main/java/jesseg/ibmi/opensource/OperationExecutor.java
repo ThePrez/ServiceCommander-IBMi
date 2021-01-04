@@ -269,7 +269,7 @@ public class OperationExecutor {
             }
             m_logger.println_verbose("running command: " + command);
             final String bashCommand = command + " >> " + _logFile.getAbsolutePath() + " 2>&1";
-            final Process p = Runtime.getRuntime().exec(new String[] {"/QOpenSys/pkgs/bin/bash", "-c", bashCommand }, envp.toArray(new String[0]), directory);
+            final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/bash", "-c", bashCommand }, envp.toArray(new String[0]), directory);
             final OutputStream stdin = p.getOutputStream();
             ProcessUtils.pipeStreamsToCurrentProcess(_svc.getName(), p, m_logger);
             stdin.flush();
@@ -353,19 +353,24 @@ public class OperationExecutor {
             // variables that are ultimately used by our helper script (see the SbmJobScript class)
             final String batchJobName = _svc.getBatchJobName();
             if (!StringUtils.isEmpty(batchJobName)) {
-                m_logger.printfln_err_verbose("using custom batch job name");
+                m_logger.printfln_verbose("using custom batch job name: " + batchJobName);
                 envp.add("SBMJOB_JOBNAME=" + batchJobName.trim()); // TODO: job name validation
             }
             final String sbmJobOpts = _svc.getSbmJobOpts();
             if (!StringUtils.isEmpty(sbmJobOpts)) {
-                m_logger.printfln_err_verbose("using custom sbmJobOpts: " + sbmJobOpts);
+                m_logger.printfln_verbose("using custom sbmJobOpts: " + sbmJobOpts);
                 envp.add("SBMJOB_OPTS=" + sbmJobOpts.trim()); // TODO: job name validation
             }
 
-            // In the case of submitting to batch, we don't redirect to log files, based on the assumption that
-            // the user prefers output going to spooled files, which seems natural for batch jobs. This may be
-            // an incorrect assumption, however, and it may be a future TODO to change this behavior.
-            bashCommand = ("exec " + SbmJobScript.getQp2() + " " + command);
+            // In the case of submitting to batch, it's unclear whether the user would want to redirect the output of the command
+            // to spooled files or whether they'd prefer the more i-traditional approach of output going to spooled files,
+            // which is arguably more natural for batch jobs.
+            if (Boolean.getBoolean("sc.batchoutput.splf")) {
+                bashCommand = ("exec " + SbmJobScript.getQp2() + " " + command);
+            } else {
+                //BUGBUG, we probably have an issue here if the command contains single quotes //TODO
+                bashCommand = ("exec " + SbmJobScript.getQp2() + " '" + command + " >> " + _logFile.getAbsolutePath() + " 2>&1'");
+            }
 
         }
         m_logger.println_verbose("envp of the child is " + envp.toString());
