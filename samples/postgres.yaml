@@ -6,6 +6,12 @@ check_alive: port
 # default port is 5432
 check_alive_criteria: 5432
 
+# Submit job to batch under POSTGRES user
+batch_mode: yes
+sbmjob_opts: "USER(POSTGRES)"
+
 environment_vars:
 # Path to the database configuration files
+#  Example if data directory is in /postgres
+# - PGDATA=/postgres
 - PGDATA=/path/to/datadir
