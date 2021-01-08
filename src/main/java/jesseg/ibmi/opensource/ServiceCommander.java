@@ -96,14 +96,14 @@ public class ServiceCommander {
 
         // Process all bool-type arguments, including "-v" to initialize our logger
         System.setProperty(StringUtils.PROP_DISABLE_COLORS, "" + Boolean.valueOf(args.remove("--disable-colors")));
-        System.setProperty(OperationExecutor.PROP_BATCHOUTPUT_SPLF, "" + Boolean.valueOf(args.remove("--batch-output-splf")));
+        System.setProperty(OperationExecutor.PROP_BATCHOUTPUT_SPLF, "" + Boolean.valueOf(args.remove("--splf")));
         if (args.remove("-h") || args.remove("--help")) {
             printUsageAndExit();
         }
         final AppLogger logger = new AppLogger.DefaultLogger(args.remove("-v"));
 
         for (final String remainingArg : args) {
-            if (remainingArg.startsWith("--performance-sampletime=")) {
+            if (remainingArg.startsWith("--sampletime=")) {
                 try {
                     final float value = Float.parseFloat(remainingArg.replaceAll(".*=", ""));
                     System.setProperty(OperationExecutor.PROP_SAMPLE_TIME, String.format("%.2f", value));
@@ -195,8 +195,8 @@ public class ServiceCommander {
 		                + "    Valid options include:\n"
                                 + "        -v: verbose mode\n"
                                 + "        --disable-colors: disable colored output\n"
-                                + "        --batch-output-splf: send output to *SPLF when submitting jobs to batch (instead of log)\n"
-                                + "        --performance-sampletime=x.x: sampling time(s) when gathering performance info (default is 1)\n"
+                                + "        --splf: send output to *SPLF when submitting jobs to batch (instead of log)\n"
+                                + "        --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)\n"
                                 + "\n"
 		                + "    Valid operations include:\n"
 				+ "        start: start the service (and any dependencies)\n"
