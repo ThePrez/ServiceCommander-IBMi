@@ -2,10 +2,7 @@ package jesseg.ibmi.opensource.utils;
 
 import java.io.Closeable;
 import java.io.Flushable;
-import java.io.IOException;
-import java.io.PrintStream;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
