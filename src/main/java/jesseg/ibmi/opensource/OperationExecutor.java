@@ -191,6 +191,38 @@ public class OperationExecutor {
         }
     }
 
+    static class PerfInfoFetcher extends Thread {
+        protected SortedMap<String, String> m_res = null;
+        private String m_job;
+        private AppLogger m_logger;
+        private float m_sampleTime;
+        private SCException m_exc = null;
+
+        public PerfInfoFetcher(final String _job, AppLogger _logger, float _sampleTime) {
+            super("PerformanceInfo-"+_job);
+            m_job = _job;this.m_logger=_logger;m_sampleTime=_sampleTime;
+            start();
+        }
+        @Override
+        public void run() {
+            try {
+                m_res=QueryUtils.getJobPerfInfo(m_job, m_logger, m_sampleTime);
+            }catch(Exception e) {
+                m_exc = SCException.fromException(e, m_logger);
+            }
+        }
+        public SortedMap<String, String> getResults() throws SCException {
+            try {
+                join();
+            } catch (InterruptedException e) {
+               throw SCException.fromException(e, m_logger);
+            }
+            if(null != m_exc) {
+                throw m_exc;
+            }
+            return m_res;
+        }
+    }
     private static void printPerfInfo(final ServiceDefinition _svc, final AppLogger _logger) throws SCException, IOException {
         _logger.println();
         _logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
@@ -200,9 +232,13 @@ public class OperationExecutor {
             _logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
         }
         _logger.println();
+        List<PerfInfoFetcher> dataFetcherThreads = new LinkedList<PerfInfoFetcher>();
         for (final String job : getActiveJobsForService(_svc, _logger)) {
-            _logger.println(StringUtils.colorizeForTerminal("Job: " + job, TerminalColor.CYAN));
-            final SortedMap<String, String> perfInfo = QueryUtils.getJobPerfInfo(job, _logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0")));
+            dataFetcherThreads.add(new PerfInfoFetcher(job, _logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
+        }
+        for (final PerfInfoFetcher dataFetcherThread : dataFetcherThreads) {
+            _logger.println(StringUtils.colorizeForTerminal("Job: " + dataFetcherThread.m_job, TerminalColor.CYAN));
+            final SortedMap<String, String> perfInfo = dataFetcherThread.getResults();
             for (final Entry<String, String> pi : perfInfo.entrySet()) {
                 _logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), TerminalColor.CYAN) + ": " + pi.getValue());
             }

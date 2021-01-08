@@ -3,14 +3,18 @@ package jesseg.ibmi.opensource;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Stack;
 
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.utils.AppLogger;
+import jesseg.ibmi.opensource.utils.AppLogger.DeferredLogger;
 import jesseg.ibmi.opensource.utils.StringUtils;
 import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
 
@@ -93,10 +97,10 @@ public class ServiceCommander {
         // Process all bool-type arguments, including "-v" to initialize our logger
         System.setProperty(StringUtils.PROP_DISABLE_COLORS, "" + Boolean.valueOf(args.remove("--disable-colors")));
         System.setProperty(OperationExecutor.PROP_BATCHOUTPUT_SPLF, "" + Boolean.valueOf(args.remove("--batch-output-splf")));
-        if(args.remove("-h") || args.remove("--help")) {
+        if (args.remove("-h") || args.remove("--help")) {
             printUsageAndExit();
         }
-        final AppLogger logger = new AppLogger(args.remove("-v"));
+        final AppLogger logger = new AppLogger.DefaultLogger(args.remove("-v"));
 
         for (final String remainingArg : args) {
             if (remainingArg.startsWith("--performance-sampletime=")) {
@@ -139,22 +143,48 @@ public class ServiceCommander {
     }
 
     private static void performOperationsOnServices(final Operation _op, final Set<String> _services, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) throws SCException {
-        SCException lastExc = null;
-        for (final String service : _services) {
-            if (_op.isChangingSystemState()) {
-                _logger.printf("Performing operation '%s' on service '%s'\n", _op.name(), service);
-            } else {
+        final Stack<SCException> exceptions = new Stack<SCException>();
+        if (Operation.PERFINFO == _op) {
+            _logger.println("Gathering performance information...");
+            final LinkedHashMap<Thread, AppLogger.DeferredLogger> outputList = new LinkedHashMap<Thread, AppLogger.DeferredLogger>();
+            for (final String service : _services) {
                 _logger.printf_verbose("Performing operation '%s' on service '%s'\n", _op.name(), service);
+                final DeferredLogger deferredLogger = new DeferredLogger(_logger);
+                final Thread t = new Thread((Runnable) () -> {
+                    try {
+                        new OperationExecutor(_op, service, _serviceDefs, deferredLogger).execute();
+                    } catch (final SCException e) {
+                        exceptions.push(e);
+                    }
+                }, "PerfInfoThread-" + service);
+                outputList.put(t, deferredLogger);
+                t.start();
             }
-            try {
-                final OperationExecutor executioner = new OperationExecutor(_op, service, _serviceDefs, _logger);
-                executioner.execute();
-            } catch (final SCException e) {
-                lastExc = e;
+            for (final Entry<Thread, DeferredLogger> output : outputList.entrySet()) {
+                try {
+                    output.getKey().join();
+                    output.getValue().close();
+                } catch (final Exception e) {
+                    exceptions.push(SCException.fromException(e, _logger));
+                }
+            }
+        } else {
+            for (final String service : _services) {
+                if (_op.isChangingSystemState()) {
+                    _logger.printf("Performing operation '%s' on service '%s'\n", _op.name(), service);
+                } else {
+                    _logger.printf_verbose("Performing operation '%s' on service '%s'\n", _op.name(), service);
+                }
+                try {
+                    final OperationExecutor executioner = new OperationExecutor(_op, service, _serviceDefs, _logger);
+                    executioner.execute();
+                } catch (final SCException e) {
+                    exceptions.push(e);
+                }
             }
         }
-        if (null != lastExc) {
-            throw lastExc;
+        if (!exceptions.isEmpty()) {
+            throw exceptions.pop();
         }
     }
 

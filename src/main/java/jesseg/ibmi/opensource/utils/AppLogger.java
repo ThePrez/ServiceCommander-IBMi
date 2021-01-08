@@ -1,6 +1,12 @@
 package jesseg.ibmi.opensource.utils;
 
+import java.io.Closeable;
+import java.io.Flushable;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
 
@@ -10,122 +16,198 @@ import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
  * 
  * @author Jesse Gorzinski
  */
-public class AppLogger {
+public abstract class AppLogger {
 
-    private final PrintStream m_out;
-    private final PrintStream m_err;
-    private final boolean m_verbose;
+    public static class DefaultLogger extends AppLogger {
+        private final OutputHandler m_err;
+        private final OutputHandler m_out;
+        private final boolean m_verbose;
 
-    public AppLogger(final boolean _verbose) {
-        m_out = System.out;
-        m_err = System.err;
-        m_verbose = _verbose;
-        // TODO: have options to write verbose output to file or log4j or something (that's the whole point of this class)
-    }
+        public DefaultLogger(final boolean _verbose) {
+            m_out = (_fmt, _args) -> System.out.printf(_fmt, _args);
+            m_err = (_fmt, _args) -> System.err.printf(_fmt, _args);
+            m_verbose = _verbose;
+            // TODO: have options to write verbose output to file or log4j or something (that's the whole point of this class)
+        }
 
-    public PrintStream printf(final String _fmt, final Object... _args) {
-        return m_out.printf(_fmt, _args);
-    }
+        @Override
+        protected OutputHandler getErr() {
+            return m_err;
+        }
 
-    public PrintStream println() {
-        return printf("\n");
-    }
-
-    public PrintStream printfln(final String _fmt, final Object... _args) {
-        return printf(_fmt + "\n", _args);
-    }
-
-    public PrintStream printf_err(final String _fmt, final Object... _args) {
-        return m_err.printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.BRIGHT_RED), _args);
-    }
-
-    public PrintStream printf_warn(final String _fmt, final Object... _args) {
-        return m_err.printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.YELLOW), _args);
-    }
-
-    public PrintStream println_err() {
-        return printf_err("\n");
-    }
-
-    public PrintStream printfln_err(final String _fmt, final Object... _args) {
-        return printf_err(_fmt + "\n", _args);
-    }
-
-    public PrintStream printfln_warn(final String _fmt, final Object... _args) {
-        return printf_warn(_fmt + "\n", _args);
-    }
-
-    public PrintStream printf_verbose(final String _fmt, final Object... _args) {
-        if (!m_verbose) {
+        @Override
+        protected OutputHandler getOut() {
             return m_out;
         }
-        return m_out.printf(_fmt, _args);
-    }
 
-    public void println_verbose(final String _msg) {
-        if (!m_verbose) {
-            return;
+        @Override
+        protected boolean isVerbose() {
+            return m_verbose;
         }
-        m_out.println(_msg);
     }
 
-    public PrintStream printfln_verbose(final String _fmt, final Object... _args) {
-        return printf_verbose(_fmt + "\n", _args);
-    }
+    public static class DeferredLogger extends AppLogger implements Flushable, Closeable {
+        private final OutputHandler m_deferredErr;
+        private final LinkedList<Runnable> m_deferredEvents = new LinkedList<Runnable>();
+        private final OutputHandler m_deferredOut;
+        private final AppLogger m_parent;
 
-    public PrintStream printf_err_verbose(final String _fmt, final Object... _args) {
-        if (!m_verbose) {
-            return m_err;
+        public DeferredLogger(final AppLogger _parent) {
+            m_parent = _parent;
+            m_deferredOut = (_fmt, _args) -> m_deferredEvents.add(() -> m_parent.getOut().printf(_fmt, _args));
+            m_deferredErr = (_fmt, _args) -> m_deferredEvents.add(() -> m_parent.getErr().printf(_fmt, _args));
         }
-        return m_err.printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.BRIGHT_RED), _args);
-    }
 
-    public PrintStream printf_warn_verbose(final String _fmt, final Object... _args) {
-        if (!m_verbose) {
-            return m_err;
+        @Override
+        public void close() {
+            flush();
         }
-        return m_err.printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.YELLOW), _args);
-    }
 
-    public void println_err_verbose(final String _msg) {
-        if (!m_verbose) {
-            return;
+        @Override
+        public void flush() {
+            while (true) {
+                try {
+                    m_deferredEvents.removeFirst().run();
+                } catch (final NoSuchElementException e) {
+                    return;
+                }
+            }
         }
-        m_err.println(StringUtils.colorizeForTerminal(_msg, TerminalColor.BRIGHT_RED));
-    }
 
-    public void println_warn_verbose(final String _msg) {
-        if (!m_verbose) {
-            return;
+        @Override
+        protected OutputHandler getErr() {
+            return m_deferredErr;
         }
-        m_err.println(StringUtils.colorizeForTerminal(_msg, TerminalColor.YELLOW));
+
+        @Override
+        protected OutputHandler getOut() {
+            return m_deferredOut;
+        }
+
+        @Override
+        protected boolean isVerbose() {
+            return m_parent.isVerbose();
+        }
     }
 
-    public PrintStream printfln_err_verbose(final String _fmt, final Object... _args) {
-        return printf_err_verbose(_fmt + "\n", _args);
-    }
+    private interface OutputHandler {
 
-    public PrintStream printfln_warn_verbose(final String _fmt, final Object... _args) {
-        return printf_warn_verbose(_fmt + "\n", _args);
-    }
+        void printf(String _fmt, Object... _args);
 
-    public void println(final String _str) {
-        m_out.println(_str);
-    }
-
-    public void println_err(final String _str) {
-        m_err.println(StringUtils.colorizeForTerminal(_str, TerminalColor.BRIGHT_RED));
-    }
-
-    public void println_warn(final String _str) {
-        m_err.println(StringUtils.colorizeForTerminal(_str, TerminalColor.YELLOW));
+        default void println(final String _str) {
+            printf("%s\n", _str);
+        }
     }
 
     public void exception(final Throwable _exc) {
         _exc.printStackTrace(System.err);
     }
 
+    protected abstract OutputHandler getErr();
+
+    protected abstract OutputHandler getOut();
+
+    protected abstract boolean isVerbose();
+
+    public void printf(final String _fmt, final Object... _args) {
+        getOut().printf(_fmt, _args);
+    }
+
+    public void printf_err(final String _fmt, final Object... _args) {
+        getErr().printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.BRIGHT_RED), _args);
+    }
+
+    public void printf_err_verbose(final String _fmt, final Object... _args) {
+        if (!isVerbose()) {
+            return;
+        }
+        getErr().printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.BRIGHT_RED), _args);
+    }
+
     public void printf_success(final String _fmt, final Object... _args) {
         printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.GREEN), _args);
+    }
+
+    public void printf_verbose(final String _fmt, final Object... _args) {
+        if (!isVerbose()) {
+            return;
+        }
+        getOut().printf(_fmt, _args);
+    }
+
+    public void printf_warn(final String _fmt, final Object... _args) {
+        getErr().printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.YELLOW), _args);
+    }
+
+    public void printf_warn_verbose(final String _fmt, final Object... _args) {
+        if (!isVerbose()) {
+            return;
+        }
+        getErr().printf(StringUtils.colorizeForTerminal(_fmt, TerminalColor.YELLOW), _args);
+    }
+
+    public void printfln(final String _fmt, final Object... _args) {
+        printf(_fmt + "\n", _args);
+    }
+
+    public void printfln_err(final String _fmt, final Object... _args) {
+        printf_err(_fmt + "\n", _args);
+    }
+
+    public void printfln_err_verbose(final String _fmt, final Object... _args) {
+        printf_err_verbose(_fmt + "\n", _args);
+    }
+
+    public void printfln_verbose(final String _fmt, final Object... _args) {
+        printf_verbose(_fmt + "\n", _args);
+    }
+
+    public void printfln_warn(final String _fmt, final Object... _args) {
+        printf_warn(_fmt + "\n", _args);
+    }
+
+    public void printfln_warn_verbose(final String _fmt, final Object... _args) {
+        printf_warn_verbose(_fmt + "\n", _args);
+    }
+
+    public void println() {
+        printf("\n");
+    }
+
+    public void println(final String _str) {
+        getOut().println(_str);
+    }
+
+    public void println_err() {
+        printf_err("\n");
+    }
+
+    public void println_err(final String _str) {
+        getErr().println(StringUtils.colorizeForTerminal(_str, TerminalColor.BRIGHT_RED));
+    }
+
+    public void println_err_verbose(final String _msg) {
+        if (!isVerbose()) {
+            return;
+        }
+        getErr().println(StringUtils.colorizeForTerminal(_msg, TerminalColor.BRIGHT_RED));
+    }
+
+    public void println_verbose(final String _msg) {
+        if (!isVerbose()) {
+            return;
+        }
+        getOut().println(_msg);
+    }
+
+    public void println_warn(final String _str) {
+        getErr().println(StringUtils.colorizeForTerminal(_str, TerminalColor.YELLOW));
+    }
+
+    public void println_warn_verbose(final String _msg) {
+        if (!isVerbose()) {
+            return;
+        }
+        getErr().println(StringUtils.colorizeForTerminal(_msg, TerminalColor.YELLOW));
     }
 }
