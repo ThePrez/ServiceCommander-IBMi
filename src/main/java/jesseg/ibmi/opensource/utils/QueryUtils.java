@@ -109,7 +109,7 @@ public class QueryUtils {
                 "import ibm_db_dbi as db2\n"
               + "from ibm_db import SQL_ATTR_TXN_ISOLATION, SQL_TXN_NO_COMMIT\n"
               + "import time\n" + "jobname = \"%s\"\n" + "full_jobname = \"%s\"\n"
-              + "sql = \"\"\"SELECT ELAPSED_TIME, THREAD_COUNT, ELAPSED_TOTAL_DISK_IO_COUNT, TOTAL_DISK_IO_COUNT, ELAPSED_CPU_PERCENTAGE, TEMPORARY_STORAGE, JOB_ACTIVE_TIME FROM TABLE(QSYS2.ACTIVE_JOB_INFO(JOB_NAME_FILTER => ?, RESET_STATISTICS => 'NO', DETAILED_INFO => 'ALL')) as X WHERE JOB_NAME = ?\"\"\"\n" 
+              + "sql = \"\"\"SELECT ELAPSED_TIME, THREAD_COUNT, ELAPSED_TOTAL_DISK_IO_COUNT, TOTAL_DISK_IO_COUNT, ELAPSED_CPU_PERCENTAGE, TEMPORARY_STORAGE, JOB_ACTIVE_TIME, AUTHORIZATION_NAME, FUNCTION, JOB_STATUS FROM TABLE(QSYS2.ACTIVE_JOB_INFO(JOB_NAME_FILTER => ?, RESET_STATISTICS => 'NO', DETAILED_INFO => 'ALL')) as X WHERE JOB_NAME = ?\"\"\"\n"
               + "conn = db2.connect()\n"
               + "conn.set_option({ SQL_ATTR_TXN_ISOLATION: SQL_TXN_NO_COMMIT })\n"
               + "cursor = conn.cursor()\n"
@@ -144,6 +144,9 @@ public class QueryUtils {
         ret.put("CPU Usage (%)", queryResults.get(4));
         ret.put("Temporary Storage (MB)", queryResults.get(5));
         ret.put("Job active since", queryResults.get(6));
+        ret.put("Current User", queryResults.get(7));
+        ret.put("Function", queryResults.get(8));
+        ret.put("Job Status", queryResults.get(9));
 
         // Now fetch JVM properties!
 
