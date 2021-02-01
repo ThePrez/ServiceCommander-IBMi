@@ -466,14 +466,14 @@ public class OperationExecutor {
     private static void stopViaEndJob(final ServiceDefinition _svc, final int _waitTime, final AppLogger _logger) throws IOException {
         if (CheckAliveType.PORT == _svc.getCheckAliveType()) {
             final List<String> jobs = QueryUtils.getListeningJobsByPort(_svc.getCheckAliveCriteria(), _logger);
-            stopViaEndJob(jobs, _waitTime, _logger);
+            stopViaEndJob(jobs, _waitTime, _logger, _svc);
         } else if (CheckAliveType.JOBNAME == _svc.getCheckAliveType()) {
             _logger.println("Stopping via endjob");
             final List<String> jobs = QueryUtils.getJobs(_svc.getCheckAliveCriteria(), _logger);
             if (jobs.isEmpty()) {
                 return;
             } else if (1 == jobs.size()) {
-                stopViaEndJob(jobs, _waitTime, _logger);
+                stopViaEndJob(jobs, _waitTime, _logger, _svc);
             } else {
                 _logger.println_err("ERROR: Multiple jobs found matching job name criteria!! Those jobs were: ");
                 for (final String job : jobs) {
@@ -484,11 +484,25 @@ public class OperationExecutor {
         }
     }
 
-    private static void stopViaEndJob(final List<String> _jobs, final int _waitTime, final AppLogger _logger) throws IOException {
+    private static void stopViaEndJob(final List<String> _jobs, final int _waitTime, final AppLogger _logger, final ServiceDefinition _svc) throws IOException {
         final String optionString = (0 >= _waitTime) ? "OPTION(*IMMED)" : ("OPTION(*CNTRLD) DELAY(" + _waitTime + ")");
+        final String db2util = "/QOpenSys/pkgs/bin/db2util";
+        final String db2util_opts = "-o space";
+        String start_qcmdexc = "CALL QSYS2.QCMDEXC('";
+        final String end_qcmdexc = "')";
+
         for (final String job : _jobs) {
-            _logger.println("Ending job " + job + " with " + optionString);
-            final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "CALL QSYS2.QCMDEXC('ENDJOB JOB(" + job + ") " + optionString + "')" });
+            final String endjob = "ENDJOB JOB(" + job + ") " + optionString;
+            String command = start_qcmdexc;
+            // batch mode is on so run command endjob under sbmjob
+            if (BatchMode.NO_BATCH != _svc.getBatchMode()) {
+                command += "SBMJOB " +_svc.getSbmJobOpts() + " CMD("+ endjob + ")";
+            } else {
+                command += endjob;
+            }
+            command += end_qcmdexc;
+            _logger.println("Ending job with: " + db2util + " " + db2util_opts + " "  + command);
+            final Process p = Runtime.getRuntime().exec(new String [] {db2util, "-o", "space", command });
             try {
                 p.waitFor();
             } catch (final InterruptedException e) {
