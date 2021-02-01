@@ -31,6 +31,7 @@ private static String s_qp2term2 = "#!/QOpenSys/usr/bin/sh\n" +
         }
         final File script = new File(scriptsDir.getAbsolutePath() + "/batch_qp2.v1.sh"); // bump the version if the script contents change
         if (script.exists() && script.length() > 20) {
+            script.setExecutable(true);
             return script;
         }
         try (FileOutputStream out = new FileOutputStream(script)) {
@@ -38,6 +39,7 @@ private static String s_qp2term2 = "#!/QOpenSys/usr/bin/sh\n" +
             out.flush();
             out.close();
         }
+	script.setExecutable(true);
         return script;
     }
 }
