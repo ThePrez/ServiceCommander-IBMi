@@ -1,6 +1,7 @@
 package jesseg.ibmi.opensource;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
@@ -71,9 +72,28 @@ public class OperationExecutor {
         return ret;
     }
 
+    public String getProbableLogFile() throws SCException {
+        if (BatchMode.BATCH_QP2SHELL2 == getMainService().getBatchMode()) {
+            return "<spooled file>"; // TODO: try to hunt down the spooled file
+        }
+
+        final File logDir = AppDirectories.conf.getLogsDirectory();
+        File latest = null;
+        for (final File logFile : logDir.listFiles((FilenameFilter) (dir, name) -> name.endsWith(getLogSuffix()))) {
+            if (null == latest) {
+                latest = logFile;
+            } else {
+                if (latest.lastModified() < logFile.lastModified()) {
+                    latest = logFile;
+                }
+            }
+        }
+        return null == latest ? "<unknown>" : latest.getAbsolutePath();
+    }
+
     public File execute() throws SCException {
         final File logDir = AppDirectories.conf.getLogsDirectory();
-        final String logFileName = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()) + "." + getMainService().getName() + ".log";
+        final String logFileName = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()) + getLogSuffix();
         final File logFile = new File(logDir.getAbsolutePath() + "/" + logFileName);
         try {
             switch (m_op) {
@@ -115,6 +135,15 @@ public class OperationExecutor {
                     }
                 }
             }
+        }
+    }
+
+    private String getLogSuffix() {
+        try {
+            return "." + getMainService().getName() + ".log";
+        } catch (final SCException e) {
+            e.printStackTrace();
+            return ".log";
         }
     }
 
@@ -311,8 +340,31 @@ public class OperationExecutor {
             for (final String var : _svc.getEnvironmentVars()) {
                 envp.add(var);
             }
-            m_logger.println_verbose("running command: " + command);
-            final String bashCommand = command + " >> " + _logFile.getAbsolutePath() + " 2>&1";
+
+            final String bashCommand;
+            if (BatchMode.NO_BATCH == _svc.getBatchMode()) {
+                m_logger.println_verbose("running command: " + command);
+                bashCommand = command + " >> " + _logFile.getAbsolutePath() + " 2>&1";
+            } else {
+                // If we submitted to batch with custom batch options, let's try ending the job the same way.
+                // The "stop" command may need to run in a similar environment as the start command, most commonly
+                // as the same user
+                final String sbmJobOpts = _svc.getSbmJobOpts();
+                if (!StringUtils.isEmpty(sbmJobOpts)) {
+                    m_logger.printfln_verbose("using custom sbmJobOpts: " + sbmJobOpts);
+                    envp.add("SBMJOB_OPTS=" + sbmJobOpts.trim());
+                }
+
+                // In the case of submitting to batch, it's unclear whether the user would want to redirect the output of the command
+                // to spooled files or whether they'd prefer the more i-traditional approach of output going to spooled files,
+                // which is arguably more natural for batch jobs.
+                if (Boolean.getBoolean(PROP_BATCHOUTPUT_SPLF)) {
+                    bashCommand = ("exec " + SbmJobScript.getQp2() + " " + command);
+                } else {
+                    final char quoteChar = command.contains("'") ? '\"' : '\'';
+                    bashCommand = ("exec " + SbmJobScript.getQp2() + " " + quoteChar + command + " >> " + _logFile.getAbsolutePath() + " 2>&1" + quoteChar);
+                }
+            }
             final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/bash", "-c", bashCommand }, envp.toArray(new String[0]), directory);
             final OutputStream stdin = p.getOutputStream();
             ProcessUtils.pipeStreamsToCurrentProcess(_svc.getName(), p, m_logger);
