@@ -48,17 +48,18 @@ public class OperationExecutor {
     static final String PROP_SAMPLE_TIME = "sc.perfsamplingtime";
 
     private final Operation m_op;
-    private final String m_mainServiceName;
     private final Map<String, ServiceDefinition> m_serviceDefs;
     private final AppLogger m_logger;
     private ServiceDefinition m_mainService;
 
     public OperationExecutor(final Operation _op, final String _service, final Map<String, ServiceDefinition> serviceDefs, final AppLogger _logger) throws SCException {
         m_op = _op;
-        m_mainServiceName = _service;
         m_serviceDefs = serviceDefs;
         m_logger = _logger;
-        m_mainService = getMainService2();
+        m_mainService = m_serviceDefs.get(_service);
+        if (null == m_mainService) {
+            throw new SCException(m_logger, FailureType.MISSING_SERVICE_DEF, "Could not find definition for service '%s'", _service);
+        }
     }
 
     private List<ServiceDefinition> findKnownDependents() {
@@ -141,7 +142,7 @@ public class OperationExecutor {
     }
 
     private String getLogSuffix() {
-        return "." + m_mainServiceName + ".log";
+        return "." + m_mainService.getName() + ".log";
     }
 
     private void printInfo(final AppLogger _logger) {
@@ -258,7 +259,7 @@ public class OperationExecutor {
         _logger.println();
         _logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
 
-        _logger.println(StringUtils.colorizeForTerminal(m_mainServiceName, TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + ")");
+        _logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + ")");
         if (!isServiceRunning( _logger)) {
             _logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
         }
@@ -289,14 +290,6 @@ public class OperationExecutor {
         }
         _logger.printfln("  %s | %s (%s)", paddedStatusString, m_mainService.getName(), m_mainService.getFriendlyName());
         return isRunning;
-    }
-
-    private ServiceDefinition getMainService2() throws SCException {
-        final ServiceDefinition mainService = m_serviceDefs.get(m_mainServiceName);
-        if (null == mainService) {
-            throw new SCException(m_logger, FailureType.MISSING_SERVICE_DEF, "Could not find definition for service '%s'", m_mainServiceName);
-        }
-        return mainService;
     }
 
     private void stopService(final File _logFile) throws IOException, InterruptedException, NumberFormatException, SCException {
