@@ -36,25 +36,6 @@ public class ProcessUtils {
         return ret;
     }
 
-    public static void pipeStreamsToCurrentProcess(final String _eyecatcher, final Process _p, final AppLogger _logger) {
-        final Thread stderrThread = new Thread() {
-            @Override
-            public void run() {
-                handleStream(_eyecatcher, _p.getErrorStream(), _logger, true);
-            };
-        };
-        stderrThread.setDaemon(true);
-        stderrThread.start();
-        final Thread stdoutThread = new Thread() {
-            @Override
-            public void run() {
-                handleStream(_eyecatcher, _p.getInputStream(), _logger, false);
-            };
-        };
-        stdoutThread.setDaemon(true);
-        stdoutThread.start();
-    }
-
     private static void handleStream(final String _eyeCatcher, final InputStream _stream, final AppLogger _logger, final boolean _isError) {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(_stream))) {
             String read;
@@ -72,5 +53,24 @@ public class ProcessUtils {
                 _logger.exception(e);
             }
         }
+    }
+
+    public static void pipeStreamsToCurrentProcess(final String _eyecatcher, final Process _p, final AppLogger _logger) {
+        final Thread stderrThread = new Thread() {
+            @Override
+            public void run() {
+                handleStream(_eyecatcher, _p.getErrorStream(), _logger, true);
+            };
+        };
+        stderrThread.setDaemon(true);
+        stderrThread.start();
+        final Thread stdoutThread = new Thread() {
+            @Override
+            public void run() {
+                handleStream(_eyecatcher, _p.getInputStream(), _logger, false);
+            };
+        };
+        stdoutThread.setDaemon(true);
+        stdoutThread.start();
     }
 }

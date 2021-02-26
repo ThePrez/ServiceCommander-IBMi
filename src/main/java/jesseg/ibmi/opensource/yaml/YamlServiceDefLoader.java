@@ -21,14 +21,6 @@ public class YamlServiceDefLoader {
 
     private final Pattern s_filePattern = Pattern.compile("^([a-z\\-_0-9]+)\\.yaml$");
 
-    public HashMap<String, ServiceDefinition> loadFromYamlFiles(final AppLogger _logger) throws SCException {
-        final HashMap<String, ServiceDefinition> ret = new HashMap<String, ServiceDefinition>();
-        ret.putAll(loadFromDirectory(AppDirectories.conf.getGlobalServicesDirOrNull(), _logger));
-        ret.putAll(loadFromDirectory(AppDirectories.conf.getUserServicesDirOrNull(), _logger));
-        ret.putAll(loadFromDirectory(AppDirectories.conf.getCustomServicesDirOrNull(), _logger));
-        return ret;
-    }
-
     HashMap<String, ServiceDefinition> loadFromDirectory(final File _dir, final AppLogger _logger) throws SCException {
         final HashMap<String, ServiceDefinition> ret = new HashMap<String, ServiceDefinition>();
         if (null == _dir) {
@@ -44,6 +36,14 @@ public class YamlServiceDefLoader {
             final String serviceName = m.group(1);
             ret.put(serviceName, new YamlServiceDef(serviceName, f, _logger));
         }
+        return ret;
+    }
+
+    public HashMap<String, ServiceDefinition> loadFromYamlFiles(final AppLogger _logger) throws SCException {
+        final HashMap<String, ServiceDefinition> ret = new HashMap<String, ServiceDefinition>();
+        ret.putAll(loadFromDirectory(AppDirectories.conf.getGlobalServicesDirOrNull(), _logger));
+        ret.putAll(loadFromDirectory(AppDirectories.conf.getUserServicesDirOrNull(), _logger));
+        ret.putAll(loadFromDirectory(AppDirectories.conf.getCustomServicesDirOrNull(), _logger));
         return ret;
     }
 }

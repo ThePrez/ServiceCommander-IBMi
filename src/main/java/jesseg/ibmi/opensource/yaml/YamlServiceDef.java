@@ -101,6 +101,63 @@ public class YamlServiceDef extends ServiceDefinition {
         }
     }
 
+    @Override
+    public String getBatchJobName() {
+        return null == m_batchJobName ? super.getBatchJobName() : m_batchJobName;
+    }
+
+    @Override
+    public BatchMode getBatchMode() {
+        return null == m_batchMode ? super.getBatchMode() : m_batchMode;
+    }
+
+    @Override
+    public String getCheckAliveCriteria() {
+        return m_checkAliveCriteria;
+    }
+
+    @Override
+    public CheckAliveType getCheckAliveType() {
+        return m_checkAliveType;
+    }
+
+    @Override
+    public List<String> getDependencies() {
+        return null == m_dependencies ? super.getDependencies() : m_dependencies;
+    }
+
+    @Override
+    public List<String> getEnvironmentVars() {
+        return (null == m_envVars) ? super.getEnvironmentVars() : m_envVars;
+    }
+
+    @Override
+    public String getFriendlyName() {
+        return null == m_friendlyName ? super.getFriendlyName() : m_friendlyName;
+    }
+
+    @Override
+    public List<String> getGroups() {
+        return null == m_groups ? super.getGroups() : m_groups;
+    }
+
+    @Override
+    public String getName() {
+        return m_name;
+    }
+
+    private boolean getOptionalYamlBool(final Map<String, Object> _yamlData, final String _key, final boolean _def) {
+        final Object data = _yamlData.remove(_key);
+        if (null == data) {
+            return _def;
+        }
+        if (data instanceof Boolean) {
+            return ((Boolean) data).booleanValue();
+        }
+        final String sVal = data.toString().trim().toLowerCase();
+        return Boolean.valueOf(sVal) || sVal.startsWith("y") || sVal.equals("1");
+    }
+
     private int getOptionalYamlInt(final Map<String, Object> _yamlData, final String _key) throws IOException {
         final Object data = _yamlData.remove(_key);
         if (null == data) {
@@ -124,18 +181,6 @@ public class YamlServiceDef extends ServiceDefinition {
         return data.toString().trim();
     }
 
-    private boolean getOptionalYamlBool(final Map<String, Object> _yamlData, final String _key, final boolean _def) {
-        final Object data = _yamlData.remove(_key);
-        if (null == data) {
-            return _def;
-        }
-        if (data instanceof Boolean) {
-            return ((Boolean) data).booleanValue();
-        }
-        final String sVal = data.toString().trim().toLowerCase();
-        return Boolean.valueOf(sVal) || sVal.startsWith("y") || sVal.equals("1");
-    }
-
     private String getRequiredYamlString(final Map<String, Object> _yamlData, final String _key) throws IOException {
         final Object data = _yamlData.remove(_key);
         if (null == data || StringUtils.isEmpty(data.toString())) {
@@ -145,53 +190,8 @@ public class YamlServiceDef extends ServiceDefinition {
     }
 
     @Override
-    public String getCheckAliveCriteria() {
-        return m_checkAliveCriteria;
-    }
-
-    @Override
-    public CheckAliveType getCheckAliveType() {
-        return m_checkAliveType;
-    }
-
-    @Override
-    public List<String> getEnvironmentVars() {
-        return (null == m_envVars) ? super.getEnvironmentVars() : m_envVars;
-    }
-
-    @Override
-    public String getName() {
-        return m_name;
-    }
-
-    @Override
-    public String getStartCommand() {
-        return m_startCmd;
-    }
-
-    @Override
-    public String getSource() {
-        return m_source.getAbsolutePath();
-    }
-
-    @Override
-    public boolean isInheritingEnvironmentVars() {
-        return m_isInherintingEnvVars;
-    }
-
-    @Override
-    public String getWorkingDirectory() {
-        return null == m_workingDir ? super.getWorkingDirectory() : m_workingDir;
-    }
-
-    @Override
-    public String getStopCommand() {
-        return null == m_stopCmd ? super.getStopCommand() : m_stopCmd;
-    }
-
-    @Override
-    public int getStartupWaitTime() {
-        return UNSPECIFIED_INT == m_startupWaitTime ? super.getStartupWaitTime() : m_startupWaitTime;
+    public String getSbmJobOpts() {
+        return null == m_sbmJobOpts ? super.getSbmJobOpts() : m_sbmJobOpts;
     }
 
     @Override
@@ -200,32 +200,32 @@ public class YamlServiceDef extends ServiceDefinition {
     }
 
     @Override
-    public String getSbmJobOpts() {
-        return null == m_sbmJobOpts ? super.getSbmJobOpts() : m_sbmJobOpts;
+    public String getSource() {
+        return m_source.getAbsolutePath();
     }
 
     @Override
-    public String getFriendlyName() {
-        return null == m_friendlyName ? super.getFriendlyName() : m_friendlyName;
+    public String getStartCommand() {
+        return m_startCmd;
     }
 
     @Override
-    public List<String> getDependencies() {
-        return null == m_dependencies ? super.getDependencies() : m_dependencies;
+    public int getStartupWaitTime() {
+        return UNSPECIFIED_INT == m_startupWaitTime ? super.getStartupWaitTime() : m_startupWaitTime;
     }
 
     @Override
-    public String getBatchJobName() {
-        return null == m_batchJobName ? super.getBatchJobName() : m_batchJobName;
+    public String getStopCommand() {
+        return null == m_stopCmd ? super.getStopCommand() : m_stopCmd;
     }
 
     @Override
-    public BatchMode getBatchMode() {
-        return null == m_batchMode ? super.getBatchMode() : m_batchMode;
+    public String getWorkingDirectory() {
+        return null == m_workingDir ? super.getWorkingDirectory() : m_workingDir;
     }
 
     @Override
-    public List<String> getGroups() {
-        return null == m_groups ? super.getGroups() : m_groups;
+    public boolean isInheritingEnvironmentVars() {
+        return m_isInherintingEnvVars;
     }
 }

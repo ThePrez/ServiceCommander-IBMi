@@ -44,12 +44,54 @@ public class OperationExecutor {
         }
     }
 
-    static final String PROP_BATCHOUTPUT_SPLF = "sc.batchoutput.splf";
-    static final String PROP_SAMPLE_TIME = "sc.perfsamplingtime";
+    static class PerfInfoFetcher extends Thread {
+        protected SortedMap<String, String> m_res = null;
+        private final String m_job;
+        private final AppLogger m_logger;
+        private final float m_sampleTime;
+        private SCException m_exc = null;
 
+        public PerfInfoFetcher(final String _job, final AppLogger _logger, final float _sampleTime) {
+            super("PerformanceInfo-" + _job);
+            m_job = _job;
+            this.m_logger = _logger;
+            m_sampleTime = _sampleTime;
+            start();
+        }
+
+        public SortedMap<String, String> getResults() throws SCException {
+            try {
+                join();
+            } catch (final InterruptedException e) {
+                throw SCException.fromException(e, m_logger);
+            }
+            if (null != m_exc) {
+                throw m_exc;
+            }
+            return m_res;
+        }
+
+        @Override
+        public void run() {
+            try {
+                m_res = QueryUtils.getJobPerfInfo(m_job, m_logger, m_sampleTime);
+            } catch (final Exception e) {
+                m_exc = SCException.fromException(e, m_logger);
+            }
+        }
+    }
+    static final String PROP_BATCHOUTPUT_SPLF = "sc.batchoutput.splf";
+
+    static final String PROP_SAMPLE_TIME = "sc.perfsamplingtime";
+    private static boolean isEnvvarProhibitedFromInheritance(final String _var) {
+        final List<String> prohibited = Arrays.asList("LIBPATH", "LD_LIBRARY_PATH", "JAVA_HOME", "SSH_TTY", "SSH_CLIENT", "SSH_CONNECTION", "SHELL", "SHLVL");
+        return prohibited.contains(_var);
+    }
     private final Operation m_op;
     private final Map<String, ServiceDefinition> m_serviceDefs;
+
     private final AppLogger m_logger;
+
     private ServiceDefinition m_mainService;
 
     public OperationExecutor(final Operation _op, final String _service, final Map<String, ServiceDefinition> serviceDefs, final AppLogger _logger) throws SCException {
@@ -60,38 +102,6 @@ public class OperationExecutor {
         if (null == m_mainService) {
             throw new SCException(m_logger, FailureType.MISSING_SERVICE_DEF, "Could not find definition for service '%s'", _service);
         }
-    }
-
-    private List<ServiceDefinition> findKnownDependents() {
-        final List<ServiceDefinition> ret = new LinkedList<ServiceDefinition>();
-        for (final ServiceDefinition entry : m_serviceDefs.values()) {
-            for (final String entryDependency : entry.getDependencies()) {
-                if (entryDependency.equalsIgnoreCase(m_mainService.getName())) {
-                    ret.add(entry);
-                    continue;
-                }
-            }
-        }
-        return ret;
-    }
-
-    public String getProbableLogFile() throws SCException {
-        if (m_mainService.getBatchMode().isBatch()) {
-            return "<spooled file>"; // TODO: try to hunt down the spooled file
-        }
-
-        final File logDir = AppDirectories.conf.getLogsDirectory();
-        File latest = null;
-        for (final File logFile : logDir.listFiles((FilenameFilter) (dir, name) -> name.endsWith(getLogSuffix()))) {
-            if (null == latest) {
-                latest = logFile;
-            } else {
-                if (latest.lastModified() < logFile.lastModified()) {
-                    latest = logFile;
-                }
-            }
-        }
-        return null == latest ? "<unknown>" : latest.getAbsolutePath();
     }
 
     public File execute() throws SCException {
@@ -141,8 +151,74 @@ public class OperationExecutor {
         }
     }
 
+    private List<ServiceDefinition> findKnownDependents() {
+        final List<ServiceDefinition> ret = new LinkedList<ServiceDefinition>();
+        for (final ServiceDefinition entry : m_serviceDefs.values()) {
+            for (final String entryDependency : entry.getDependencies()) {
+                if (entryDependency.equalsIgnoreCase(m_mainService.getName())) {
+                    ret.add(entry);
+                    continue;
+                }
+            }
+        }
+        return ret;
+    }
+
+    private List<String> getActiveJobsForService() throws SCException {
+        try {
+            if (CheckAliveType.PORT == m_mainService.getCheckAliveType()) {
+                return QueryUtils.getListeningJobsByPort(m_mainService.getCheckAliveCriteria(), m_logger);
+            } else {
+                return QueryUtils.getJobs(m_mainService.getCheckAliveCriteria(), m_logger);
+            }
+        } catch (final IOException ioe) {
+            throw new SCException(m_logger, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
+        } catch (final NumberFormatException nfe) {
+            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
+        }
+    }
+
     private String getLogSuffix() {
         return "." + m_mainService.getName() + ".log";
+    }
+
+    public String getProbableLogFile() throws SCException {
+        if (m_mainService.getBatchMode().isBatch()) {
+            return "<spooled file>"; // TODO: try to hunt down the spooled file
+        }
+
+        final File logDir = AppDirectories.conf.getLogsDirectory();
+        File latest = null;
+        for (final File logFile : logDir.listFiles((FilenameFilter) (dir, name) -> name.endsWith(getLogSuffix()))) {
+            if (null == latest) {
+                latest = logFile;
+            } else {
+                if (latest.lastModified() < logFile.lastModified()) {
+                    latest = logFile;
+                }
+            }
+        }
+        return null == latest ? "<unknown>" : latest.getAbsolutePath();
+    }
+
+    private boolean isLikelyRunningAsAnotherUser() {
+        return m_mainService.getBatchMode().isBatch() && m_mainService.getSbmJobOpts().toUpperCase().contains("USER(");
+    }
+
+    public boolean isServiceRunning() throws SCException {
+        final CheckAliveType checkType = m_mainService.getCheckAliveType();
+        try {
+            if (CheckAliveType.PORT == checkType) {
+                return QueryUtils.isListeningOnPort(m_mainService.getCheckAliveCriteria(), m_logger);
+            } else if (CheckAliveType.JOBNAME == checkType) {
+                return QueryUtils.isJobRunning(m_mainService.getCheckAliveCriteria(), m_logger);
+            }
+        } catch (final IOException ioe) {
+            throw new SCException(m_logger, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
+        } catch (final NumberFormatException nfe) {
+            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
+        }
+        throw new SCException(m_logger, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation has been requested");
     }
 
     private void printInfo() {
@@ -203,58 +279,6 @@ public class OperationExecutor {
         m_logger.println();
         m_logger.println();
     }
-
-    private List<String> getActiveJobsForService() throws SCException {
-        try {
-            if (CheckAliveType.PORT == m_mainService.getCheckAliveType()) {
-                return QueryUtils.getListeningJobsByPort(m_mainService.getCheckAliveCriteria(), m_logger);
-            } else {
-                return QueryUtils.getJobs(m_mainService.getCheckAliveCriteria(), m_logger);
-            }
-        } catch (final IOException ioe) {
-            throw new SCException(m_logger, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
-        } catch (final NumberFormatException nfe) {
-            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
-        }
-    }
-
-    static class PerfInfoFetcher extends Thread {
-        protected SortedMap<String, String> m_res = null;
-        private final String m_job;
-        private final AppLogger m_logger;
-        private final float m_sampleTime;
-        private SCException m_exc = null;
-
-        public PerfInfoFetcher(final String _job, final AppLogger _logger, final float _sampleTime) {
-            super("PerformanceInfo-" + _job);
-            m_job = _job;
-            this.m_logger = _logger;
-            m_sampleTime = _sampleTime;
-            start();
-        }
-
-        @Override
-        public void run() {
-            try {
-                m_res = QueryUtils.getJobPerfInfo(m_job, m_logger, m_sampleTime);
-            } catch (final Exception e) {
-                m_exc = SCException.fromException(e, m_logger);
-            }
-        }
-
-        public SortedMap<String, String> getResults() throws SCException {
-            try {
-                join();
-            } catch (final InterruptedException e) {
-                throw SCException.fromException(e, m_logger);
-            }
-            if (null != m_exc) {
-                throw m_exc;
-            }
-            return m_res;
-        }
-    }
-
     private void printPerfInfo() throws SCException, IOException {
         m_logger.println();
         m_logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
@@ -279,7 +303,6 @@ public class OperationExecutor {
         m_logger.println("---------------------------------------------------------------------");
         m_logger.println();
     }
-
     private boolean printServiceStatus() throws NumberFormatException, IOException, SCException {
         final boolean isRunning = isServiceRunning();
         final String paddedStatusString;
@@ -292,107 +315,6 @@ public class OperationExecutor {
         return isRunning;
     }
 
-    private void stopService(final File _logFile) throws IOException, InterruptedException, NumberFormatException, SCException {
-
-        // Stop all dependent services before stopping this one.
-        for (final ServiceDefinition dependentService : findKnownDependents()) {
-            m_logger.printf("Attempting to stop dependent service '%s'...\n", dependentService.getFriendlyName());
-            try {
-                new OperationExecutor(Operation.STOP, dependentService.getName(), m_serviceDefs, m_logger).execute();
-            } catch (final Exception e) {
-                throw new SCException(m_logger, e, FailureType.ERROR_STOPPING_DEPENDENT, "ERROR: Could not start dependent service '%s' in order to stop service service '%s': %s", dependentService.getFriendlyName(), m_mainService.getFriendlyName(), e.getLocalizedMessage());
-            }
-        }
-
-        // If the service is already stopped, hey, we're done! WOOHOO!!
-        if (!isServiceRunning()) {
-            m_logger.printf("Service '%s' is already stopped\n", m_mainService.getFriendlyName());
-            return;
-        }
-
-        // Log the start time, because we check against this for the timeout condition
-        final long startTime = new Date().getTime();
-
-        final String command = m_mainService.getStopCommand();
-        if (StringUtils.isEmpty(command)) {
-            // If the user doesn't provide a custom stop command, that's OK. We go directly to ENDJOB.
-            stopViaEndJob(m_mainService.getShutdownWaitTime());
-        } else {
-            // If the user provided a custom stop command, let's go try to execute it.
-            final File directory = new File(m_mainService.getWorkingDirectory());
-
-            final ArrayList<String> envp = new ArrayList<String>();
-            if (m_mainService.isInheritingEnvironmentVars()) {
-                for (final Entry<String, String> l : System.getenv().entrySet()) {
-                    envp.add(l.getKey() + "=" + l.getValue());
-                }
-            }
-            for (final String var : m_mainService.getEnvironmentVars()) {
-                envp.add(var);
-            }
-
-            final String bashCommand;
-            if (BatchMode.NO_BATCH == m_mainService.getBatchMode()) {
-                m_logger.println_verbose("running command: " + command);
-                bashCommand = command + " >> " + _logFile.getAbsolutePath() + " 2>&1";
-            } else {
-                // If we submitted to batch with custom batch options, let's try ending the job the same way.
-                // The "stop" command may need to run in a similar environment as the start command, most commonly
-                // as the same user
-                final String sbmJobOpts = m_mainService.getSbmJobOpts();
-                if (!StringUtils.isEmpty(sbmJobOpts)) {
-                    m_logger.printfln_verbose("using custom sbmJobOpts: " + sbmJobOpts);
-                    envp.add("SBMJOB_OPTS=" + sbmJobOpts.trim());
-                }
-
-                if (shouldOutputGoToSplf()) {
-                    bashCommand = ("exec " + SbmJobScript.getQp2() + " " + command);
-                } else {
-                    final char quoteChar = command.contains("'") ? '\"' : '\'';
-                    bashCommand = ("exec " + SbmJobScript.getQp2() + " " + quoteChar + command + " >> " + _logFile.getAbsolutePath() + " 2>&1" + quoteChar);
-                }
-            }
-            final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/bash", "-c", bashCommand }, envp.toArray(new String[0]), directory);
-            final OutputStream stdin = p.getOutputStream();
-            ProcessUtils.pipeStreamsToCurrentProcess(m_mainService.getName(), p, m_logger);
-            stdin.flush();
-            stdin.close();
-        }
-
-        // Now, we've tried to end the job. Let's wait for the service to die...
-        int secondsToWait = m_mainService.getShutdownWaitTime();
-
-        // If an ENDJOB with OPTION(*CNTRLD) fails, or if the custom stop command fails, then we keep track of it here, because we fall baco to ENDJOB with OPTION(*IMMED)
-        boolean hasEndJobImmedBeenTried = false;
-        while (true) {
-            if (!isServiceRunning()) {
-                // HOORAY!!
-                m_logger.printf_success("Service '%s' successfully stopped\n", m_mainService.getFriendlyName());
-                return;
-            }
-
-            final long currentTime = new Date().getTime();
-            if ((currentTime - startTime) > (1000 * secondsToWait)) {
-                if (hasEndJobImmedBeenTried) {
-                    throw new SCException(m_logger, FailureType.TIMEOUT_ON_SERVICE_STOP, "ERROR: Timed out waiting for service '%s' to stop. Giving up\n", m_mainService.getFriendlyName());
-                } else {
-                    // OK, we've timed out, so let's try ENDJOB with OPTION(*IMMED) and give it another 20 seconds (arbitrarily hardcoded by programmer)
-                    m_logger.printf_warn("WARNING: Timed out waiting for service '%s' to stop. Will try harder\n", m_mainService.getFriendlyName());
-                    hasEndJobImmedBeenTried = true;
-                    stopViaEndJob(0);
-                    secondsToWait += 20;
-                }
-            }
-            try {
-                Thread.sleep(2500L);
-            } catch (final InterruptedException e) {
-                m_logger.exception(e);
-            }
-        }
-    }
-    private boolean isLikelyRunningAsAnotherUser() {
-        return m_mainService.getBatchMode().isBatch() && m_mainService.getSbmJobOpts().toUpperCase().contains("USER(");
-    }
     private boolean shouldOutputGoToSplf() throws SCException {
         // User asked for it, so....
         if (Boolean.getBoolean(PROP_BATCHOUTPUT_SPLF)) {
@@ -507,16 +429,103 @@ public class OperationExecutor {
         }
     }
 
-    private String validateJobName(final String _jobName) throws SCException {
-        if (!_jobName.matches("^[0-9A-Z#]{1,10}$")) {
-            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid custom job name '%s' specified", _jobName);
-        }
-        return _jobName;
-    }
+    private void stopService(final File _logFile) throws IOException, InterruptedException, NumberFormatException, SCException {
 
-    private static boolean isEnvvarProhibitedFromInheritance(final String _var) {
-        final List<String> prohibited = Arrays.asList("LIBPATH", "LD_LIBRARY_PATH", "JAVA_HOME", "SSH_TTY", "SSH_CLIENT", "SSH_CONNECTION", "SHELL", "SHLVL");
-        return prohibited.contains(_var);
+        // Stop all dependent services before stopping this one.
+        for (final ServiceDefinition dependentService : findKnownDependents()) {
+            m_logger.printf("Attempting to stop dependent service '%s'...\n", dependentService.getFriendlyName());
+            try {
+                new OperationExecutor(Operation.STOP, dependentService.getName(), m_serviceDefs, m_logger).execute();
+            } catch (final Exception e) {
+                throw new SCException(m_logger, e, FailureType.ERROR_STOPPING_DEPENDENT, "ERROR: Could not start dependent service '%s' in order to stop service service '%s': %s", dependentService.getFriendlyName(), m_mainService.getFriendlyName(), e.getLocalizedMessage());
+            }
+        }
+
+        // If the service is already stopped, hey, we're done! WOOHOO!!
+        if (!isServiceRunning()) {
+            m_logger.printf("Service '%s' is already stopped\n", m_mainService.getFriendlyName());
+            return;
+        }
+
+        // Log the start time, because we check against this for the timeout condition
+        final long startTime = new Date().getTime();
+
+        final String command = m_mainService.getStopCommand();
+        if (StringUtils.isEmpty(command)) {
+            // If the user doesn't provide a custom stop command, that's OK. We go directly to ENDJOB.
+            stopViaEndJob(m_mainService.getShutdownWaitTime());
+        } else {
+            // If the user provided a custom stop command, let's go try to execute it.
+            final File directory = new File(m_mainService.getWorkingDirectory());
+
+            final ArrayList<String> envp = new ArrayList<String>();
+            if (m_mainService.isInheritingEnvironmentVars()) {
+                for (final Entry<String, String> l : System.getenv().entrySet()) {
+                    envp.add(l.getKey() + "=" + l.getValue());
+                }
+            }
+            for (final String var : m_mainService.getEnvironmentVars()) {
+                envp.add(var);
+            }
+
+            final String bashCommand;
+            if (BatchMode.NO_BATCH == m_mainService.getBatchMode()) {
+                m_logger.println_verbose("running command: " + command);
+                bashCommand = command + " >> " + _logFile.getAbsolutePath() + " 2>&1";
+            } else {
+                // If we submitted to batch with custom batch options, let's try ending the job the same way.
+                // The "stop" command may need to run in a similar environment as the start command, most commonly
+                // as the same user
+                final String sbmJobOpts = m_mainService.getSbmJobOpts();
+                if (!StringUtils.isEmpty(sbmJobOpts)) {
+                    m_logger.printfln_verbose("using custom sbmJobOpts: " + sbmJobOpts);
+                    envp.add("SBMJOB_OPTS=" + sbmJobOpts.trim());
+                }
+
+                if (shouldOutputGoToSplf()) {
+                    bashCommand = ("exec " + SbmJobScript.getQp2() + " " + command);
+                } else {
+                    final char quoteChar = command.contains("'") ? '\"' : '\'';
+                    bashCommand = ("exec " + SbmJobScript.getQp2() + " " + quoteChar + command + " >> " + _logFile.getAbsolutePath() + " 2>&1" + quoteChar);
+                }
+            }
+            final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/bash", "-c", bashCommand }, envp.toArray(new String[0]), directory);
+            final OutputStream stdin = p.getOutputStream();
+            ProcessUtils.pipeStreamsToCurrentProcess(m_mainService.getName(), p, m_logger);
+            stdin.flush();
+            stdin.close();
+        }
+
+        // Now, we've tried to end the job. Let's wait for the service to die...
+        int secondsToWait = m_mainService.getShutdownWaitTime();
+
+        // If an ENDJOB with OPTION(*CNTRLD) fails, or if the custom stop command fails, then we keep track of it here, because we fall baco to ENDJOB with OPTION(*IMMED)
+        boolean hasEndJobImmedBeenTried = false;
+        while (true) {
+            if (!isServiceRunning()) {
+                // HOORAY!!
+                m_logger.printf_success("Service '%s' successfully stopped\n", m_mainService.getFriendlyName());
+                return;
+            }
+
+            final long currentTime = new Date().getTime();
+            if ((currentTime - startTime) > (1000 * secondsToWait)) {
+                if (hasEndJobImmedBeenTried) {
+                    throw new SCException(m_logger, FailureType.TIMEOUT_ON_SERVICE_STOP, "ERROR: Timed out waiting for service '%s' to stop. Giving up\n", m_mainService.getFriendlyName());
+                } else {
+                    // OK, we've timed out, so let's try ENDJOB with OPTION(*IMMED) and give it another 20 seconds (arbitrarily hardcoded by programmer)
+                    m_logger.printf_warn("WARNING: Timed out waiting for service '%s' to stop. Will try harder\n", m_mainService.getFriendlyName());
+                    hasEndJobImmedBeenTried = true;
+                    stopViaEndJob(0);
+                    secondsToWait += 20;
+                }
+            }
+            try {
+                Thread.sleep(2500L);
+            } catch (final InterruptedException e) {
+                m_logger.exception(e);
+            }
+        }
     }
 
     private void stopViaEndJob(final int _waitTime) throws IOException {
@@ -567,19 +576,10 @@ public class OperationExecutor {
         }
     }
 
-    public boolean isServiceRunning() throws SCException {
-        final CheckAliveType checkType = m_mainService.getCheckAliveType();
-        try {
-            if (CheckAliveType.PORT == checkType) {
-                return QueryUtils.isListeningOnPort(m_mainService.getCheckAliveCriteria(), m_logger);
-            } else if (CheckAliveType.JOBNAME == checkType) {
-                return QueryUtils.isJobRunning(m_mainService.getCheckAliveCriteria(), m_logger);
-            }
-        } catch (final IOException ioe) {
-            throw new SCException(m_logger, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
-        } catch (final NumberFormatException nfe) {
-            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
+    private String validateJobName(final String _jobName) throws SCException {
+        if (!_jobName.matches("^[0-9A-Z#]{1,10}$")) {
+            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid custom job name '%s' specified", _jobName);
         }
-        throw new SCException(m_logger, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation has been requested");
+        return _jobName;
     }
 }
