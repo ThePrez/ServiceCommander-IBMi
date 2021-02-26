@@ -168,6 +168,9 @@ public abstract class ServiceDefinition {
             }
             return valueOf(_configString);
         }
+        public boolean isBatch() {
+            return this != NO_BATCH;
+        }
     }
 
     /**
