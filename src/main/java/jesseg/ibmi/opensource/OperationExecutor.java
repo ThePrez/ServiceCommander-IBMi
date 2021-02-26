@@ -355,10 +355,7 @@ public class OperationExecutor {
                     envp.add("SBMJOB_OPTS=" + sbmJobOpts.trim());
                 }
 
-                // In the case of submitting to batch, it's unclear whether the user would want to redirect the output of the command
-                // to spooled files or whether they'd prefer the more i-traditional approach of output going to spooled files,
-                // which is arguably more natural for batch jobs.
-                if (Boolean.getBoolean(PROP_BATCHOUTPUT_SPLF)) {
+                if (shouldOutputGoToSplf()) {
                     bashCommand = ("exec " + SbmJobScript.getQp2() + " " + command);
                 } else {
                     final char quoteChar = command.contains("'") ? '\"' : '\'';
@@ -402,6 +399,19 @@ public class OperationExecutor {
                 m_logger.exception(e);
             }
         }
+    }
+
+    private boolean shouldOutputGoToSplf() throws SCException {
+        // User asked for it, so....
+        if (Boolean.getBoolean(PROP_BATCHOUTPUT_SPLF)) {
+            return true;
+        }
+        // User didn't ask for spooled file, and we're not submitting to batch, so log file it is!
+        if (BatchMode.NO_BATCH == getMainService().getBatchMode()) {
+            return false;
+        }
+        // So if we're submitting to batch as another user, it's unlikely that the other user can access the sc logs directory (private to the current user, so splf it is!)
+        return getMainService().getSbmJobOpts().toUpperCase().contains("USER(");
     }
 
     private void startService(final ServiceDefinition _svc, final File _logFile) throws InterruptedException, IOException, SCException {
@@ -458,10 +468,7 @@ public class OperationExecutor {
                 envp.add("SBMJOB_OPTS=" + sbmJobOpts.trim());
             }
 
-            // In the case of submitting to batch, it's unclear whether the user would want to redirect the output of the command
-            // to spooled files or whether they'd prefer the more i-traditional approach of output going to spooled files,
-            // which is arguably more natural for batch jobs.
-            if (Boolean.getBoolean(PROP_BATCHOUTPUT_SPLF)) {
+            if (shouldOutputGoToSplf()) {
                 bashCommand = ("exec " + SbmJobScript.getQp2() + " " + command);
             } else {
                 final char quoteChar = command.contains("'") ? '\"' : '\'';
