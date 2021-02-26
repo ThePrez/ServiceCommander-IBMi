@@ -107,13 +107,13 @@ public class OperationExecutor {
                     stopService(logFile);
                     return logFile;
                 case CHECK:
-                    printServiceStatus(m_logger);
+                    printServiceStatus();
                     return null;
                 case INFO:
-                    printInfo(m_logger);
+                    printInfo();
                     return null;
                 case PERFINFO:
-                    printPerfInfo( m_logger);
+                    printPerfInfo( );
                     return null;
                 case RESTART:
                     stopService( logFile);
@@ -145,76 +145,76 @@ public class OperationExecutor {
         return "." + m_mainService.getName() + ".log";
     }
 
-    private void printInfo(final AppLogger _logger) {
-        _logger.println();
-        _logger.println();
-        _logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
-        _logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + ")");
-        _logger.println();
-        _logger.println();
-        _logger.println(StringUtils.colorizeForTerminal("Defined in: ", TerminalColor.CYAN) + m_mainService.getSource());
-        _logger.println();
-        _logger.println(StringUtils.colorizeForTerminal("Working Directory: ", TerminalColor.CYAN) + m_mainService.getWorkingDirectory());
-        _logger.println();
-        _logger.println(StringUtils.colorizeForTerminal("Startup Command: ", TerminalColor.CYAN) + m_mainService.getStartCommand());
-        _logger.println(StringUtils.colorizeForTerminal("Startup Wait Time (s): ", TerminalColor.CYAN) + m_mainService.getStartupWaitTime());
-        _logger.println();
+    private void printInfo() {
+        m_logger.println();
+        m_logger.println();
+        m_logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
+        m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + ")");
+        m_logger.println();
+        m_logger.println();
+        m_logger.println(StringUtils.colorizeForTerminal("Defined in: ", TerminalColor.CYAN) + m_mainService.getSource());
+        m_logger.println();
+        m_logger.println(StringUtils.colorizeForTerminal("Working Directory: ", TerminalColor.CYAN) + m_mainService.getWorkingDirectory());
+        m_logger.println();
+        m_logger.println(StringUtils.colorizeForTerminal("Startup Command: ", TerminalColor.CYAN) + m_mainService.getStartCommand());
+        m_logger.println(StringUtils.colorizeForTerminal("Startup Wait Time (s): ", TerminalColor.CYAN) + m_mainService.getStartupWaitTime());
+        m_logger.println();
         final String shutdownCommand = m_mainService.getStopCommand();
         if (!StringUtils.isEmpty(shutdownCommand)) {
-            _logger.println(StringUtils.colorizeForTerminal("Shutdown Command: ", TerminalColor.CYAN) + shutdownCommand);
+            m_logger.println(StringUtils.colorizeForTerminal("Shutdown Command: ", TerminalColor.CYAN) + shutdownCommand);
         }
-        _logger.println(StringUtils.colorizeForTerminal("Shutdown Wait Time (s): ", TerminalColor.CYAN) + m_mainService.getShutdownWaitTime());
-        _logger.println();
-        _logger.println(StringUtils.colorizeForTerminal("Check-alive type: ", TerminalColor.CYAN) + m_mainService.getCheckAliveType().name());
-        _logger.println(StringUtils.colorizeForTerminal("Check-alive condition: ", TerminalColor.CYAN) + m_mainService.getCheckAliveCriteria());
+        m_logger.println(StringUtils.colorizeForTerminal("Shutdown Wait Time (s): ", TerminalColor.CYAN) + m_mainService.getShutdownWaitTime());
+        m_logger.println();
+        m_logger.println(StringUtils.colorizeForTerminal("Check-alive type: ", TerminalColor.CYAN) + m_mainService.getCheckAliveType().name());
+        m_logger.println(StringUtils.colorizeForTerminal("Check-alive condition: ", TerminalColor.CYAN) + m_mainService.getCheckAliveCriteria());
         final BatchMode batchMode = m_mainService.getBatchMode();
         if (BatchMode.NO_BATCH == batchMode) {
-            _logger.println(StringUtils.colorizeForTerminal("Batch Mode: ", TerminalColor.CYAN) + "<not running in batch>");
+            m_logger.println(StringUtils.colorizeForTerminal("Batch Mode: ", TerminalColor.CYAN) + "<not running in batch>");
         } else {
-            _logger.println(StringUtils.colorizeForTerminal("Batch Mode: ", TerminalColor.CYAN) + "<submitted to batch>");
+            m_logger.println(StringUtils.colorizeForTerminal("Batch Mode: ", TerminalColor.CYAN) + "<submitted to batch>");
             String batchJobName = m_mainService.getBatchJobName();
             if (StringUtils.isEmpty(batchJobName)) {
                 batchJobName = "<default>";
             }
-            _logger.println(StringUtils.colorizeForTerminal("    Batch Job Name: ", TerminalColor.CYAN) + batchJobName);
+            m_logger.println(StringUtils.colorizeForTerminal("    Batch Job Name: ", TerminalColor.CYAN) + batchJobName);
             final String sbmjobOpts = m_mainService.getSbmJobOpts();
             if (!StringUtils.isEmpty(sbmjobOpts)) {
-                _logger.println(StringUtils.colorizeForTerminal("    SBMJOB options: ", TerminalColor.CYAN) + sbmjobOpts);
+                m_logger.println(StringUtils.colorizeForTerminal("    SBMJOB options: ", TerminalColor.CYAN) + sbmjobOpts);
             }
         }
         final List<String> dependencies = m_mainService.getDependencies();
         if (!dependencies.isEmpty()) {
-            _logger.println();
-            _logger.println(StringUtils.colorizeForTerminal("Depends on the following services:", TerminalColor.CYAN));
+            m_logger.println();
+            m_logger.println(StringUtils.colorizeForTerminal("Depends on the following services:", TerminalColor.CYAN));
             for (final String dependency : dependencies) {
-                _logger.println("    " + dependency);
+                m_logger.println("    " + dependency);
             }
         }
-        _logger.println();
-        _logger.println(StringUtils.colorizeForTerminal("Inherits environment variables?: ", TerminalColor.CYAN) + m_mainService.isInheritingEnvironmentVars());
+        m_logger.println();
+        m_logger.println(StringUtils.colorizeForTerminal("Inherits environment variables?: ", TerminalColor.CYAN) + m_mainService.isInheritingEnvironmentVars());
         final List<String> envVars = m_mainService.getEnvironmentVars();
         if (!envVars.isEmpty()) {
-            _logger.println(StringUtils.colorizeForTerminal("Custom environment variables:", TerminalColor.CYAN));
+            m_logger.println(StringUtils.colorizeForTerminal("Custom environment variables:", TerminalColor.CYAN));
             for (final String envVar : envVars) {
-                _logger.println("    " + envVar);
+                m_logger.println("    " + envVar);
             }
         }
-        _logger.println("---------------------------------------------------------------------");
-        _logger.println();
-        _logger.println();
+        m_logger.println("---------------------------------------------------------------------");
+        m_logger.println();
+        m_logger.println();
     }
 
-    private List<String> getActiveJobsForService(final AppLogger _logger) throws SCException {
+    private List<String> getActiveJobsForService() throws SCException {
         try {
             if (CheckAliveType.PORT == m_mainService.getCheckAliveType()) {
-                return QueryUtils.getListeningJobsByPort(m_mainService.getCheckAliveCriteria(), _logger);
+                return QueryUtils.getListeningJobsByPort(m_mainService.getCheckAliveCriteria(), m_logger);
             } else {
-                return QueryUtils.getJobs(m_mainService.getCheckAliveCriteria(), _logger);
+                return QueryUtils.getJobs(m_mainService.getCheckAliveCriteria(), m_logger);
             }
         } catch (final IOException ioe) {
-            throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
+            throw new SCException(m_logger, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
         } catch (final NumberFormatException nfe) {
-            throw new SCException(_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
+            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
         }
     }
 
@@ -255,40 +255,40 @@ public class OperationExecutor {
         }
     }
 
-    private void printPerfInfo(final AppLogger _logger) throws SCException, IOException {
-        _logger.println();
-        _logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
+    private void printPerfInfo() throws SCException, IOException {
+        m_logger.println();
+        m_logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
 
-        _logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + ")");
-        if (!isServiceRunning( _logger)) {
-            _logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
+        m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + ")");
+        if (!isServiceRunning()) {
+            m_logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
         }
-        _logger.println();
+        m_logger.println();
         final List<PerfInfoFetcher> dataFetcherThreads = new LinkedList<PerfInfoFetcher>();
-        for (final String job : getActiveJobsForService(_logger)) {
-            dataFetcherThreads.add(new PerfInfoFetcher(job, _logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
+        for (final String job : getActiveJobsForService()) {
+            dataFetcherThreads.add(new PerfInfoFetcher(job, m_logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
         }
         for (final PerfInfoFetcher dataFetcherThread : dataFetcherThreads) {
-            _logger.println(StringUtils.colorizeForTerminal("Job: " + dataFetcherThread.m_job, TerminalColor.CYAN));
+            m_logger.println(StringUtils.colorizeForTerminal("Job: " + dataFetcherThread.m_job, TerminalColor.CYAN));
             final SortedMap<String, String> perfInfo = dataFetcherThread.getResults();
             for (final Entry<String, String> pi : perfInfo.entrySet()) {
-                _logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), TerminalColor.CYAN) + ": " + pi.getValue());
+                m_logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), TerminalColor.CYAN) + ": " + pi.getValue());
             }
-            _logger.println();
+            m_logger.println();
         }
-        _logger.println("---------------------------------------------------------------------");
-        _logger.println();
+        m_logger.println("---------------------------------------------------------------------");
+        m_logger.println();
     }
 
-    private boolean printServiceStatus(final AppLogger _logger) throws NumberFormatException, IOException, SCException {
-        final boolean isRunning = isServiceRunning(_logger);
+    private boolean printServiceStatus() throws NumberFormatException, IOException, SCException {
+        final boolean isRunning = isServiceRunning();
         final String paddedStatusString;
         if (isRunning) {
             paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("RUNNING", 23), TerminalColor.GREEN);
         } else {
             paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("NOT RUNNING", 23), TerminalColor.PURPLE);
         }
-        _logger.printfln("  %s | %s (%s)", paddedStatusString, m_mainService.getName(), m_mainService.getFriendlyName());
+        m_logger.printfln("  %s | %s (%s)", paddedStatusString, m_mainService.getName(), m_mainService.getFriendlyName());
         return isRunning;
     }
 
@@ -305,7 +305,7 @@ public class OperationExecutor {
         }
 
         // If the service is already stopped, hey, we're done! WOOHOO!!
-        if (!isServiceRunning( m_logger)) {
+        if (!isServiceRunning()) {
             m_logger.printf("Service '%s' is already stopped\n", m_mainService.getFriendlyName());
             return;
         }
@@ -316,7 +316,7 @@ public class OperationExecutor {
         final String command = m_mainService.getStopCommand();
         if (StringUtils.isEmpty(command)) {
             // If the user doesn't provide a custom stop command, that's OK. We go directly to ENDJOB.
-            stopViaEndJob(m_mainService.getShutdownWaitTime(), m_logger);
+            stopViaEndJob(m_mainService.getShutdownWaitTime());
         } else {
             // If the user provided a custom stop command, let's go try to execute it.
             final File directory = new File(m_mainService.getWorkingDirectory());
@@ -365,7 +365,7 @@ public class OperationExecutor {
         // If an ENDJOB with OPTION(*CNTRLD) fails, or if the custom stop command fails, then we keep track of it here, because we fall baco to ENDJOB with OPTION(*IMMED)
         boolean hasEndJobImmedBeenTried = false;
         while (true) {
-            if (!isServiceRunning(m_logger)) {
+            if (!isServiceRunning()) {
                 // HOORAY!!
                 m_logger.printf_success("Service '%s' successfully stopped\n", m_mainService.getFriendlyName());
                 return;
@@ -379,7 +379,7 @@ public class OperationExecutor {
                     // OK, we've timed out, so let's try ENDJOB with OPTION(*IMMED) and give it another 20 seconds (arbitrarily hardcoded by programmer)
                     m_logger.printf_warn("WARNING: Timed out waiting for service '%s' to stop. Will try harder\n", m_mainService.getFriendlyName());
                     hasEndJobImmedBeenTried = true;
-                    stopViaEndJob(0, m_logger);
+                    stopViaEndJob(0);
                     secondsToWait += 20;
                 }
             }
@@ -422,7 +422,7 @@ public class OperationExecutor {
             }
         }
 
-        if (isServiceRunning(m_logger)) {
+        if (isServiceRunning()) {
             m_logger.printf("Service '%s' is already running\n", m_mainService.getFriendlyName());
             return;
         }
@@ -491,7 +491,7 @@ public class OperationExecutor {
 
         final int secondsToWait = m_mainService.getStartupWaitTime();
         while (true) {
-            if (isServiceRunning(m_logger)) {
+            if (isServiceRunning()) {
                 m_logger.printf_success("Service '%s' successfully started\n", m_mainService.getFriendlyName());
                 return;
             }
@@ -519,28 +519,28 @@ public class OperationExecutor {
         return prohibited.contains(_var);
     }
 
-    private void stopViaEndJob(final int _waitTime, final AppLogger _logger) throws IOException {
+    private void stopViaEndJob(final int _waitTime) throws IOException {
         if (CheckAliveType.PORT == m_mainService.getCheckAliveType()) {
-            final List<String> jobs = QueryUtils.getListeningJobsByPort(m_mainService.getCheckAliveCriteria(), _logger);
-            stopViaEndJob(jobs, _waitTime, _logger);
+            final List<String> jobs = QueryUtils.getListeningJobsByPort(m_mainService.getCheckAliveCriteria(), m_logger);
+            stopViaEndJob(jobs, _waitTime);
         } else if (CheckAliveType.JOBNAME == m_mainService.getCheckAliveType()) {
-            _logger.println("Stopping via endjob");
-            final List<String> jobs = QueryUtils.getJobs(m_mainService.getCheckAliveCriteria(), _logger);
+            m_logger.println("Stopping via endjob");
+            final List<String> jobs = QueryUtils.getJobs(m_mainService.getCheckAliveCriteria(), m_logger);
             if (jobs.isEmpty()) {
                 return;
             } else if (1 == jobs.size()) {
-                stopViaEndJob(jobs, _waitTime, _logger);
+                stopViaEndJob(jobs, _waitTime);
             } else {
-                _logger.println_err("ERROR: Multiple jobs found matching job name criteria!! Those jobs were: ");
+                m_logger.println_err("ERROR: Multiple jobs found matching job name criteria!! Those jobs were: ");
                 for (final String job : jobs) {
-                    _logger.println_err("    " + job);
+                    m_logger.println_err("    " + job);
                 }
                 return;
             }
         }
     }
 
-    private void stopViaEndJob(final List<String> _jobs, final int _waitTime, final AppLogger _logger) throws IOException {
+    private void stopViaEndJob(final List<String> _jobs, final int _waitTime) throws IOException {
         final String optionString = (0 >= _waitTime) ? "OPTION(*IMMED)" : ("OPTION(*CNTRLD) DELAY(" + _waitTime + ")");
         final String db2util = "/QOpenSys/pkgs/bin/db2util";
         final String db2util_opts = "-o space";
@@ -557,29 +557,29 @@ public class OperationExecutor {
                 command += endjob;
             }
             command += end_qcmdexc;
-            _logger.println("Ending job with: " + db2util + " " + db2util_opts + " " + command);
+            m_logger.println("Ending job with: " + db2util + " " + db2util_opts + " " + command);
             final Process p = Runtime.getRuntime().exec(new String[] { db2util, "-o", "space", command });
             try {
                 p.waitFor();
             } catch (final InterruptedException e) {
-                _logger.exception(e);
+                m_logger.exception(e);
             }
         }
     }
 
-    public boolean isServiceRunning(final AppLogger _logger) throws SCException {
+    public boolean isServiceRunning() throws SCException {
         final CheckAliveType checkType = m_mainService.getCheckAliveType();
         try {
             if (CheckAliveType.PORT == checkType) {
-                return QueryUtils.isListeningOnPort(m_mainService.getCheckAliveCriteria(), _logger);
+                return QueryUtils.isListeningOnPort(m_mainService.getCheckAliveCriteria(), m_logger);
             } else if (CheckAliveType.JOBNAME == checkType) {
-                return QueryUtils.isJobRunning(m_mainService.getCheckAliveCriteria(), _logger);
+                return QueryUtils.isJobRunning(m_mainService.getCheckAliveCriteria(), m_logger);
             }
         } catch (final IOException ioe) {
-            throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
+            throw new SCException(m_logger, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
         } catch (final NumberFormatException nfe) {
-            throw new SCException(_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
+            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
         }
-        throw new SCException(_logger, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation has been requested");
+        throw new SCException(m_logger, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation has been requested");
     }
 }
