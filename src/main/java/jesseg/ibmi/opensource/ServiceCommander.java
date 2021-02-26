@@ -20,7 +20,7 @@ import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
 
 /**
  * Main entry point for the application
- * 
+ *
  * @author Jesse Gorzinski
  */
 public class ServiceCommander {

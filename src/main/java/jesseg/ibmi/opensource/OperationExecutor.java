@@ -25,7 +25,7 @@ import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
 
 /**
  * Where all the work happens
- * 
+ *
  * @author Jesse Gorzinski
  */
 public class OperationExecutor {
@@ -193,36 +193,41 @@ public class OperationExecutor {
 
     static class PerfInfoFetcher extends Thread {
         protected SortedMap<String, String> m_res = null;
-        private String m_job;
-        private AppLogger m_logger;
-        private float m_sampleTime;
+        private final String m_job;
+        private final AppLogger m_logger;
+        private final float m_sampleTime;
         private SCException m_exc = null;
 
-        public PerfInfoFetcher(final String _job, AppLogger _logger, float _sampleTime) {
-            super("PerformanceInfo-"+_job);
-            m_job = _job;this.m_logger=_logger;m_sampleTime=_sampleTime;
+        public PerfInfoFetcher(final String _job, final AppLogger _logger, final float _sampleTime) {
+            super("PerformanceInfo-" + _job);
+            m_job = _job;
+            this.m_logger = _logger;
+            m_sampleTime = _sampleTime;
             start();
         }
+
         @Override
         public void run() {
             try {
-                m_res=QueryUtils.getJobPerfInfo(m_job, m_logger, m_sampleTime);
-            }catch(Exception e) {
+                m_res = QueryUtils.getJobPerfInfo(m_job, m_logger, m_sampleTime);
+            } catch (final Exception e) {
                 m_exc = SCException.fromException(e, m_logger);
             }
         }
+
         public SortedMap<String, String> getResults() throws SCException {
             try {
                 join();
-            } catch (InterruptedException e) {
-               throw SCException.fromException(e, m_logger);
+            } catch (final InterruptedException e) {
+                throw SCException.fromException(e, m_logger);
             }
-            if(null != m_exc) {
+            if (null != m_exc) {
                 throw m_exc;
             }
             return m_res;
         }
     }
+
     private static void printPerfInfo(final ServiceDefinition _svc, final AppLogger _logger) throws SCException, IOException {
         _logger.println();
         _logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
@@ -232,7 +237,7 @@ public class OperationExecutor {
             _logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
         }
         _logger.println();
-        List<PerfInfoFetcher> dataFetcherThreads = new LinkedList<PerfInfoFetcher>();
+        final List<PerfInfoFetcher> dataFetcherThreads = new LinkedList<PerfInfoFetcher>();
         for (final String job : getActiveJobsForService(_svc, _logger)) {
             dataFetcherThreads.add(new PerfInfoFetcher(job, _logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
         }
@@ -488,7 +493,7 @@ public class OperationExecutor {
         final String optionString = (0 >= _waitTime) ? "OPTION(*IMMED)" : ("OPTION(*CNTRLD) DELAY(" + _waitTime + ")");
         final String db2util = "/QOpenSys/pkgs/bin/db2util";
         final String db2util_opts = "-o space";
-        String start_qcmdexc = "CALL QSYS2.QCMDEXC('";
+        final String start_qcmdexc = "CALL QSYS2.QCMDEXC('";
         final String end_qcmdexc = "')";
 
         for (final String job : _jobs) {
@@ -496,13 +501,13 @@ public class OperationExecutor {
             String command = start_qcmdexc;
             // batch mode is on so run command endjob under sbmjob
             if (BatchMode.NO_BATCH != _svc.getBatchMode()) {
-                command += "SBMJOB " +_svc.getSbmJobOpts() + " CMD("+ endjob + ")";
+                command += "SBMJOB " + _svc.getSbmJobOpts() + " CMD(" + endjob + ")";
             } else {
                 command += endjob;
             }
             command += end_qcmdexc;
-            _logger.println("Ending job with: " + db2util + " " + db2util_opts + " "  + command);
-            final Process p = Runtime.getRuntime().exec(new String [] {db2util, "-o", "space", command });
+            _logger.println("Ending job with: " + db2util + " " + db2util_opts + " " + command);
+            final Process p = Runtime.getRuntime().exec(new String[] { db2util, "-o", "space", command });
             try {
                 p.waitFor();
             } catch (final InterruptedException e) {
