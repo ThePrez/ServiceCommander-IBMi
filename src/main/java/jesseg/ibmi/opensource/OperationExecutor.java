@@ -80,19 +80,22 @@ public class OperationExecutor {
             }
         }
     }
+
     static final String PROP_BATCHOUTPUT_SPLF = "sc.batchoutput.splf";
 
     static final String PROP_SAMPLE_TIME = "sc.perfsamplingtime";
+
     private static boolean isEnvvarProhibitedFromInheritance(final String _var) {
         final List<String> prohibited = Arrays.asList("LIBPATH", "LD_LIBRARY_PATH", "JAVA_HOME", "SSH_TTY", "SSH_CLIENT", "SSH_CONNECTION", "SHELL", "SHLVL");
         return prohibited.contains(_var);
     }
+
     private final Operation m_op;
     private final Map<String, ServiceDefinition> m_serviceDefs;
 
     private final AppLogger m_logger;
 
-    private ServiceDefinition m_mainService;
+    private final ServiceDefinition m_mainService;
 
     public OperationExecutor(final Operation _op, final String _service, final Map<String, ServiceDefinition> serviceDefs, final AppLogger _logger) throws SCException {
         m_op = _op;
@@ -123,11 +126,11 @@ public class OperationExecutor {
                     printInfo();
                     return null;
                 case PERFINFO:
-                    printPerfInfo( );
+                    printPerfInfo();
                     return null;
                 case RESTART:
-                    stopService( logFile);
-                    startService( logFile);
+                    stopService(logFile);
+                    startService(logFile);
                     return logFile;
                 default:
                     return null;
@@ -279,6 +282,7 @@ public class OperationExecutor {
         m_logger.println();
         m_logger.println();
     }
+
     private void printPerfInfo() throws SCException, IOException {
         m_logger.println();
         m_logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
@@ -303,6 +307,7 @@ public class OperationExecutor {
         m_logger.println("---------------------------------------------------------------------");
         m_logger.println();
     }
+
     private boolean printServiceStatus() throws NumberFormatException, IOException, SCException {
         final boolean isRunning = isServiceRunning();
         final String paddedStatusString;
@@ -328,7 +333,7 @@ public class OperationExecutor {
         return isLikelyRunningAsAnotherUser();
     }
 
-    private void startService( final File _logFile) throws InterruptedException, IOException, SCException {
+    private void startService(final File _logFile) throws InterruptedException, IOException, SCException {
 
         // Start all dependencies before starting this one
         for (final String dependencyName : m_mainService.getDependencies()) {
