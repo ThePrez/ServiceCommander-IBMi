@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -68,7 +71,9 @@ public class QueryUtils {
 
         final List<String> queryResults = ProcessUtils.getStdout("python3", p, _logger);
         if (queryResults.isEmpty()) {
-            throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Unable to retrieve performance data for job %s. The job may no longer be active, or you may be missing required operating system support. The required operating system capability is included in IBM i 7.4. For IBM i 7.3, it is available with group PTF SF99703 Level 11. For IBM i 7.2, it is available with group PTF SF99702 Level 23.", _job);
+            throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS,
+                    "Unable to retrieve performance data for job %s. The job may no longer be active, or you may be missing required operating system support. The required operating system capability is included in IBM i 7.4. For IBM i 7.3, it is available with group PTF SF99703 Level 11. For IBM i 7.2, it is available with group PTF SF99702 Level 23.",
+                    _job);
         }
         final TreeMap<String, String> ret = new TreeMap<>();
         ret.put("->Sampling time (s)", queryResults.get(0));
@@ -84,7 +89,8 @@ public class QueryUtils {
 
         // Now fetch JVM properties!
 
-        final Process pJava = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + jobName, "SELECT CURRENT_HEAP_SIZE, IN_USE_HEAP_SIZE, MAX_HEAP_SIZE, SHARED_CLASS_SIZE, MALLOC_MEMORY_SIZE, JIT_MEMORY_SIZE, GC_CYCLE_NUMBER, TOTAL_GC_TIME from QSYS2.JVM_INFO where JOB_NAME =  ?" });
+        final Process pJava = Runtime.getRuntime()
+                .exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + jobName, "SELECT CURRENT_HEAP_SIZE, IN_USE_HEAP_SIZE, MAX_HEAP_SIZE, SHARED_CLASS_SIZE, MALLOC_MEMORY_SIZE, JIT_MEMORY_SIZE, GC_CYCLE_NUMBER, TOTAL_GC_TIME from QSYS2.JVM_INFO where JOB_NAME =  ?" });
         final List<String> javaQueryResults = ProcessUtils.getStdout("db2util", pJava, _logger);
         if (javaQueryResults.isEmpty()) {
             return ret;
@@ -166,5 +172,23 @@ public class QueryUtils {
 
     public static boolean isListeningOnPort(final String _port, final AppLogger _logger) throws NumberFormatException, IOException {
         return isListeningOnPort(Integer.valueOf(_port.trim()), _logger);
+    }
+
+    public static long getJobStartTime(String _job, final AppLogger _logger) throws IOException, ParseException {
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + _job, "SELECT job_entered_system_time FROM TABLE(qsys2.job_info(JOB_USER_FILTER => '*ALL'))as x WHERE job_name = ?" });
+        final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
+        final String firstLine = queryResults.get(0).replace("\"", "");
+        return new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss").parse(firstLine).getTime();
+    }
+
+    public static List<String> getSplfsForJob(String _job, AppLogger _logger) throws IOException {
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + _job, "SELECT SPOOLED_FILE_NAME,JOB_NAME,FILE_NUMBER FROM QSYS2.OUTPUT_QUEUE_ENTRIES_BASIC WHERE job_name = ?" });
+        final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
+        List<String> ret = new ArrayList<String>(queryResults.size());
+        for (String queryResult : queryResults) {
+            String[] split = queryResult.replace("\"", "").split(" ");
+            ret.add(String.format("DSPSPLF FILE(%s) JOB(%s) SPLNBR(%s)", split));
+        }
+        return ret;
     }
 }

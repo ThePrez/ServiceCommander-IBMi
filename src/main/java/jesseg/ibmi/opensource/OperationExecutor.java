@@ -32,7 +32,7 @@ import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
 public class OperationExecutor {
 
     public enum Operation {
-        START(true), STOP(true), RESTART(true), CHECK(false), INFO(false), PERFINFO(false);
+        START(true), STOP(true), RESTART(true), CHECK(false), INFO(false), PERFINFO(false), LOGINFO(false);
         private final boolean m_isChangingSystemState;
 
         Operation(final boolean _isChangingSystemState) {
@@ -85,6 +85,8 @@ public class OperationExecutor {
 
     static final String PROP_SAMPLE_TIME = "sc.perfsamplingtime";
 
+    private static final String LOG_FILE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+
     private static boolean isEnvvarProhibitedFromInheritance(final String _var) {
         final List<String> prohibited = Arrays.asList("LIBPATH", "LD_LIBRARY_PATH", "JAVA_HOME", "SSH_TTY", "SSH_CLIENT", "SSH_CONNECTION", "SHELL", "SHLVL");
         return prohibited.contains(_var);
@@ -109,7 +111,7 @@ public class OperationExecutor {
 
     public File execute() throws SCException {
         final File logDir = AppDirectories.conf.getLogsDirectory();
-        final String logFileName = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()) + getLogSuffix();
+        final String logFileName = new SimpleDateFormat(LOG_FILE_DATE_FORMAT).format(new Date()) + getLogSuffix();
         final File logFile = new File(logDir.getAbsolutePath() + "/" + logFileName);
         try {
             switch (m_op) {
@@ -127,6 +129,9 @@ public class OperationExecutor {
                     return null;
                 case PERFINFO:
                     printPerfInfo();
+                    return null;
+                case LOGINFO:
+                    printLogInfo();
                     return null;
                 case RESTART:
                     stopService(logFile);
@@ -150,6 +155,36 @@ public class OperationExecutor {
                         m_logger.println("For details, see log file at: " + StringUtils.colorizeForTerminal(logFile.getAbsolutePath(), TerminalColor.CYAN));
                     }
                 }
+            }
+        }
+    }
+
+    private void printLogInfo() throws SCException {
+        String possibleLogFile = getPossibleLogFile();
+
+        if (null != possibleLogFile) {
+            for (String job : getActiveJobsForService()) {
+                try {
+                    long fileTs = new SimpleDateFormat(LOG_FILE_DATE_FORMAT).parse(new File(possibleLogFile).getName().substring(0, LOG_FILE_DATE_FORMAT.length()+4)).getTime();
+                    long jobStart = QueryUtils.getJobStartTime(job, m_logger);
+                    if (Math.abs(jobStart - fileTs) < 5000) {
+                        m_logger.println(StringUtils.colorizeForTerminal("tail -f "+ possibleLogFile, TerminalColor.CYAN));
+                        break;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new SCException(m_logger, FailureType.GENERAL_ERROR, e.getLocalizedMessage());
+                }
+            }
+        }
+
+        for (String job : getActiveJobsForService()) {
+            try {
+                for (String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
+                    m_logger.println(StringUtils.colorizeForTerminal(splf, TerminalColor.CYAN));
+                }
+            } catch (Exception e) {
+                throw new SCException(m_logger, FailureType.GENERAL_ERROR, e.getLocalizedMessage());
             }
         }
     }
@@ -185,11 +220,13 @@ public class OperationExecutor {
         return "." + m_mainService.getName() + ".log";
     }
 
-    public String getProbableLogFile() throws SCException {
-        if (m_mainService.getBatchMode().isBatch()) {
-            return "<spooled file>"; // TODO: try to hunt down the spooled file
-        }
+    public List<String> getSpooledFiles() {
+        LinkedList<String> ret = new LinkedList<String>();
+        return ret;
 
+    }
+
+    public String getPossibleLogFile() {
         final File logDir = AppDirectories.conf.getLogsDirectory();
         File latest = null;
         for (final File logFile : logDir.listFiles((FilenameFilter) (dir, name) -> name.endsWith(getLogSuffix()))) {
@@ -201,6 +238,7 @@ public class OperationExecutor {
                 }
             }
         }
+        m_logger.printf_verbose("possible log file is %s\n", latest.getAbsolutePath());
         return null == latest ? "<unknown>" : latest.getAbsolutePath();
     }
 
@@ -322,7 +360,7 @@ public class OperationExecutor {
 
     private boolean shouldOutputGoToSplf() throws SCException {
         // User asked for it, so....
-        if (Boolean.getBoolean(PROP_BATCHOUTPUT_SPLF)) {
+        if (m_mainService.getBatchMode().isBatch() && Boolean.getBoolean(PROP_BATCHOUTPUT_SPLF)) {
             return true;
         }
         // User didn't ask for spooled file, and we're not submitting to batch, so log file it is!

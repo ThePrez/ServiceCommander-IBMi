@@ -137,6 +137,7 @@ public class ServiceCommander {
                 performOperationsOnServices(op, Collections.singleton(service), serviceDefs, logger);
             }
         } catch (final SCException e) {
+            e.printStackTrace();
             System.exit(-3);
         }
         logger.println();
