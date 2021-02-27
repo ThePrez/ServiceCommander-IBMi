@@ -15,7 +15,7 @@ import jesseg.ibmi.opensource.utils.StringUtils;
 
 /**
  * A service definition loaded from a .yaml file.
- * 
+ *
  * @author Jesse Gorzinski
  */
 public class YamlServiceDef extends ServiceDefinition {

@@ -8,7 +8,7 @@ import jesseg.ibmi.opensource.yaml.YamlServiceDef;
 /**
  * Abstract class representing a definition of a service. Since currently only
  * .yaml files are supported, the only implementing class is {@link YamlServiceDef}
- * 
+ *
  * @author Jesse Gorzinski
  */
 public abstract class ServiceDefinition {
@@ -48,6 +48,7 @@ public abstract class ServiceDefinition {
             }
             return valueOf(_configString);
         }
+
         public boolean isBatch() {
             return this != NO_BATCH;
         }
@@ -86,7 +87,7 @@ public abstract class ServiceDefinition {
 
     /**
      * The criteria for checking whether the job is alive or not (either a job name or port number)
-     * 
+     *
      * @return the job name or port number, depending on the return value of {@link #getCheckAliveType()}
      */
     public abstract String getCheckAliveCriteria();
@@ -98,7 +99,7 @@ public abstract class ServiceDefinition {
 
     /**
      * A list of other services that are dependencies of this one, if any.
-     * 
+     *
      * @return a list of dependencies, in simple name format, or an empty list if there are none. This method will not return <tt>null</tt>.
      */
     public List<String> getDependencies() {
@@ -107,7 +108,7 @@ public abstract class ServiceDefinition {
 
     /**
      * A list of custom environment variables to be set in the process for the service when it is launched, if any.
-     * 
+     *
      * @return a list of environment variables, in <tt>KEY=VALUE</tt> format, or an empty list if there are none. This method will not return <tt>null</tt>.
      */
     public List<String> getEnvironmentVars() {
@@ -116,7 +117,7 @@ public abstract class ServiceDefinition {
 
     /**
      * A "friendly" name for the service
-     * 
+     *
      * @return the friendly name
      */
     public String getFriendlyName() {
@@ -125,7 +126,7 @@ public abstract class ServiceDefinition {
 
     /**
      * A list of custom-defined groups that this service is a member of, if any.
-     * 
+     *
      * @return a list of groups, or an empty list if there are none. This method will not return <tt>null</tt>.
      */
     public List<String> getGroups() {
@@ -135,7 +136,7 @@ public abstract class ServiceDefinition {
     /**
      * The name of the service. This will typically match the filename, without the extension. For instance, <tt>myservice</tt> will be defined
      * in a file <tt>myservice.yaml</tt>.
-     * 
+     *
      * @return the name of the service
      */
     public abstract String getName();
@@ -152,7 +153,7 @@ public abstract class ServiceDefinition {
 
     /**
      * The length of time to wait for the service to stop.
-     * 
+     *
      * @return the wait time, in seconds
      */
     public int getShutdownWaitTime() {
@@ -168,14 +169,14 @@ public abstract class ServiceDefinition {
 
     /**
      * Get the command used to start the service. This command is expected to be run in a PASE shell (namely, <tt>/QOpenSys/usr/bin/sh</tt>)
-     * 
+     *
      * @return the start command
      */
     public abstract String getStartCommand();
 
     /**
      * The length of time to wait for the service to start.
-     * 
+     *
      * @return the wait time, in seconds
      */
     public int getStartupWaitTime() {
@@ -184,7 +185,7 @@ public abstract class ServiceDefinition {
 
     /**
      * (optional) Get the command used to stop the service. This command is expected to be run in a PASE shell (namely, <tt>/QOpenSys/usr/bin/sh</tt>)
-     * 
+     *
      * @return the stop command, or <tt>null</tt> if there is no special stop command for this service
      */
     public String getStopCommand() {
@@ -193,7 +194,7 @@ public abstract class ServiceDefinition {
 
     /**
      * Get the working directory to be used for starting and stopping the service
-     * 
+     *
      * @return the working directory (this method will not return <tt>null</tt>
      */
     public String getWorkingDirectory() {

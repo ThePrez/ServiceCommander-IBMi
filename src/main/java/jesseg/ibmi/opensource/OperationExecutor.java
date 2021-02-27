@@ -160,30 +160,30 @@ public class OperationExecutor {
     }
 
     private void printLogInfo() throws SCException {
-        String possibleLogFile = getPossibleLogFile();
+        final String possibleLogFile = getPossibleLogFile();
 
         if (null != possibleLogFile) {
-            for (String job : getActiveJobsForService()) {
+            for (final String job : getActiveJobsForService()) {
                 try {
-                    long fileTs = new SimpleDateFormat(LOG_FILE_DATE_FORMAT).parse(new File(possibleLogFile).getName().substring(0, LOG_FILE_DATE_FORMAT.length()+4)).getTime();
-                    long jobStart = QueryUtils.getJobStartTime(job, m_logger);
+                    final long fileTs = new SimpleDateFormat(LOG_FILE_DATE_FORMAT).parse(new File(possibleLogFile).getName().substring(0, LOG_FILE_DATE_FORMAT.length() + 4)).getTime();
+                    final long jobStart = QueryUtils.getJobStartTime(job, m_logger);
                     if (Math.abs(jobStart - fileTs) < 5000) {
-                        m_logger.println(StringUtils.colorizeForTerminal("tail -f "+ possibleLogFile, TerminalColor.CYAN));
+                        m_logger.println(StringUtils.colorizeForTerminal("tail -f " + possibleLogFile, TerminalColor.CYAN));
                         break;
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                     throw new SCException(m_logger, FailureType.GENERAL_ERROR, e.getLocalizedMessage());
                 }
             }
         }
 
-        for (String job : getActiveJobsForService()) {
+        for (final String job : getActiveJobsForService()) {
             try {
-                for (String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
+                for (final String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
                     m_logger.println(StringUtils.colorizeForTerminal(splf, TerminalColor.CYAN));
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new SCException(m_logger, FailureType.GENERAL_ERROR, e.getLocalizedMessage());
             }
         }
@@ -221,7 +221,7 @@ public class OperationExecutor {
     }
 
     public List<String> getSpooledFiles() {
-        LinkedList<String> ret = new LinkedList<String>();
+        final LinkedList<String> ret = new LinkedList<String>();
         return ret;
 
     }

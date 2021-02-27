@@ -2,7 +2,7 @@ package jesseg.ibmi.opensource.utils;
 
 /**
  * Simple string utilities. Not much here.
- * 
+ *
  * @author Jesse Gorzinski
  *
  */
@@ -32,6 +32,7 @@ public class StringUtils {
             return m_code;
         }
     }
+
     /**
      * System property that can be used for disabling terminal colorizations
      */

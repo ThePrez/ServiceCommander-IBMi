@@ -4,7 +4,7 @@ import jesseg.ibmi.opensource.utils.AppLogger;
 
 /**
  * Custom exception class
- * 
+ *
  * @author Jesse Gorzinski
  */
 @SuppressWarnings("serial")
@@ -17,6 +17,7 @@ public class SCException extends Exception {
     public static SCException fromException(final Exception e, final AppLogger _logger) {
         return (e instanceof SCException) ? (SCException) e : new SCException(_logger, FailureType.GENERAL_ERROR, e.getLocalizedMessage());
     }
+
     private final FailureType m_failure;
 
     private final AppLogger m_logger;

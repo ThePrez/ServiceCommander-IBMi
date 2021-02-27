@@ -20,7 +20,7 @@ import jesseg.ibmi.opensource.SCException.FailureType;
 /**
  * A class that uses the <tt>db2util</tt> utility to query the system. This is used for critical queries to check, for
  * instance, if services are alive.
- * 
+ *
  * @author Jesse Gorzinski
  */
 public class QueryUtils {
@@ -174,20 +174,20 @@ public class QueryUtils {
         return isListeningOnPort(Integer.valueOf(_port.trim()), _logger);
     }
 
-    public static long getJobStartTime(String _job, final AppLogger _logger) throws IOException, ParseException {
+    public static long getJobStartTime(final String _job, final AppLogger _logger) throws IOException, ParseException {
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + _job, "SELECT job_entered_system_time FROM TABLE(qsys2.job_info(JOB_USER_FILTER => '*ALL'))as x WHERE job_name = ?" });
         final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
         final String firstLine = queryResults.get(0).replace("\"", "");
         return new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss").parse(firstLine).getTime();
     }
 
-    public static List<String> getSplfsForJob(String _job, AppLogger _logger) throws IOException {
+    public static List<String> getSplfsForJob(final String _job, final AppLogger _logger) throws IOException {
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + _job, "SELECT SPOOLED_FILE_NAME,JOB_NAME,FILE_NUMBER FROM QSYS2.OUTPUT_QUEUE_ENTRIES_BASIC WHERE job_name = ?" });
         final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
-        List<String> ret = new ArrayList<String>(queryResults.size());
-        for (String queryResult : queryResults) {
-            String[] split = queryResult.replace("\"", "").split(" ");
-            ret.add(String.format("DSPSPLF FILE(%s) JOB(%s) SPLNBR(%s)", split));
+        final List<String> ret = new ArrayList<String>(queryResults.size());
+        for (final String queryResult : queryResults) {
+            final String[] split = queryResult.replace("\"", "").split(" ");
+            ret.add(String.format("DSPSPLF FILE(%s) JOB(%s) SPLNBR(%s)", (Object[])split));
         }
         return ret;
     }

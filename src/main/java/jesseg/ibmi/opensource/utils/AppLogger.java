@@ -10,7 +10,7 @@ import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
 /**
  * Used to encapsulate console logging activity in verbose and non-verbose mode. Eventually,
  * this may also encapsulate writing to log files, alerting, or some other features.
- * 
+ *
  * @author Jesse Gorzinski
  */
 public abstract class AppLogger {
