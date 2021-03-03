@@ -208,11 +208,10 @@ public class OperationExecutor {
 
     private String getSbmJobOptsForStopping() {
         if (!isLikelyRunningAsAnotherUser()) {
-            return "JOBD(QUSRNOMAX)";
+            return "JOBQ(QUSRNOMAX)";
         }
-        String originalOptions = m_mainService.getSbmJobOpts();
-        String userParm = originalOptions.replaceFirst("(i?)USER[ ]*\\(", "USER").replaceAll("\\).*", ")");
-        return userParm + " JOBD(QUSRNOMAX)";
+        final String userParm = m_mainService.getSbmJobOpts().replaceFirst("(i?)USER[ ]*\\(", "USER(").replaceAll("\\).*", ")");
+        return userParm + " JOBQ(QUSRNOMAX)";
     }
 
     public List<String> getSpooledFiles() {
