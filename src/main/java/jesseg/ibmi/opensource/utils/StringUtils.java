@@ -69,6 +69,6 @@ public class StringUtils {
     }
 
     public static String getShrugForOutput() {
-        return System.getProperty("file.encoding", "").equalsIgnoreCase("UTF-8") ? "¯\\_(ツ)_/¯" : "<unknown>";
+        return System.getProperty("file.encoding", "").equalsIgnoreCase("UTF-8") ? "¯\\_\uD83D\uDE00_/¯" : "<unknown>";
     }
 }
