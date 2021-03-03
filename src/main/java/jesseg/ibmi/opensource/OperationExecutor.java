@@ -144,7 +144,7 @@ public class OperationExecutor {
             if (e instanceof SCException) {
                 throw (SCException) e;
             }
-            throw new SCException(m_logger, FailureType.GENERAL_ERROR, "A general error has occurred: %s", e.getLocalizedMessage());
+            throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "A general error has occurred: %s", e.getLocalizedMessage());
         } finally {
             if (null != logFile) {
                 if (logFile.exists()) {
@@ -180,9 +180,9 @@ public class OperationExecutor {
                 return QueryUtils.getJobs(m_mainService.getCheckAliveCriteria(), m_logger);
             }
         } catch (final IOException ioe) {
-            throw new SCException(m_logger, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
+            throw new SCException(m_logger, ioe, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
         } catch (final NumberFormatException nfe) {
-            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
+            throw new SCException(m_logger, nfe, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
         }
     }
 
@@ -202,16 +202,16 @@ public class OperationExecutor {
                 }
             }
         }
-        m_logger.printf_verbose("possible log file is %s\n", latest.getAbsolutePath());
-        return null == latest ? "<unknown>" : latest.getAbsolutePath();
+        m_logger.printf_verbose("possible log file is %s\n", null == latest ? "<null>" : latest.getAbsolutePath());
+        return null == latest ? null : latest.getAbsolutePath();
     }
 
     private String getSbmJobOptsForStopping() {
         if (!isLikelyRunningAsAnotherUser()) {
-            return "JOBQ(QUSRNOMAX)";
+            return "JOBQ(QUSRNOMAX) HOLD(*NO)";
         }
         final String userParm = m_mainService.getSbmJobOpts().replaceFirst("(i?)USER[ ]*\\(", "USER(").replaceAll("\\).*", ")");
-        return userParm + " JOBQ(QUSRNOMAX)";
+        return userParm + " JOBQ(QUSRNOMAX) HOLD(*NO)";
     }
 
     public List<String> getSpooledFiles() {
@@ -233,9 +233,9 @@ public class OperationExecutor {
                 return QueryUtils.isJobRunning(m_mainService.getCheckAliveCriteria(), m_logger);
             }
         } catch (final IOException ioe) {
-            throw new SCException(m_logger, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
+            throw new SCException(m_logger, ioe, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
         } catch (final NumberFormatException nfe) {
-            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
+            throw new SCException(m_logger, nfe, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
         }
         throw new SCException(m_logger, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation has been requested");
     }
@@ -301,7 +301,7 @@ public class OperationExecutor {
 
     private void printLogInfo() throws SCException {
         final String possibleLogFile = getPossibleLogFile();
-
+        boolean isAnythingFound = false;
         if (null != possibleLogFile) {
             for (final String job : getActiveJobsForService()) {
                 try {
@@ -309,11 +309,12 @@ public class OperationExecutor {
                     final long jobStart = QueryUtils.getJobStartTime(job, m_logger);
                     if (Math.abs(jobStart - fileTs) < 5000) {
                         m_logger.println(StringUtils.colorizeForTerminal("tail -f " + possibleLogFile, TerminalColor.CYAN));
+                        isAnythingFound = true;
                         break;
                     }
                 } catch (final Exception e) {
-                    e.printStackTrace();
-                    throw new SCException(m_logger, FailureType.GENERAL_ERROR, e.getLocalizedMessage());
+                    // This could be files that aren't in our expected date format, or an issue getting the job start time. No need to throw here.
+                    m_logger.printExceptionStack_verbose(e);
                 }
             }
         }
@@ -322,10 +323,14 @@ public class OperationExecutor {
             try {
                 for (final String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
                     m_logger.println(StringUtils.colorizeForTerminal(splf, TerminalColor.CYAN));
+                    isAnythingFound = true;
                 }
             } catch (final Exception e) {
-                throw new SCException(m_logger, FailureType.GENERAL_ERROR, e.getLocalizedMessage());
+                m_logger.printExceptionStack_verbose(e);
             }
+        }
+        if (!isAnythingFound) {
+            m_logger.println_err(StringUtils.getShrugForOutput());
         }
     }
 
@@ -391,7 +396,7 @@ public class OperationExecutor {
                 m_logger.printf("Attempting to start service dependency '%s' (%s)...\n", dependencyName, dependency.getFriendlyName());
                 new OperationExecutor(Operation.START, dependencyName, m_serviceDefs, m_logger).execute();
             } catch (final Exception e) {
-                throw new SCException(m_logger, FailureType.ERROR_STARTING_DEPENDENCY, "ERROR: Could not start dependency '%s' for service '%s': %s", dependencyName, m_mainService.getFriendlyName(), e.getLocalizedMessage());
+                throw new SCException(m_logger, e, FailureType.ERROR_STARTING_DEPENDENCY, "ERROR: Could not start dependency '%s' for service '%s': %s", dependencyName, m_mainService.getFriendlyName(), e.getLocalizedMessage());
             }
         }
 

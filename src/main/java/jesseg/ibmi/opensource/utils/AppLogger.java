@@ -108,13 +108,13 @@ public abstract class AppLogger {
 
     protected abstract boolean isVerbose();
 
-    public void printExceptionStack_verbose(final Exception _e) {
+    public void printExceptionStack_verbose(final Throwable _causedBy) {
         if (!isVerbose()) {
             return;
         }
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final PrintWriter pw = new PrintWriter(baos, false);
-        _e.printStackTrace(pw);
+        _causedBy.printStackTrace(pw);
         pw.flush();
         getErr().println(new String(baos.toByteArray()));
     }

@@ -31,6 +31,7 @@ public class SCException extends Exception {
         m_logger = _logger;
         m_failure = _failure;
         m_logger.println_err(super.getMessage());
+        m_logger.printExceptionStack_verbose(_causedBy);
     }
 
     public FailureType getFailureType() {

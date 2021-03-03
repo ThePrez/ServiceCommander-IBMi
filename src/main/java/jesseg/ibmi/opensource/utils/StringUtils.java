@@ -67,4 +67,8 @@ public class StringUtils {
         }
         return ret.substring(0, _len);
     }
+
+    public static String getShrugForOutput() {
+        return System.getProperty("file.encoding", "").equalsIgnoreCase("UTF-8") ? "¯\\_(ツ)_/¯" : "<unknown>";
+    }
 }
