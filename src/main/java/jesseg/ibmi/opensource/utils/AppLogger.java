@@ -1,7 +1,9 @@
 package jesseg.ibmi.opensource.utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.Flushable;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
@@ -105,6 +107,17 @@ public abstract class AppLogger {
     protected abstract OutputHandler getOut();
 
     protected abstract boolean isVerbose();
+
+    public void printExceptionStack_verbose(final Exception _e) {
+        if (!isVerbose()) {
+            return;
+        }
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final PrintWriter pw = new PrintWriter(baos, false);
+        _e.printStackTrace(pw);
+        pw.flush();
+        getErr().println(new String(baos.toByteArray()));
+    }
 
     public void printf(final String _fmt, final Object... _args) {
         getOut().printf(_fmt, _args);
