@@ -207,7 +207,7 @@ public class ServiceCommander {
                                 + "        info: print configuration info about the service\n"
                                 + "        perfinfo: print basic performance info about the service\n"
                                 + "        loginfo: get log file info for the service (best guess only)\n"
-                                + "        list: list all configured services\n";
+                                + "        list: print service short name and friendly name\n";
 		// @formatter:on
         System.err.println(usage);
         System.exit(-1);
