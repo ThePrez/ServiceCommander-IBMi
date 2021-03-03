@@ -159,36 +159,6 @@ public class OperationExecutor {
         }
     }
 
-    private void printLogInfo() throws SCException {
-        final String possibleLogFile = getPossibleLogFile();
-
-        if (null != possibleLogFile) {
-            for (final String job : getActiveJobsForService()) {
-                try {
-                    final long fileTs = new SimpleDateFormat(LOG_FILE_DATE_FORMAT).parse(new File(possibleLogFile).getName().substring(0, LOG_FILE_DATE_FORMAT.length() + 4)).getTime();
-                    final long jobStart = QueryUtils.getJobStartTime(job, m_logger);
-                    if (Math.abs(jobStart - fileTs) < 5000) {
-                        m_logger.println(StringUtils.colorizeForTerminal("tail -f " + possibleLogFile, TerminalColor.CYAN));
-                        break;
-                    }
-                } catch (final Exception e) {
-                    e.printStackTrace();
-                    throw new SCException(m_logger, FailureType.GENERAL_ERROR, e.getLocalizedMessage());
-                }
-            }
-        }
-
-        for (final String job : getActiveJobsForService()) {
-            try {
-                for (final String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
-                    m_logger.println(StringUtils.colorizeForTerminal(splf, TerminalColor.CYAN));
-                }
-            } catch (final Exception e) {
-                throw new SCException(m_logger, FailureType.GENERAL_ERROR, e.getLocalizedMessage());
-            }
-        }
-    }
-
     private List<ServiceDefinition> findKnownDependents() {
         final List<ServiceDefinition> ret = new LinkedList<ServiceDefinition>();
         for (final ServiceDefinition entry : m_serviceDefs.values()) {
@@ -220,12 +190,6 @@ public class OperationExecutor {
         return "." + m_mainService.getName() + ".log";
     }
 
-    public List<String> getSpooledFiles() {
-        final LinkedList<String> ret = new LinkedList<String>();
-        return ret;
-
-    }
-
     public String getPossibleLogFile() {
         final File logDir = AppDirectories.conf.getLogsDirectory();
         File latest = null;
@@ -240,6 +204,21 @@ public class OperationExecutor {
         }
         m_logger.printf_verbose("possible log file is %s\n", latest.getAbsolutePath());
         return null == latest ? "<unknown>" : latest.getAbsolutePath();
+    }
+
+    private String getSbmJobOptsForStopping() {
+        if (!isLikelyRunningAsAnotherUser()) {
+            return "JOBD(QUSRNOMAX)";
+        }
+        String originalOptions = m_mainService.getSbmJobOpts();
+        String userParm = originalOptions.replaceFirst("(i?)USER[ ]*\\(", "USER").replaceAll("\\).*", ")");
+        return userParm + " JOBD(QUSRNOMAX)";
+    }
+
+    public List<String> getSpooledFiles() {
+        final LinkedList<String> ret = new LinkedList<String>();
+        return ret;
+
     }
 
     private boolean isLikelyRunningAsAnotherUser() {
@@ -319,6 +298,36 @@ public class OperationExecutor {
         m_logger.println("---------------------------------------------------------------------");
         m_logger.println();
         m_logger.println();
+    }
+
+    private void printLogInfo() throws SCException {
+        final String possibleLogFile = getPossibleLogFile();
+
+        if (null != possibleLogFile) {
+            for (final String job : getActiveJobsForService()) {
+                try {
+                    final long fileTs = new SimpleDateFormat(LOG_FILE_DATE_FORMAT).parse(new File(possibleLogFile).getName().substring(0, LOG_FILE_DATE_FORMAT.length() + 4)).getTime();
+                    final long jobStart = QueryUtils.getJobStartTime(job, m_logger);
+                    if (Math.abs(jobStart - fileTs) < 5000) {
+                        m_logger.println(StringUtils.colorizeForTerminal("tail -f " + possibleLogFile, TerminalColor.CYAN));
+                        break;
+                    }
+                } catch (final Exception e) {
+                    e.printStackTrace();
+                    throw new SCException(m_logger, FailureType.GENERAL_ERROR, e.getLocalizedMessage());
+                }
+            }
+        }
+
+        for (final String job : getActiveJobsForService()) {
+            try {
+                for (final String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
+                    m_logger.println(StringUtils.colorizeForTerminal(splf, TerminalColor.CYAN));
+                }
+            } catch (final Exception e) {
+                throw new SCException(m_logger, FailureType.GENERAL_ERROR, e.getLocalizedMessage());
+            }
+        }
     }
 
     private void printPerfInfo() throws SCException, IOException {
@@ -519,7 +528,7 @@ public class OperationExecutor {
                 // If we submitted to batch with custom batch options, let's try ending the job the same way.
                 // The "stop" command may need to run in a similar environment as the start command, most commonly
                 // as the same user
-                final String sbmJobOpts = m_mainService.getSbmJobOpts();
+                final String sbmJobOpts = getSbmJobOptsForStopping();
                 if (!StringUtils.isEmpty(sbmJobOpts)) {
                     m_logger.printfln_verbose("using custom sbmJobOpts: " + sbmJobOpts);
                     envp.add("SBMJOB_OPTS=" + sbmJobOpts.trim());
@@ -604,7 +613,7 @@ public class OperationExecutor {
             String command = start_qcmdexc;
             // batch mode is on so run command endjob under sbmjob
             if (isLikelyRunningAsAnotherUser()) {
-                command += "SBMJOB " + m_mainService.getSbmJobOpts() + " CMD(" + endjob + ")";
+                command += "SBMJOB " + getSbmJobOptsForStopping() + " CMD(" + endjob + ")";
             } else {
                 command += endjob;
             }
