@@ -124,7 +124,7 @@ public class ServiceCommander {
             final Map<String, ServiceDefinition> serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger);
             final Operation op;
             try {
-                op = Operation.valueOf(operation.toUpperCase().trim());
+                op = Operation.valueOfWithAliasing(operation);
             } catch (final IllegalArgumentException e) {
                 throw new SCException(logger, e, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation '%s' requested", operation);
             }
@@ -199,13 +199,15 @@ public class ServiceCommander {
                                 + "        --splf: send output to *SPLF when submitting jobs to batch (instead of log)\n"
                                 + "        --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)\n"
                                 + "\n"
-		                + "    Valid operations include:\n"
-				+ "        start: start the service (and any dependencies)\n"
-				+ "        stop: stop the service (and dependent services)\n"
-				+ "        restart: restart the service\n"
+		                        + "    Valid operations include:\n"
+                				+ "        start: start the service (and any dependencies)\n"
+                				+ "        stop: stop the service (and dependent services)\n"
+                				+ "        restart: restart the service\n"
                                 + "        check: check status of the service\n"
                                 + "        info: print configuration info about the service\n"
-                                + "        perfinfo: print basic performance info about the service\n";
+                                + "        perfinfo: print basic performance info about the service\n"
+                                + "        loginfo: get log file info for the service (best guess only)\n"
+                                + "        list: list all configured services\n";
 		// @formatter:on
         System.err.println(usage);
         System.exit(-1);

@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 
+import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.BatchMode;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
@@ -32,7 +33,7 @@ import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
 public class OperationExecutor {
 
     public enum Operation {
-        START(true), STOP(true), RESTART(true), CHECK(false), INFO(false), PERFINFO(false), LOGINFO(false);
+        START(true), STOP(true), RESTART(true), CHECK(false), INFO(false), PERFINFO(false), LOGINFO(false), LIST(false);
         private final boolean m_isChangingSystemState;
 
         Operation(final boolean _isChangingSystemState) {
@@ -41,6 +42,14 @@ public class OperationExecutor {
 
         public boolean isChangingSystemState() {
             return m_isChangingSystemState;
+        }
+
+        public static Operation valueOfWithAliasing(final String _opStr) {
+            String lookupStr = _opStr.trim().toUpperCase();
+            if (lookupStr.equals("STATUS")) {
+                return CHECK;
+            }
+            return valueOf(lookupStr);
         }
     }
 
@@ -123,6 +132,9 @@ public class OperationExecutor {
                     return logFile;
                 case CHECK:
                     printServiceStatus();
+                    return null;
+                case LIST:
+                    m_logger.printf("%s (%s)\n", m_mainService.getName(), m_mainService.getFriendlyName());
                     return null;
                 case INFO:
                     printInfo();
