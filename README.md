@@ -6,6 +6,7 @@ This tool can be used to manage a number of services, for instance:
 - IBM i standard TCP servers (*TCP, *SSHD, etc.)
 - Open Source programs you wrote (Node.js, Python, PHP applications)
 - Apache Tomcat instances
+- Apache Camel routes
 - Kafka, Zookeeper, ActiveMQ servers, etc
 - Jenkins
 
@@ -18,6 +19,16 @@ Some of the features of the tool include:
 - Customize the runtime environment variables of your job
 - Define custom groups for your services, and perform operations on those groups (by default, a group of "all" is defined)
 - Query basic performance attributes of the services
+- Assistance in providing/managing service logs. This is a best-guess only and naively assumes the service uses stdout/stderr as its logging mechanism. Service Commander has its own primitive logging system that works well only for certain types of services
+
+# Important differences from other service management tools
+Service Commander's design is fundamentally different from other tools that accomplish similar tasks, like init.d, supervisord, and so on. Namely, the functions within Service Commander are intended to work regardless of:
+- Who else may start or stop the service
+- What other tools may be used to start or stop the service. For instance, Service Commander may start/stop an IBM i host server, but so could the `STRHOSTSVR`/`ENDHOSTSVR` CL commands.
+- Whether the service runs in the initially spawned job or a secondary job
+Therefore, Service Commander cannot take the liberty of assuming that it can keep track of the resources tied to the services that it manages. So, for example, this tool does not keep track of process IDs of launched processes
+
+Instead, this tool makes strong assumptions based on checks for a particular job name or port usage (see `check_alive_criteria` in the file format documentation). A known limitation, therefore, is that Service Commander may mistake another job for a configured service based on one of these attributes. For example, if you configure a service that is supposed to be listening on port 80, Service Commander will assume that any job listening on port 80 is indeed that service.
 
 # Installation
 Assumes your `PATH` environment variable is set up properly, otherwise:
@@ -32,6 +43,7 @@ git clone https://github.com/ThePrez/ServiceCommander-IBMi/
 cd ServiceCommander-IBMi
 make install
 ```
+Binary distributions will likely be available in the future.
 
 # System Requirements
 For most of the features of this tool, the following is required to be installed (the `make install` of the installation steps should handle these for you):
@@ -72,6 +84,9 @@ Usage: sc  [options] <operation> <service or group:group_name>
         check: check status of the service
         info: print configuration info about the service
         perfinfo: print basic performance info about the service
+        loginfo: get log file info for the service (best guess only)
+        list: print service short name and friendly name
+
 ```
 The above usage assumes the program is installed with the above installation steps and is therefore
 launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn compile`), 
@@ -101,6 +116,10 @@ sc info group:all
 Try to start all services in "host_servers" group
 ```
 sc start group:host_servers
+```
+List all services
+```
+sc list group:all
 ```
 
 # Sample .yaml configuration files
