@@ -134,7 +134,7 @@ public class OperationExecutor {
                     printServiceStatus();
                     return null;
                 case LIST:
-                    m_logger.printf("%s (%s)\n", m_mainService.getName(), m_mainService.getFriendlyName());
+                    m_logger.printf("%s (%s)\n", StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN), m_mainService.getFriendlyName());
                     return null;
                 case INFO:
                     printInfo();
