@@ -19,7 +19,7 @@ Some of the features of the tool include:
 - Customize the runtime environment variables of your job
 - Define custom groups for your services, and perform operations on those groups (by default, a group of "all" is defined)
 - Query basic performance attributes of the services
-- Assistance in providing/managing service logs. This is a best-guess only and naively assumes the service uses stdout/stderr as its logging mechanism. Service Commander has its own primitive logging system that works well only for certain types of services
+- Assistance in providing/managing log files. This is a best-guess only and naively assumes the service uses stdout/stderr as its logging mechanism. Service Commander has its own primitive logging system that works well only for certain types of services
 
 # Important differences from other service management tools
 Service Commander's design is fundamentally different from other tools that accomplish similar tasks, like init.d, supervisord, and so on. Namely, the functions within Service Commander are intended to work regardless of:
