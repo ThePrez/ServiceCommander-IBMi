@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 
-import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.BatchMode;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
@@ -45,7 +44,7 @@ public class OperationExecutor {
         }
 
         public static Operation valueOfWithAliasing(final String _opStr) {
-            String lookupStr = _opStr.trim().toUpperCase();
+            final String lookupStr = _opStr.trim().toUpperCase();
             if (lookupStr.equals("STATUS")) {
                 return CHECK;
             }

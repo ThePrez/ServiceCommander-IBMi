@@ -187,7 +187,7 @@ public class QueryUtils {
         final List<String> ret = new ArrayList<String>(queryResults.size());
         for (final String queryResult : queryResults) {
             final String[] split = queryResult.replace("\"", "").split(" ");
-            ret.add(String.format("DSPSPLF FILE(%s) JOB(%s) SPLNBR(%s)", (Object[])split));
+            ret.add(String.format("DSPSPLF FILE(%s) JOB(%s) SPLNBR(%s)", (Object[]) split));
         }
         return ret;
     }
