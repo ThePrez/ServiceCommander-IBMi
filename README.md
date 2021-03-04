@@ -31,19 +31,25 @@ Therefore, Service Commander cannot take the liberty of assuming that it can kee
 Instead, this tool makes strong assumptions based on checks for a particular job name or port usage (see `check_alive_criteria` in the file format documentation). A known limitation, therefore, is that Service Commander may mistake another job for a configured service based on one of these attributes. For example, if you configure a service that is supposed to be listening on port 80, Service Commander will assume that any job listening on port 80 is indeed that service.
 
 # Installation
-Assumes your `PATH` environment variable is set up properly, otherwise:
+## From Source
+To ensure you're getting the latest and greatest code, feel free to build from source. This process assumes your `PATH` environment variable is set up properly, otherwise:
 ```
 PATH=/QOpenSys/pkgs/bin:$PATH
 export PATH
 ```
-Currently, the only way to install is from source. You can do so with the following steps:
+The build itself can be done with the following steps:
 ```
 yum install git ca-certificates-mozilla make-gnu
 git clone https://github.com/ThePrez/ServiceCommander-IBMi/
 cd ServiceCommander-IBMi
 make install
 ```
-Binary distributions will likely be available in the future.
+## Binary distribution (untested)
+You can install the binary distribution by copying the link to the `.rpm` file from the releases page of this project and using `yum` to install it. For instance, to install the very first release:
+```
+yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.0.1/sc-0.0.1-0.ibmi7.2.ppc64.rpm
+```
+Of note, this RPM has not yet been tested. Feel free to evaluate and submit an issue if you encounter any problems.
 
 # System Requirements
 For most of the features of this tool, the following is required to be installed (the `make install` of the installation steps should handle these for you):
