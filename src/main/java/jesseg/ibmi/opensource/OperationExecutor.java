@@ -419,7 +419,9 @@ public class OperationExecutor {
         }
         final String command = m_mainService.getStartCommand();
         final File directory = new File(m_mainService.getWorkingDirectory());
-
+        if (!directory.exists() || !directory.canExecute()) {
+            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Cannot access configured directory %s", directory.getAbsolutePath());
+        }
         // Set up the environment variable list for the child process
         final ArrayList<String> envp = new ArrayList<String>();
         if (m_mainService.isInheritingEnvironmentVars()) {
