@@ -1,2 +1,3 @@
 #!/QOpenSys/pkgs/bin/bash
+export LC_ALL=EN_US.UTF-8
 exec /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java -jar $(dirname $0)/../lib/sc/sc.jar $*

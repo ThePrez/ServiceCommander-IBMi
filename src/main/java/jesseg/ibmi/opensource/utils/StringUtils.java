@@ -43,6 +43,9 @@ public class StringUtils {
     // SSH_TTY will be unset in non-SSH environments, and System.console() returns null when output is being piped
     private static final boolean s_isTerminalColorsSupported = (null != System.console() && !isEmpty(System.getenv("SSH_TTY")) && !Boolean.getBoolean(PROP_DISABLE_COLORS));
 
+    // We can print emojis (maybe) if we're running in a UTF-8 SSH terminal
+    private static final boolean s_isEmojiSupported = (null != System.console() && !isEmpty(System.getenv("SSH_TTY")) && System.getProperty("file.encoding", "").equalsIgnoreCase("UTF-8"));
+
     private static final String TERM_COLOR_RESET = "\u001B[0m";
 
     public static String colorizeForTerminal(final String _str, final TerminalColor _color) {
@@ -69,6 +72,6 @@ public class StringUtils {
     }
 
     public static String getShrugForOutput() {
-        return System.getProperty("file.encoding", "").equalsIgnoreCase("UTF-8") ? "¯\\_\uD83D\uDE00_/¯" : "<unknown>";
+        return s_isEmojiSupported ? "¯\\_\uD83D\uDE00_/¯" : "<unknown>";
     }
 }
