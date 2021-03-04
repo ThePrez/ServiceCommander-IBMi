@@ -318,7 +318,9 @@ public class OperationExecutor {
                 try {
                     final long fileTs = new SimpleDateFormat(LOG_FILE_DATE_FORMAT).parse(new File(possibleLogFile).getName().substring(0, LOG_FILE_DATE_FORMAT.length() + 4)).getTime();
                     final long jobStart = QueryUtils.getJobStartTime(job, m_logger);
-                    if (Math.abs(jobStart - fileTs) < 5000) {
+                    final long tsDelta = Math.abs(jobStart - fileTs);
+                    m_logger.printf_verbose("fileTs = %d, jobStart = %d, delta = %d\n", fileTs, jobStart, tsDelta);
+                    if (tsDelta < 9500) {
                         m_logger.println(StringUtils.colorizeForTerminal("tail -f " + possibleLogFile, TerminalColor.CYAN));
                         isAnythingFound = true;
                         break;
