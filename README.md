@@ -1,5 +1,5 @@
 # Service Commander for IBM i
-A utility for unifying the daunting task of managing various services and applications running on IBM i. 
+A utility for unifying the daunting task of managing various services and applications running on IBM i. Its objective is to provide an intuitive, easy-to-use command line interface for managing services or jobs.
 
 This tool can be used to manage a number of services, for instance:
 - IBM i host server jobs
@@ -14,7 +14,7 @@ This tool can be used to manage a number of services, for instance:
 # Current features
 Some of the features of the tool include:
 - The ability to specify dependencies (for instance, if one application or service dependds on another), and it will start any dependencies as needed
-- The ability to submit jobs to batch easily, even with custom batch settings (use your own job descriptions, for instance)
+- The ability to submit jobs to batch easily, even with custom batch settings (use your own job description or submit as another user, for instance)
 - The ability to check the "liveliness" of your service by either port status or job name
 - Customize the runtime environment variables of your job
 - Define custom groups for your services, and perform operations on those groups (by default, a group of "all" is defined)
@@ -26,9 +26,12 @@ Service Commander's design is fundamentally different from other tools that acco
 - Who else may start or stop the service
 - What other tools may be used to start or stop the service. For instance, Service Commander may start/stop an IBM i host server, but so could the `STRHOSTSVR`/`ENDHOSTSVR` CL commands.
 - Whether the service runs in the initially spawned job or a secondary job
-Therefore, Service Commander cannot take the liberty of assuming that it can keep track of the resources tied to the services that it manages. So, for example, this tool does not keep track of process IDs of launched processes
+
+Also, this tool doesn't have the privilege of being the unified, integrated solution with the operating system that other tools may have. Therefore, Service Commander cannot take the liberty of assuming that it can keep track of the resources tied to the services that it manages. So, for example, this tool does not keep track of process IDs of launched processes. Similarly, it doesn't have special access to kernel data structures, etc. 
 
 Instead, this tool makes strong assumptions based on checks for a particular job name or port usage (see `check_alive_criteria` in the file format documentation). A known limitation, therefore, is that Service Commander may mistake another job for a configured service based on one of these attributes. For example, if you configure a service that is supposed to be listening on port 80, Service Commander will assume that any job listening on port 80 is indeed that service.
+
+Service Commander's unique design is intended to offer a great deal of flexibility and ease of management through the use of simple `.yaml` files.
 
 # Installation
 ## From Source
