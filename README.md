@@ -138,6 +138,11 @@ This will result in several jobs that continuously check on the service and atte
  WRKACTJOB JOB(NAVMON) 
 ```
 
+# Testimonials
+*"I use this a lot for my own personal use. Might be useless for the rest of the world. I don't know, though."*
+
+ &nbsp; --[@ThePrez](https://github.com/ThePrez/), creator of Service Commander
+
 # Sample .yaml configuration files
 See the [samples](samples) directory for some sample service definitions. 
 
