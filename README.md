@@ -34,6 +34,14 @@ Instead, this tool makes strong assumptions based on checks for a particular job
 Service Commander's unique design is intended to offer a great deal of flexibility and ease of management through the use of simple `.yaml` files.
 
 # Installation
+
+## Binary distribution (untested)
+You can install the binary distribution by copying the link to the `.rpm` file from the releases page of this project and using `yum` to install it. For instance, to install the very first release:
+```
+yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.0.1/sc-0.0.1-0.ibmi7.2.ppc64.rpm
+```
+Of note, this RPM has not yet been tested. Feel free to evaluate and submit an issue if you encounter any problems.
+
 ## From Source
 To ensure you're getting the latest and greatest code, feel free to build from source. This process assumes your `PATH` environment variable is set up properly, otherwise:
 ```
@@ -47,12 +55,6 @@ git clone https://github.com/ThePrez/ServiceCommander-IBMi/
 cd ServiceCommander-IBMi
 make install
 ```
-## Binary distribution (untested)
-You can install the binary distribution by copying the link to the `.rpm` file from the releases page of this project and using `yum` to install it. For instance, to install the very first release:
-```
-yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.0.1/sc-0.0.1-0.ibmi7.2.ppc64.rpm
-```
-Of note, this RPM has not yet been tested. Feel free to evaluate and submit an issue if you encounter any problems.
 
 # System Requirements
 For most of the features of this tool, the following is required to be installed (the `make install` of the installation steps should handle these for you):
