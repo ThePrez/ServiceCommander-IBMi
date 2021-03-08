@@ -4,7 +4,7 @@ A utility for unifying the daunting task of managing various services and applic
 This tool can be used to manage a number of services, for instance:
 - IBM i host server jobs
 - IBM i standard TCP servers (*TCP, *SSHD, etc.)
-- Open Source programs you wrote (Node.js, Python, PHP applications)
+- Programs you wrote using open source technology (Node.js, Python, PHP, etc.)
 - Apache Tomcat instances
 - Apache Camel routes
 - Kafka, Zookeeper, ActiveMQ servers, etc
