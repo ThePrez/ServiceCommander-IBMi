@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.NumberFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -24,6 +22,8 @@ import jesseg.ibmi.opensource.SCException.FailureType;
  * @author Jesse Gorzinski
  */
 public class QueryUtils {
+
+    public static final String DB_TIMESTAMP_FORMAT = "yyyy-MM-dd-HH.mm.ss";
 
     private static List<String> deduplicate(final List<String> _in) {
         final HashSet<String> s = new HashSet<String>();
@@ -174,11 +174,20 @@ public class QueryUtils {
         return isListeningOnPort(Integer.valueOf(_port.trim()), _logger);
     }
 
-    public static long getJobStartTime(final String _job, final AppLogger _logger) throws IOException, ParseException {
+    public static String getJobStartTime(final String _job, final AppLogger _logger) throws IOException {
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + _job, "SELECT job_entered_system_time FROM TABLE(qsys2.job_info(JOB_USER_FILTER => '*ALL'))as x WHERE job_name = ?" });
         final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
         final String firstLine = queryResults.get(0).replace("\"", "");
-        return new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss").parse(firstLine).getTime();
+        _logger.println_verbose("database says job start time is "+firstLine);
+        return firstLine;
+    }
+
+    public static String getCurrentTime(final AppLogger _logger) throws IOException {
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "values(CURRENT_TIMESTAMP)" });
+        final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
+        final String firstLine = queryResults.get(0).replace("\"", "");
+        _logger.println_verbose("database says current time is "+firstLine);
+        return firstLine;
     }
 
     public static List<String> getSplfsForJob(final String _job, final AppLogger _logger) throws IOException {

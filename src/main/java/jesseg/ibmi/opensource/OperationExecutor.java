@@ -93,8 +93,6 @@ public class OperationExecutor {
 
     static final String PROP_SAMPLE_TIME = "sc.perfsamplingtime";
 
-    private static final String LOG_FILE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
-
     private static boolean isEnvvarProhibitedFromInheritance(final String _var) {
         final List<String> prohibited = Arrays.asList("LIBPATH", "LD_LIBRARY_PATH", "JAVA_HOME", "SSH_TTY", "SSH_CLIENT", "SSH_CONNECTION", "SHELL", "SHLVL");
         return prohibited.contains(_var);
@@ -119,7 +117,12 @@ public class OperationExecutor {
 
     public File execute() throws SCException {
         final File logDir = AppDirectories.conf.getLogsDirectory();
-        final String logFileName = new SimpleDateFormat(LOG_FILE_DATE_FORMAT).format(new Date()) + getLogSuffix();
+        String logFileName;
+        try {
+            logFileName = QueryUtils.getCurrentTime(m_logger) + getLogSuffix();
+        } catch (IOException e1) {
+            throw new SCException(m_logger, e1, FailureType.GENERAL_ERROR, "Unable to determine current time");
+        }
         final File logFile = new File(logDir.getAbsolutePath() + "/" + logFileName);
         try {
             switch (m_op) {
@@ -316,12 +319,15 @@ public class OperationExecutor {
         if (null != possibleLogFile) {
             for (final String job : getActiveJobsForService()) {
                 try {
-                    final long fileTs = new SimpleDateFormat(LOG_FILE_DATE_FORMAT).parse(new File(possibleLogFile).getName().substring(0, LOG_FILE_DATE_FORMAT.length() + 4)).getTime();
-                    final long jobStart = QueryUtils.getJobStartTime(job, m_logger);
-                    final long tsDelta = Math.abs(jobStart - fileTs);
-                    m_logger.printf_verbose("fileTs = %d, jobStart = %d, delta = %d\n", fileTs, jobStart, tsDelta);
-                    if (tsDelta < 9500) {
-                        m_logger.println(StringUtils.colorizeForTerminal("tail -f " + possibleLogFile, TerminalColor.CYAN));
+                    final long fileTs = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).parse(new File(possibleLogFile).getName().substring(0, QueryUtils.DB_TIMESTAMP_FORMAT.length())).getTime();
+                    final String jobStartDate = QueryUtils.getJobStartTime(job, m_logger);
+                    m_logger.printf_verbose("Job start time is %s\n", jobStartDate.toString());
+                    final long jobStartTs = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).parse(jobStartDate).getTime();
+
+                    final long tsDelta = Math.abs(jobStartTs - fileTs);
+                    m_logger.printf_verbose("fileTs = %d, jobStart = %d, delta = %d\n", fileTs, jobStartTs, tsDelta);
+                    if (tsDelta < 17500) {
+                        m_logger.printfln("%s: " + StringUtils.colorizeForTerminal("tail -f " + possibleLogFile, TerminalColor.CYAN), m_mainService.getName());
                         isAnythingFound = true;
                         break;
                     }
@@ -343,7 +349,7 @@ public class OperationExecutor {
             }
         }
         if (!isAnythingFound) {
-            m_logger.println_err(StringUtils.getShrugForOutput());
+            m_logger.printfln_err("%s: " + StringUtils.getShrugForOutput(), m_mainService.getName());
         }
     }
 

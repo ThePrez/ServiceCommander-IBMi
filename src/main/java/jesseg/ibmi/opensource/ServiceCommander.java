@@ -145,12 +145,14 @@ public class ServiceCommander {
 
     private static void performOperationsOnServices(final Operation _op, final Set<String> _services, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) throws SCException {
         final Stack<SCException> exceptions = new Stack<SCException>();
-        if (Operation.PERFINFO == _op) {
-            _logger.println("Gathering performance information...");
+        if (!_op.isChangingSystemState()) {
+            if (Operation.PERFINFO == _op) { // this one's treated special because it might take a very long time.f
+                _logger.println("Gathering performance information...");
+            }
             final LinkedHashMap<Thread, AppLogger.DeferredLogger> outputList = new LinkedHashMap<Thread, AppLogger.DeferredLogger>();
             for (final String service : _services) {
-                _logger.printf_verbose("Performing operation '%s' on service '%s'\n", _op.name(), service);
                 final DeferredLogger deferredLogger = new DeferredLogger(_logger);
+                deferredLogger.printf_verbose("Performing operation '%s' on service '%s'\n", _op.name(), service);
                 final Thread t = new Thread((Runnable) () -> {
                     try {
                         new OperationExecutor(_op, service, _serviceDefs, deferredLogger).execute();
@@ -171,11 +173,7 @@ public class ServiceCommander {
             }
         } else {
             for (final String service : _services) {
-                if (_op.isChangingSystemState()) {
-                    _logger.printf("Performing operation '%s' on service '%s'\n", _op.name(), service);
-                } else {
-                    _logger.printf_verbose("Performing operation '%s' on service '%s'\n", _op.name(), service);
-                }
+                _logger.printf("Performing operation '%s' on service '%s'\n", _op.name(), service);
                 try {
                     final OperationExecutor executioner = new OperationExecutor(_op, service, _serviceDefs, _logger);
                     executioner.execute();
