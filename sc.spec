@@ -39,7 +39,10 @@ INSTALL_ROOT=%{buildroot} gmake -e install
 %{_bindir}/sc
 %{_libdir}/sc
 %{_sysconfdir}/sc
+%{_mandir}/man1/%{name}.1
 
 %changelog
-* Wed Mar 03 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.0.2
+* Mon Mar 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.0.2
+- Added man pages
+* Wed Mar 03 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.0.1
 - initial RPM release
