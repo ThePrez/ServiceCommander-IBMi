@@ -1,13 +1,4 @@
-.PP
-% SC(1) sc 0.0.2
-.PD 0
-.P
-.PD
-% Jesse Gorzinski
-.PD 0
-.P
-.PD
-% March 2021
+.TH "sc" "" "Service Commander for IBM i" "" "March 2021"
 .SH NAME
 .PP
 sc \- a tool for managing configured services and applications
