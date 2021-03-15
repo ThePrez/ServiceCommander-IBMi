@@ -33,4 +33,5 @@ install: sc.bin target/sc.jar install_runtime_dependencies
 	install -m 755 -o qsys -D -d ${INSTALL_ROOT}/QOpenSys/pkgs/bin ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services
 	install -m 555 -o qsys sc.bin ${INSTALL_ROOT}/QOpenSys/pkgs/bin/sc
 	install -m 444 -o qsys target/sc.jar ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/sc.jar
+	install -m 444 -o qsys -D man/man.mansrc ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/sc.1
 

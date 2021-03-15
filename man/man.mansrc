@@ -1,0 +1,471 @@
+.TH "Service Commander" "1" "15 March 2021" "" ""
+.SH NAME
+.PP
+sc \- a tool for managing configured services and applications
+.SH SYNOPSIS
+.PP
+\f[C]sc\ \ [options]\ <operation>\ <service\ or\ group:group_name>\f[]
+.IP
+.nf
+\f[C]
+\ \ \ \ Valid\ options\ include:
+\ \ \ \ \ \ \ \ \-v:\ verbose\ mode
+\ \ \ \ \ \ \ \ \-\-disable\-colors:\ disable\ colored\ output
+\ \ \ \ \ \ \ \ \-\-splf:\ send\ output\ to\ *SPLF\ when\ submitting\ jobs\ to\ batch\ (instead\ of\ log)
+\ \ \ \ \ \ \ \ \-\-sampletime=x.x:\ sampling\ time(s)\ when\ gathering\ performance\ info\ (default\ is\ 1)
+
+\ \ \ \ Valid\ operations\ include:
+\ \ \ \ \ \ \ \ start:\ start\ the\ service\ (and\ any\ dependencies)
+\ \ \ \ \ \ \ \ stop:\ stop\ the\ service\ (and\ dependent\ services)
+\ \ \ \ \ \ \ \ restart:\ restart\ the\ service
+\ \ \ \ \ \ \ \ check:\ check\ status\ of\ the\ service
+\ \ \ \ \ \ \ \ info:\ print\ configuration\ info\ about\ the\ service
+\ \ \ \ \ \ \ \ perfinfo:\ print\ basic\ performance\ info\ about\ the\ service
+\ \ \ \ \ \ \ \ loginfo:\ get\ log\ file\ info\ for\ the\ service\ (best\ guess\ only)
+\ \ \ \ \ \ \ \ list:\ print\ service\ short\ name\ and\ friendly\ name
+\f[]
+.fi
+.SH DESCRIPTION
+.PP
+Service Commander, a utility for unifying the daunting task of managing
+various services and applications running on IBM i.
+Its objective is to provide an intuitive, easy\-to\-use command line
+interface for managing services or jobs.
+.PP
+This tool can be used to manage a number of services, for instance:
+.IP \[bu] 2
+IBM i host server jobs
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+IBM i standard TCP servers (\f[I]TCP, \f[]SSHD, etc.)
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+Programs you wrote using open source technology (Node.js, Python, PHP,
+etc.)
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+Apache Tomcat instances
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+Apache Camel routes
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+Kafka, Zookeeper, ActiveMQ servers, etc
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+Jenkins
+.SS Basic usage
+.PP
+This tool currently requires you to define any services of interest in
+\f[C]\&.yaml\f[] files.
+These files can be stored in any of the following locations:
+.IP \[bu] 2
+A global directory (/QOpenSys/etc/sc/services)
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+A user\-specific directory($HOME/.sc/services)
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+If defined, whatever the value of the \f[C]services.dir\f[] system
+property is.
+.PD 0
+.P
+.PD
+The file name must be in the format of \f[C]service_name.yaml\f[], where
+\[lq]service_name\[rq] is the \[lq]simple name\[rq] of the service as to
+be used with this tool's CLI.
+The service name must consist of only lowercase letters, hyphens, and
+underscores.
+.SS Current features
+.PP
+Some of the features of the tool include:
+.IP \[bu] 2
+The ability to specify dependencies (for instance, if one application or
+service dependds on another), and it will start any dependencies as
+needed
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+The ability to submit jobs to batch easily, even with custom batch
+settings (use your own job description or submit as another user, for
+instance)
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+The ability to check the \[lq]liveliness\[rq] of your service by either
+port status or job name
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+Customize the runtime environment variables of your job
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+Define custom groups for your services, and perform operations on those
+groups (by default, a group of \[lq]all\[rq] is defined)
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+Query basic performance attributes of the services
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+Assistance in providing/managing log files.
+This is a best\-guess only and naively assumes the service uses
+stdout/stderr as its logging mechanism.
+Service Commander has its own primitive logging system that works well
+only for certain types of services
+.SS Important differences from other service management tools
+.PP
+Service Commander's design is fundamentally different from other tools
+that accomplish similar tasks, like init.d, supervisord, and so on.
+Namely, the functions within Service Commander are intended to work
+regardless of:
+.IP \[bu] 2
+Who else may start or stop the service
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+What other tools may be used to start or stop the service.
+For instance, Service Commander may start/stop an IBM i host server, but
+so could the \f[C]STRHOSTSVR\f[]/\f[C]ENDHOSTSVR\f[] CL commands.
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+Whether the service runs in the initially spawned job or a secondary job
+.PP
+Also, this tool doesn't have the privilege of being the unified,
+integrated solution with the operating system that other tools may have.
+Therefore, Service Commander cannot take the liberty of assuming that it
+can keep track of the resources tied to the services that it manages.
+So, for example, this tool does not keep track of process IDs of
+launched processes.
+Similarly, it doesn't have special access to kernel data structures,
+etc.
+.PP
+Instead, this tool makes strong assumptions based on checks for a
+particular job name or port usage (see \f[C]check_alive_criteria\f[] in
+the file format documentation).
+A known limitation, therefore, is that Service Commander may mistake
+another job for a configured service based on one of these attributes.
+For example, if you configure a service that is supposed to be listening
+on port 80, Service Commander will assume that any job listening on port
+80 is indeed that service.
+.PP
+Service Commander's unique design is intended to offer a great deal of
+flexibility and ease of management through the use of simple
+\f[C]\&.yaml\f[] files.
+.SS Sample .yaml configuration files
+.PP
+See the <samples> directory for some sample service definitions.
+.SS YAML File Format
+.PP
+The following attributes may be specified in the service definition
+(\f[C]\&.yaml\f[]) file:
+.SS Required:
+.IP \[bu] 2
+\f[C]start_cmd\f[]: the command used to start the service
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+\f[C]check_alive\f[]: the technique used to check whether the service is
+alive or not.
+This is either \[lq]jobname\[rq] or \[lq]port\[rq].
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+\f[C]check_alive_criteria\f[]: The criteria used when checking whether
+the service is alive or not.
+If \f[C]check_alive\f[] is set to \[lq]port\[rq], this is expected to be
+a port number.
+If \f[C]check_alive\f[] is set to \[lq]jobname\[rq], this is expect to
+be be a job name, either in the format \[lq]jobname\[rq] or
+\[lq]subsystem/jobname\[rq].
+.SS Optional but often needed/wanted:
+.IP \[bu] 2
+\f[C]name\f[]: A \[lq]friendly\[rq] name of the service
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+\f[C]dir\f[]: The working directory in which to run the startup/shutdown
+commands
+.SS Optional:
+.IP \[bu] 2
+\f[C]stop_cmd\f[]: The service shutdown command.
+If unspecified, the service will be located by port number or job name.
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+\f[C]startup_wait_time\f[]: The wait time, in seconds, to wait for the
+service to start up (the default is 60 seconds if unspecified)
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+\f[C]stop_wait_time\f[]: The wait time, in seconds, to wait for the
+service to stop (the default is 45 seconds if unspecified)
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+\f[C]batch_mode\f[]: Whether or not to submit the service to batch
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+\f[C]sbmjob_jobname\f[]: If submitting to batch, the custom job name to
+be used for the batch job
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+\f[C]sbmjob_opts\f[]: If submitting to batch, custom options for the
+SBMJOB command (for instance, a custom JOBD)
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+\f[C]environment_is_inheriting_vars\f[]: Whether the service inherits
+environment variables from the current environment (default is true)
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+\f[C]environment_vars\f[]: Custom environment variables to be set when
+launching the service.
+Specify as an array of strings in \f[C]"KEY=VALUE"\f[] format
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+\f[C]service_dependencies\f[]: An array of services that this service
+depends on.
+This is the simple name of the service (for instance, if the dependency
+is defined as \[lq]myservice\[rq], then it is expected to be defined in
+a file named \f[C]myservice.yaml\f[]), not the \[lq]friendly\[rq] name
+of the service.
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+\f[C]groups\f[]: Custom groups that this service belongs to.
+Groups can be used to start and stop sets of services in a single
+operation.
+Specify as an array of strings.
+.SS System Requirements
+.PP
+For most of the features of this tool, the following is required to be
+installed (the \f[C]make\ install\f[] of the installation steps should
+handle these for you):
+.IP \[bu] 2
+db2util (\f[C]yum\ install\ db2util\f[])
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+OpenJDK (\f[C]yum\ install\ openjdk\-11\f[])
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+bash (\f[C]yum\ install\ bash\f[])
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+GNU coreutils (\f[C]yum\ install\ coreutils\-gnu\f[])
+.PP
+The performance information support (\f[C]perfinfo\f[]) has additional
+requirements, including:
+.IP \[bu] 2
+Python 3 with the ibm_db database connector
+(\f[C]yum\ install\ python3\-ibm_db\f[])
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+Required operating system support, which depends on your IBM i operating
+system level, as follows:
+.RS 2
+.IP \[bu] 2
+IBM i 7.4: included with base OS
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+IBM i 7.3: Group PTF SF99703 Level 11
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+IBM i 7.2: Group PTF SF99702 Level 23
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+IBM i 7.1 (and earlier): not supported
+.RE
+.SS Testimonials
+.PP
+\f[I]\[lq]I use this a lot for my own personal use. Might be useless for
+the rest of the world. I don't know, though.\[rq]\f[]
+.PP
+\  \[em]\@ThePrez (https://github.com/ThePrez/), creator of Service
+Commander
+.SH OPTIONS
+.IP
+.nf
+\f[C]
+sc\ \ [options]\ <operation>\ <service\ or\ group:group_name>
+\ \ \ \ Valid\ options\ include:
+\ \ \ \ \ \ \ \ \-v:\ verbose\ mode
+\ \ \ \ \ \ \ \ \-\-disable\-colors:\ disable\ colored\ output
+\ \ \ \ \ \ \ \ \-\-splf:\ send\ output\ to\ *SPLF\ when\ submitting\ jobs\ to\ batch\ (instead\ of\ log)
+\ \ \ \ \ \ \ \ \-\-sampletime=x.x:\ sampling\ time(s)\ when\ gathering\ performance\ info\ (default\ is\ 1)
+
+\ \ \ \ Valid\ operations\ include:
+\ \ \ \ \ \ \ \ start:\ start\ the\ service\ (and\ any\ dependencies)
+\ \ \ \ \ \ \ \ stop:\ stop\ the\ service\ (and\ dependent\ services)
+\ \ \ \ \ \ \ \ restart:\ restart\ the\ service
+\ \ \ \ \ \ \ \ check:\ check\ status\ of\ the\ service
+\ \ \ \ \ \ \ \ info:\ print\ configuration\ info\ about\ the\ service
+\ \ \ \ \ \ \ \ perfinfo:\ print\ basic\ performance\ info\ about\ the\ service
+\ \ \ \ \ \ \ \ loginfo:\ get\ log\ file\ info\ for\ the\ service\ (best\ guess\ only)
+\ \ \ \ \ \ \ \ list:\ print\ service\ short\ name\ and\ friendly\ name
+\f[]
+.fi
+.PP
+Usage of the command is summarized as:
+.IP
+.nf
+\f[C]
+\f[]
+.fi
+.PP
+The above usage assumes the program is installed with the above
+installation steps and is therefore
+.PD 0
+.P
+.PD
+launched with the \f[C]sc\f[] script.
+Otherwise, if you've hand\-built with maven (\f[C]mvn\ compile\f[]),
+.PD 0
+.P
+.PD
+you can specify arguments in \f[C]exec.args\f[] (for instance,
+\f[C]mvn\ exec:java\ \-Dexec.args=\[aq]start\ kafka\[aq]\f[]).
+.SH Automatically restarting a service if it fails
+.PP
+Currently, this tool doees not have built\-in monitoring and restart
+capabilities.
+This may be a future enhancement.
+In the meantime, one can use simple scripting to accomplish a similar
+task.
+For instance, to check every 40 seconds and ensure that the
+\f[C]navigator\f[] service is running, you could submit a job like this
+(replace the sleep time, service name, and submitted job name to match
+your use case):
+.IP
+.nf
+\f[C]
+SBMJOB\ CMD(CALL\ PGM(QP2SHELL2)\ PARM(\[aq]/QOpenSys/usr/bin/sh\[aq]\ \[aq]\-c\[aq]\ \[aq]while\ :;\ do\ sleep\ 40\ &&\ /QOpenSys/pkgs/bin/sc\ start\ navigator\ >/dev/null\ 2>&1\ ;\ done\[aq]))\ JOB(NAVMON)\ JOBD(*USRPRF)\ JOBQ(QUSRNOMAX)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+\f[]
+.fi
+.PP
+This will result in several jobs that continuously check on the service
+and attempt to start it if the service is dead.
+If you wish to stop this behavior, simply kill the jobs.
+In the above example, the job name is \f[C]NAVMON\f[], so the WRKACTJOB
+command to do this interactively looks like:
+.IP
+.nf
+\f[C]
+\ WRKACTJOB\ JOB(NAVMON)\ 
+\f[]
+.fi
+.SH EXAMPLES
+.PP
+Start the service named \f[C]kafka\f[]:
+.IP
+.nf
+\f[C]
+sc\ start\ kafka
+\f[]
+.fi
+.PP
+Stop the service named \f[C]zookeeper\f[]:
+.IP
+.nf
+\f[C]
+sc\ stop\ zookeeper
+\f[]
+.fi
+.PP
+Check status of all configured services (all services belong to a
+special group named \[lq]all\[rq])
+.IP
+.nf
+\f[C]
+sc\ check\ group:all
+\f[]
+.fi
+.PP
+Try to start all configured services
+.IP
+.nf
+\f[C]
+sc\ start\ group:all
+\f[]
+.fi
+.PP
+Print information about all configured services
+.IP
+.nf
+\f[C]
+sc\ info\ group:all
+\f[]
+.fi
+.PP
+Try to start all services in \[lq]host_servers\[rq] group
+.IP
+.nf
+\f[C]
+sc\ start\ group:host_servers
+\f[]
+.fi
+.PP
+List all services
+.IP
+.nf
+\f[C]
+sc\ list\ group:all
+\f[]
+.fi
