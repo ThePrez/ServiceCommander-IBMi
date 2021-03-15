@@ -1,4 +1,4 @@
-.TH "Service Commander" "1" "15 March 2021Service Commander for IBM i" "" ""
+.TH "Service Commander" "1" "15 March 2021" "" ""
 .SH NAME
 .PP
 sc \- a tool for managing configured services and applications
