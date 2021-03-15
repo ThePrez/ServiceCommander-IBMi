@@ -1,3 +1,4 @@
+.TH "" "" "" "" ""
 .PP
 % SC(1) sc 0.0.2
 .PD 0
@@ -97,8 +98,8 @@ property is.
 .P
 .PD
 The file name must be in the format of \f[C]service_name.yaml\f[], where
-"service_name" is the "simple name" of the service as to be used with
-this tool\[aq]s CLI.
+\[lq]service_name\[rq] is the \[lq]simple name\[rq] of the service as to
+be used with this tool's CLI.
 The service name must consist of only lowercase letters, hyphens, and
 underscores.
 .SS Current features
@@ -119,8 +120,8 @@ instance)
 .P
 .PD
 .IP \[bu] 2
-The ability to check the "liveliness" of your service by either port
-status or job name
+The ability to check the \[lq]liveliness\[rq] of your service by either
+port status or job name
 .PD 0
 .P
 .PD
@@ -131,7 +132,7 @@ Customize the runtime environment variables of your job
 .PD
 .IP \[bu] 2
 Define custom groups for your services, and perform operations on those
-groups (by default, a group of "all" is defined)
+groups (by default, a group of \[lq]all\[rq] is defined)
 .PD 0
 .P
 .PD
@@ -148,9 +149,8 @@ Service Commander has its own primitive logging system that works well
 only for certain types of services
 .SS Important differences from other service management tools
 .PP
-Service Commander\[aq]s design is fundamentally different from other
-tools that accomplish similar tasks, like init.d, supervisord, and so
-on.
+Service Commander's design is fundamentally different from other tools
+that accomplish similar tasks, like init.d, supervisord, and so on.
 Namely, the functions within Service Commander are intended to work
 regardless of:
 .IP \[bu] 2
@@ -168,13 +168,13 @@ so could the \f[C]STRHOSTSVR\f[]/\f[C]ENDHOSTSVR\f[] CL commands.
 .IP \[bu] 2
 Whether the service runs in the initially spawned job or a secondary job
 .PP
-Also, this tool doesn\[aq]t have the privilege of being the unified,
+Also, this tool doesn't have the privilege of being the unified,
 integrated solution with the operating system that other tools may have.
 Therefore, Service Commander cannot take the liberty of assuming that it
 can keep track of the resources tied to the services that it manages.
 So, for example, this tool does not keep track of process IDs of
 launched processes.
-Similarly, it doesn\[aq]t have special access to kernel data structures,
+Similarly, it doesn't have special access to kernel data structures,
 etc.
 .PP
 Instead, this tool makes strong assumptions based on checks for a
@@ -186,8 +186,8 @@ For example, if you configure a service that is supposed to be listening
 on port 80, Service Commander will assume that any job listening on port
 80 is indeed that service.
 .PP
-Service Commander\[aq]s unique design is intended to offer a great deal
-of flexibility and ease of management through the use of simple
+Service Commander's unique design is intended to offer a great deal of
+flexibility and ease of management through the use of simple
 \f[C]\&.yaml\f[] files.
 .SS Sample .yaml configuration files
 .PP
@@ -205,20 +205,21 @@ The following attributes may be specified in the service definition
 .IP \[bu] 2
 \f[C]check_alive\f[]: the technique used to check whether the service is
 alive or not.
-This is either "jobname" or "port".
+This is either \[lq]jobname\[rq] or \[lq]port\[rq].
 .PD 0
 .P
 .PD
 .IP \[bu] 2
 \f[C]check_alive_criteria\f[]: The criteria used when checking whether
 the service is alive or not.
-If \f[C]check_alive\f[] is set to "port", this is expected to be a port
-number.
-If \f[C]check_alive\f[] is set to "jobname", this is expect to be be a
-job name, either in the format "jobname" or "subsystem/jobname".
+If \f[C]check_alive\f[] is set to \[lq]port\[rq], this is expected to be
+a port number.
+If \f[C]check_alive\f[] is set to \[lq]jobname\[rq], this is expect to
+be be a job name, either in the format \[lq]jobname\[rq] or
+\[lq]subsystem/jobname\[rq].
 .SS Optional but often needed/wanted:
 .IP \[bu] 2
-\f[C]name\f[]: A "friendly" name of the service
+\f[C]name\f[]: A \[lq]friendly\[rq] name of the service
 .PD 0
 .P
 .PD
@@ -278,8 +279,9 @@ Specify as an array of strings in \f[C]"KEY=VALUE"\f[] format
 \f[C]service_dependencies\f[]: An array of services that this service
 depends on.
 This is the simple name of the service (for instance, if the dependency
-is defined as "myservice", then it is expected to be defined in a file
-named \f[C]myservice.yaml\f[]), not the "friendly" name of the service.
+is defined as \[lq]myservice\[rq], then it is expected to be defined in
+a file named \f[C]myservice.yaml\f[]), not the \[lq]friendly\[rq] name
+of the service.
 .PD 0
 .P
 .PD
@@ -343,10 +345,10 @@ IBM i 7.1 (and earlier): not supported
 .RE
 .SS Testimonials
 .PP
-\f[I]"I use this a lot for my own personal use. Might be useless for the
-rest of the world. I don\[aq]t know, though."\f[]
+\f[I]\[lq]I use this a lot for my own personal use. Might be useless for
+the rest of the world. I don't know, though.\[rq]\f[]
 .PP
-\  \-\-\@ThePrez (https://github.com/ThePrez/), creator of Service
+\  \[em]\@ThePrez (https://github.com/ThePrez/), creator of Service
 Commander
 .SH OPTIONS
 .IP
@@ -384,7 +386,7 @@ installation steps and is therefore
 .P
 .PD
 launched with the \f[C]sc\f[] script.
-Otherwise, if you\[aq]ve hand\-built with maven (\f[C]mvn\ compile\f[]),
+Otherwise, if you've hand\-built with maven (\f[C]mvn\ compile\f[]),
 .PD 0
 .P
 .PD
@@ -438,7 +440,7 @@ sc\ stop\ zookeeper
 .fi
 .PP
 Check status of all configured services (all services belong to a
-special group named "all")
+special group named \[lq]all\[rq])
 .IP
 .nf
 \f[C]
@@ -462,7 +464,7 @@ sc\ info\ group:all
 \f[]
 .fi
 .PP
-Try to start all services in "host_servers" group
+Try to start all services in \[lq]host_servers\[rq] group
 .IP
 .nf
 \f[C]
