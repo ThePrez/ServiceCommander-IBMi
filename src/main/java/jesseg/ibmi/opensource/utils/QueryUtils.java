@@ -175,7 +175,7 @@ public class QueryUtils {
     }
 
     public static String getJobStartTime(final String _job, final AppLogger _logger) throws IOException {
-        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + _job, "SELECT job_entered_system_time FROM TABLE(qsys2.job_info(JOB_USER_FILTER => '*ALL'))as x WHERE job_name = ?" });
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + _job, "SELECT VARCHAR_FORMAT(job_entered_system_time, '"+DB_TIMESTAMP_FORMAT+"') FROM TABLE(qsys2.job_info(JOB_USER_FILTER => '*ALL'))as x WHERE job_name = ?" });
         final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
         final String firstLine = queryResults.get(0).replace("\"", "");
         _logger.println_verbose("database says job start time is "+firstLine);
@@ -183,7 +183,7 @@ public class QueryUtils {
     }
 
     public static String getCurrentTime(final AppLogger _logger) throws IOException {
-        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "values(CURRENT_TIMESTAMP)" });
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "values(VARCHAR_FORMAT(CURRENT_TIMESTAMP, '"+DB_TIMESTAMP_FORMAT+"'))" });
         final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
         final String firstLine = queryResults.get(0).replace("\"", "");
         _logger.println_verbose("database says current time is "+firstLine);
