@@ -1,0 +1,9 @@
+name: System Secure *DTAQ Host Server
+start_cmd: system 'strhostsvr *DTAQ'
+stop_cmd: system 'endhostsvr *DTAQ'
+
+check_alive: port
+check_alive_criteria: 9472
+
+groups:
+  - "host_servers"
