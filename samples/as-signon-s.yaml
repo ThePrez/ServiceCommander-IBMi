@@ -1,0 +1,9 @@
+name: System Secure *SIGNON Host Server
+start_cmd: system 'strhostsvr *SIGNON'
+stop_cmd: system 'endhostsvr *SIGNON'
+
+check_alive: port
+check_alive_criteria: 9476
+
+groups:
+  - "host_servers"
