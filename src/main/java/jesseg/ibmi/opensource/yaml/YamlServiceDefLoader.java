@@ -19,7 +19,7 @@ import jesseg.ibmi.opensource.utils.AppLogger;
  */
 public class YamlServiceDefLoader {
 
-    private final Pattern s_filePattern = Pattern.compile("^([a-z\\-_0-9]+)\\.yaml$");
+    private final Pattern s_filePattern = Pattern.compile("^([a-z\\-_0-9]+)\\.y[a]{0,1}ml$");
 
     HashMap<String, ServiceDefinition> loadFromDirectory(final File _dir, final AppLogger _logger) throws SCException {
         final HashMap<String, ServiceDefinition> ret = new HashMap<String, ServiceDefinition>();
