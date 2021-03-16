@@ -203,6 +203,7 @@ public class ServiceCommander {
                 				+ "        restart: restart the service\n"
                                 + "        check: check status of the service\n"
                                 + "        info: print configuration info about the service\n"
+                                + "        jobinfo: print basic performance info about the service\n"
                                 + "        perfinfo: print basic performance info about the service\n"
                                 + "        loginfo: get log file info for the service (best guess only)\n"
                                 + "        list: print service short name and friendly name\n";

@@ -32,7 +32,15 @@ import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
 public class OperationExecutor {
 
     public enum Operation {
-        START(true), STOP(true), RESTART(true), CHECK(false), INFO(false), PERFINFO(false), LOGINFO(false), LIST(false);
+        START(true), STOP(true), RESTART(true), CHECK(false), INFO(false), PERFINFO(false), JOBINFO(false), LOGINFO(false), LIST(false);
+        public static Operation valueOfWithAliasing(final String _opStr) {
+            final String lookupStr = _opStr.trim().toUpperCase();
+            if (lookupStr.equals("STATUS")) {
+                return CHECK;
+            }
+            return valueOf(lookupStr);
+        }
+
         private final boolean m_isChangingSystemState;
 
         Operation(final boolean _isChangingSystemState) {
@@ -41,14 +49,6 @@ public class OperationExecutor {
 
         public boolean isChangingSystemState() {
             return m_isChangingSystemState;
-        }
-
-        public static Operation valueOfWithAliasing(final String _opStr) {
-            final String lookupStr = _opStr.trim().toUpperCase();
-            if (lookupStr.equals("STATUS")) {
-                return CHECK;
-            }
-            return valueOf(lookupStr);
         }
     }
 
@@ -120,7 +120,7 @@ public class OperationExecutor {
         String logFileName;
         try {
             logFileName = QueryUtils.getCurrentTime(m_logger) + getLogSuffix();
-        } catch (IOException e1) {
+        } catch (final IOException e1) {
             throw new SCException(m_logger, e1, FailureType.GENERAL_ERROR, "Unable to determine current time");
         }
         final File logFile = new File(logDir.getAbsolutePath() + "/" + logFileName);
@@ -143,6 +143,9 @@ public class OperationExecutor {
                     return null;
                 case PERFINFO:
                     printPerfInfo();
+                    return null;
+                case JOBINFO:
+                    printJobInfo();
                     return null;
                 case LOGINFO:
                     printLogInfo();
@@ -311,6 +314,18 @@ public class OperationExecutor {
         m_logger.println("---------------------------------------------------------------------");
         m_logger.println();
         m_logger.println();
+    }
+
+    private void printJobInfo() throws SCException, IOException {
+        m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + "):");
+        final List<String> jobs = getActiveJobsForService();
+        if (jobs.isEmpty()) {
+            m_logger.println("    " + StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
+        } else {
+            for (final String job : jobs) {
+                m_logger.println("    " + job);
+            }
+        }
     }
 
     private void printLogInfo() throws SCException {
