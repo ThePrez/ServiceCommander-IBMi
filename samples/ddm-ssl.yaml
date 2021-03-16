@@ -1,0 +1,6 @@
+name: System Secure DDM server
+start_cmd: system 'STRTCPSVR SERVER(*DDM)'
+stop_cmd: system 'ENDTCPSVR SERVER(*DDM)'
+
+check_alive: port
+check_alive_criteria: 448

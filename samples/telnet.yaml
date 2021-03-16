@@ -1,0 +1,6 @@
+name: System Telnet server
+start_cmd: system 'STRTCPSVR SERVER(*TELNET)'
+stop_cmd: system 'ENDTCPSVR SERVER(*TELNET)'
+
+check_alive: port
+check_alive_criteria: 23
