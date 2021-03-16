@@ -20,6 +20,7 @@ sc \- a tool for managing configured services and applications
 \ \ \ \ \ \ \ \ restart:\ restart\ the\ service
 \ \ \ \ \ \ \ \ check:\ check\ status\ of\ the\ service
 \ \ \ \ \ \ \ \ info:\ print\ configuration\ info\ about\ the\ service
+\ \ \ \ \ \ \ \ jobinfo:\ print\ which\ jobs\ the\ service\ is\ running\ in
 \ \ \ \ \ \ \ \ perfinfo:\ print\ basic\ performance\ info\ about\ the\ service
 \ \ \ \ \ \ \ \ loginfo:\ get\ log\ file\ info\ for\ the\ service\ (best\ guess\ only)
 \ \ \ \ \ \ \ \ list:\ print\ service\ short\ name\ and\ friendly\ name
