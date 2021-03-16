@@ -1,0 +1,6 @@
+name: System Directory Server
+start_cmd: system 'STRTCPSVR SERVER(*DIRSRV)'
+stop_cmd: system 'ENDTCPSVR SERVER(*DIRSRV)'
+
+check_alive: port
+check_alive_criteria: 3538
