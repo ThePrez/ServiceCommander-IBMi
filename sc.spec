@@ -1,5 +1,5 @@
 Name: sc
-Version: 0.0.2
+Version: 0.1.0
 Release: 0
 License: Apache-2.0
 Summary: Service Commander, a utility for managing services and applications on IBM i.
@@ -42,6 +42,13 @@ INSTALL_ROOT=%{buildroot} gmake -e install
 %{_mandir}/man1/%{name}.1
 
 %changelog
+* Wed Mar 17 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.1.0
+- New "--ignore-globals" option
+- Allowans for ad hoc services definition
+- Better handling of services running in LIC tasks
+- New "jobinfo" operation
+- Allow services to be specified with either .yaml or .yml file extension
+- Fix for DST variations in Java runtime configuration
 * Mon Mar 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.0.2
 - Added man pages
 * Wed Mar 03 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.0.1
