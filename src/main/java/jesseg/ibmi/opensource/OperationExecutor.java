@@ -105,11 +105,15 @@ public class OperationExecutor {
 
     private final ServiceDefinition m_mainService;
 
-    public OperationExecutor(final Operation _op, final String _service, final Map<String, ServiceDefinition> serviceDefs, final AppLogger _logger) throws SCException {
+    public OperationExecutor(final Operation _op, final String _service, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) throws SCException {
+        this(_op, _serviceDefs.get(_service), _serviceDefs, _logger);
+    }
+
+    public OperationExecutor(final Operation _op, final ServiceDefinition _service, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) throws SCException {
         m_op = _op;
-        m_serviceDefs = serviceDefs;
+        m_serviceDefs = _serviceDefs;
         m_logger = _logger;
-        m_mainService = m_serviceDefs.get(_service);
+        m_mainService = _service;
         if (null == m_mainService) {
             throw new SCException(m_logger, FailureType.MISSING_SERVICE_DEF, "Could not find definition for service '%s'", _service);
         }
@@ -439,6 +443,9 @@ public class OperationExecutor {
             return;
         }
         final String command = m_mainService.getStartCommand();
+        if (StringUtils.isEmpty(command)) {
+            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "No start command specified for service '%s'", m_mainService.getFriendlyName());
+        }
         final File directory = new File(m_mainService.getWorkingDirectory());
         if (!directory.exists() || !directory.canExecute()) {
             throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Cannot access configured directory %s", directory.getAbsolutePath());

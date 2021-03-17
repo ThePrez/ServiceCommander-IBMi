@@ -13,6 +13,7 @@ import java.util.Stack;
 
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
+import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
 import jesseg.ibmi.opensource.utils.AppLogger;
 import jesseg.ibmi.opensource.utils.AppLogger.DeferredLogger;
 import jesseg.ibmi.opensource.utils.StringUtils;
@@ -65,6 +66,30 @@ public class ServiceCommander {
             _logger.println_err("ERROR: Required tool 'nohup' not installed. Please install coreutils-gnu RPM");
             System.exit(-19);
         }
+    }
+
+    private static ServiceDefinition getAdHocServiceDef(final String _desc, final Map<String, ServiceDefinition> _configuredServiceDefs, final AppLogger _logger) {
+        final CheckAliveType caType = _desc.toLowerCase().trim().startsWith("port:") ? CheckAliveType.PORT : CheckAliveType.JOBNAME;
+        final String caCriteria = _desc.toLowerCase().trim().replaceFirst(".*:", "").trim();
+        for (final ServiceDefinition svc : _configuredServiceDefs.values()) {
+            if (caType == svc.getCheckAliveType() && caCriteria.equalsIgnoreCase(svc.getCheckAliveCriteria().trim())) {
+                _logger.printfln_verbose("Found pre-existing service for ad hoc specs: %s", svc.getFriendlyName());
+                return svc;
+            }
+        }
+//@formatter:off
+        final String friendlyName = "Ad hoc service running at " + _desc.replace(':', ' ');
+        _logger.printfln_verbose("Creating ad hoc service for %s", _desc);
+        return new ServiceDefinition() {
+            @Override public String getCheckAliveCriteria()     { return caCriteria;   }
+            @Override public CheckAliveType getCheckAliveType() { return caType;       }
+            @Override public String getFriendlyName()           { return friendlyName; }
+            @Override public String getName()                   { return "ad_hoc";     }
+            @Override public String getSource()                 { return "<ad hoc>";   }
+            @Override public String getStartCommand()           { return "";           }
+        };
+//@formatter:on
+
     }
 
     private static Set<String> getServicesInGroup(final String _group, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) {
@@ -133,6 +158,8 @@ public class ServiceCommander {
             }
             if (service.toLowerCase().startsWith("group:")) {
                 performOperationsOnServices(op, getServicesInGroup(service.substring("group:".length()).trim(), serviceDefs, logger), serviceDefs, logger);
+            } else if (service.toLowerCase().startsWith("port:") || service.toLowerCase().startsWith("job:")) {
+                new OperationExecutor(op, getAdHocServiceDef(service, serviceDefs, logger), serviceDefs, logger).execute();
             } else {
                 performOperationsOnServices(op, Collections.singleton(service), serviceDefs, logger);
             }
