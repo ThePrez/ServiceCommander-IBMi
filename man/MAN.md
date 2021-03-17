@@ -2,35 +2,7 @@
 sc - a tool for managing configured services and applications
 
 # SYNOPSIS
-```
-Usage: sc  [options] <operation> <service(s)>
-
-    Valid options include:
-        -v: verbose mode
-        --disable-colors: disable colored output
-        --splf: send output to *SPLF when submitting jobs to batch (instead of log)
-        --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)
-        --ignore-globals: ignore globally-configured services
-
-    Valid operations include:
-        start: start the service (and any dependencies)
-        stop: stop the service (and dependent services)
-        restart: restart the service
-        check: check status of the service
-        info: print configuration info about the service
-        jobinfo: print which jobs the service is running in
-        perfinfo: print basic performance info about the service
-        loginfo: get log file info for the service (best guess only)
-        list: print service short name and friendly name
-        
-    Valid formats of the <service(s)> specifier include:
-        - the short name of a configured service
-        - A special value of "all" to represent all configured services (same as "group:all")
-        - A group identifier (e.g. "group:groupname")
-        - An ad hoc service specification by port (for instance, "port:8080")
-        - An ad hoc service specification by job name (for instance, "job:ZOOKEEPER")
-        - An ad hoc service specification by subsystem and job name (for instance, "job:QHTTPSVR/ADMIN2")
-```
+`sc  [options] <operation> <service(s)>`
 
 # DESCRIPTION
 
