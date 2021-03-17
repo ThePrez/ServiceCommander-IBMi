@@ -3,28 +3,7 @@
 sc \- a tool for managing configured services and applications
 .SH SYNOPSIS
 .PP
-\f[C]sc\ \ [options]\ <operation>\ <service\ or\ group:group_name>\f[]
-.IP
-.nf
-\f[C]
-\ \ \ \ Valid\ options\ include:
-\ \ \ \ \ \ \ \ \-v:\ verbose\ mode
-\ \ \ \ \ \ \ \ \-\-disable\-colors:\ disable\ colored\ output
-\ \ \ \ \ \ \ \ \-\-splf:\ send\ output\ to\ *SPLF\ when\ submitting\ jobs\ to\ batch\ (instead\ of\ log)
-\ \ \ \ \ \ \ \ \-\-sampletime=x.x:\ sampling\ time(s)\ when\ gathering\ performance\ info\ (default\ is\ 1)
-
-\ \ \ \ Valid\ operations\ include:
-\ \ \ \ \ \ \ \ start:\ start\ the\ service\ (and\ any\ dependencies)
-\ \ \ \ \ \ \ \ stop:\ stop\ the\ service\ (and\ dependent\ services)
-\ \ \ \ \ \ \ \ restart:\ restart\ the\ service
-\ \ \ \ \ \ \ \ check:\ check\ status\ of\ the\ service
-\ \ \ \ \ \ \ \ info:\ print\ configuration\ info\ about\ the\ service
-\ \ \ \ \ \ \ \ jobinfo:\ print\ which\ jobs\ the\ service\ is\ running\ in
-\ \ \ \ \ \ \ \ perfinfo:\ print\ basic\ performance\ info\ about\ the\ service
-\ \ \ \ \ \ \ \ loginfo:\ get\ log\ file\ info\ for\ the\ service\ (best\ guess\ only)
-\ \ \ \ \ \ \ \ list:\ print\ service\ short\ name\ and\ friendly\ name
-\f[]
-.fi
+\f[C]sc\ \ [options]\ <operation>\ <service(s)>\f[]
 .SH DESCRIPTION
 .PP
 Service Commander, a utility for unifying the daunting task of managing various services and applications running on IBM i.
@@ -63,27 +42,6 @@ Kafka, Zookeeper, ActiveMQ servers, etc
 .PD
 .IP \[bu] 2
 Jenkins
-.SS Basic usage
-.PP
-This tool currently requires you to define any services of interest in \f[C]\&.yaml\f[] files.
-These files can be stored in any of the following locations:
-.IP \[bu] 2
-A global directory (/QOpenSys/etc/sc/services)
-.PD 0
-.P
-.PD
-.IP \[bu] 2
-A user\-specific directory($HOME/.sc/services)
-.PD 0
-.P
-.PD
-.IP \[bu] 2
-If defined, whatever the value of the \f[C]services.dir\f[] system property is.
-.PD 0
-.P
-.PD
-The file name must be in the format of \f[C]service_name.yaml\f[], where \[lq]service_name\[rq] is the \[lq]simple name\[rq] of the service as to be used with this tool's CLI.
-The service name must consist of only lowercase letters, hyphens, and underscores.
 .SS Current features
 .PP
 Some of the features of the tool include:
@@ -121,6 +79,11 @@ Query basic performance attributes of the services
 Assistance in providing/managing log files.
 This is a best\-guess only and naively assumes the service uses stdout/stderr as its logging mechanism.
 Service Commander has its own primitive logging system that works well only for certain types of services
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+Ability to define manage ad hoc services specified on the command line
 .SS Important differences from other service management tools
 .PP
 Service Commander's design is fundamentally different from other tools that accomplish similar tasks, like init.d, supervisord, and so on.
@@ -149,6 +112,74 @@ A known limitation, therefore, is that Service Commander may mistake another job
 For example, if you configure a service that is supposed to be listening on port 80, Service Commander will assume that any job listening on port 80 is indeed that service.
 .PP
 Service Commander's unique design is intended to offer a great deal of flexibility and ease of management through the use of simple \f[C]\&.yaml\f[] files.
+.SS Configuring services through YAML configuration files
+.PP
+This tool allows you to define any services of interest in \f[C]\&.yaml\f[] files.
+These files can be stored in any of the following locations:
+.IP \[bu] 2
+A global directory (/QOpenSys/etc/sc/services)
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+A user\-specific directory($HOME/.sc/services)
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+If defined, whatever the value of the \f[C]services.dir\f[] system property is.
+.PD 0
+.P
+.PD
+The file name must be in the format of \f[C]service_name.yaml\f[] (or \f[C]service_name.yml\f[]), where \[lq]service_name\[rq] is the \[lq]simple name\[rq] of the service as to be used with this tool's CLI.
+The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
+.SS Ad hoc service definition
+.PP
+Ad hoc services can be specified on the sc command line in the format \f[C]job:jobname\f[] or \f[C]port:portname\f[].
+.PD 0
+.P
+.PD
+In these instances, the operations will be performed on the specified jobs.
+This is determined by looking for
+.PD 0
+.P
+.PD
+jobs matching the given job name or listening on the given port.
+The job name can be specified either in
+.PD 0
+.P
+.PD
+\f[C]jobname\f[] or \f[C]subsystem/jobname\f[] format.
+.PP
+If an existing service definition is found (configured via YAML, as in the preceding section) that matches the
+.PD 0
+.P
+.PD
+job name or port criteria, that service will be used.
+For instance, if you have a service configured to run on
+.PD 0
+.P
+.PD
+port 80, then specifying \f[C]sc\ info\ port:80\f[] will show information about the service configured to run on port 80.
+.PP
+Ad hoc service definition is useful for quick checks without the need to create a YAML definition.
+It's also
+.PD 0
+.P
+.PD
+useful if you do not recall the service name, but remember the job name or port.
+.PP
+It is also useful for cases where you just want to find out who (if anyone) is using a certain port.
+For instance,
+.PD 0
+.P
+.PD
+\f[C]sc\ jobinfo\ port:8080\f[] will show you which job is listening on port 8080.
+Similarly, \f[C]sc\ stop\ port:8080\f[] will kill
+.PD 0
+.P
+.PD
+whatever job is running on port 8080.
 .SS Sample .yaml configuration files
 .PP
 See the <samples> directory for some sample service definitions.
@@ -286,15 +317,19 @@ IBM i 7.1 (and earlier): not supported
 .PP
 \  \[em]\@ThePrez (https://github.com/ThePrez/), creator of Service Commander
 .SH OPTIONS
+.PP
+Usage of the command is summarized as:
 .IP
 .nf
 \f[C]
-sc\ \ [options]\ <operation>\ <service\ or\ group:group_name>
+Usage:\ sc\ \ [options]\ <operation>\ <service(s)>
+
 \ \ \ \ Valid\ options\ include:
 \ \ \ \ \ \ \ \ \-v:\ verbose\ mode
 \ \ \ \ \ \ \ \ \-\-disable\-colors:\ disable\ colored\ output
 \ \ \ \ \ \ \ \ \-\-splf:\ send\ output\ to\ *SPLF\ when\ submitting\ jobs\ to\ batch\ (instead\ of\ log)
 \ \ \ \ \ \ \ \ \-\-sampletime=x.x:\ sampling\ time(s)\ when\ gathering\ performance\ info\ (default\ is\ 1)
+\ \ \ \ \ \ \ \ \-\-ignore\-globals:\ ignore\ globally\-configured\ services
 
 \ \ \ \ Valid\ operations\ include:
 \ \ \ \ \ \ \ \ start:\ start\ the\ service\ (and\ any\ dependencies)
@@ -302,29 +337,19 @@ sc\ \ [options]\ <operation>\ <service\ or\ group:group_name>
 \ \ \ \ \ \ \ \ restart:\ restart\ the\ service
 \ \ \ \ \ \ \ \ check:\ check\ status\ of\ the\ service
 \ \ \ \ \ \ \ \ info:\ print\ configuration\ info\ about\ the\ service
+\ \ \ \ \ \ \ \ jobinfo:\ print\ which\ jobs\ the\ service\ is\ running\ in
 \ \ \ \ \ \ \ \ perfinfo:\ print\ basic\ performance\ info\ about\ the\ service
 \ \ \ \ \ \ \ \ loginfo:\ get\ log\ file\ info\ for\ the\ service\ (best\ guess\ only)
 \ \ \ \ \ \ \ \ list:\ print\ service\ short\ name\ and\ friendly\ name
+\ \ \ \ \ \ \ \ 
+\ \ \ \ Valid\ formats\ of\ the\ <service(s)>\ specifier\ include:
+\ \ \ \ \ \ \ \ \-\ the\ short\ name\ of\ a\ configured\ service
+\ \ \ \ \ \ \ \ \-\ A\ group\ identifier\ (e.g.\ "group:groupname")
+\ \ \ \ \ \ \ \ \-\ An\ ad\ hoc\ service\ specification\ by\ port\ (for\ instance,\ "port:8080")
+\ \ \ \ \ \ \ \ \-\ An\ ad\ hoc\ service\ specification\ by\ job\ name\ (for\ instance,\ "job:ZOOKEEPER")
+\ \ \ \ \ \ \ \ \-\ An\ ad\ hoc\ service\ specification\ by\ subsystem\ and\ job\ name\ (for\ instance,\ "job:QHTTPSVR/ADMIN2")
 \f[]
 .fi
-.PP
-Usage of the command is summarized as:
-.IP
-.nf
-\f[C]
-\f[]
-.fi
-.PP
-The above usage assumes the program is installed with the above installation steps and is therefore
-.PD 0
-.P
-.PD
-launched with the \f[C]sc\f[] script.
-Otherwise, if you've hand\-built with maven (\f[C]mvn\ compile\f[]),
-.PD 0
-.P
-.PD
-you can specify arguments in \f[C]exec.args\f[] (for instance, \f[C]mvn\ exec:java\ \-Dexec.args=\[aq]start\ kafka\[aq]\f[]).
 .SH Automatically restarting a service if it fails
 .PP
 Currently, this tool doees not have built\-in monitoring and restart capabilities.
@@ -402,5 +427,21 @@ List all services
 .nf
 \f[C]
 sc\ list\ group:all
+\f[]
+.fi
+.PP
+List jobs running on port 8080
+.IP
+.nf
+\f[C]
+sc\ jobinfo\ port:8080
+\f[]
+.fi
+.PP
+Stop jobs running on port 8080
+.IP
+.nf
+\f[C]
+sc\ stop\ port:8080
 \f[]
 .fi
