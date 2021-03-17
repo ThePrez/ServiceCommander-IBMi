@@ -1,7 +1,3 @@
-% SC(1) sc 0.0.2
-% Jesse Gorzinski
-% March 2021
-
 # NAME
 sc - a tool for managing configured services and applications
 

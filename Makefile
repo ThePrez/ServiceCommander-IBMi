@@ -13,7 +13,7 @@ uninstall: clean
 	rm -r ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/pkgs/bin/sc
 
 clean:
-	rm -r target
+	rm -r target man/man.1
 
 /QOpenSys/pkgs/bin/mvn:
 	yum install maven
@@ -29,9 +29,13 @@ clean:
 
 install_runtime_dependencies: /QOpenSys/pkgs/bin/db2util /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/bin/nohup
 
-install: sc.bin target/sc.jar install_runtime_dependencies
+man/man.1:
+	rm -f man/man.1
+	cat man/header man/man.mansrc > man/man.1
+
+install: sc.bin target/sc.jar install_runtime_dependencies man/man.1
 	install -m 755 -o qsys -D -d ${INSTALL_ROOT}/QOpenSys/pkgs/bin ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services
 	install -m 555 -o qsys sc.bin ${INSTALL_ROOT}/QOpenSys/pkgs/bin/sc
 	install -m 444 -o qsys target/sc.jar ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/sc.jar
-	install -m 444 -o qsys -D man/man.mansrc ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/sc.1
+	install -m 444 -o qsys -D man/man.1 ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/sc.1
 

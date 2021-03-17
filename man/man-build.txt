@@ -1,0 +1,4 @@
+# to build a new man page:
+# - Update MAN.md with new man page info
+# - install pandoc and run the following command from this dir:
+pandoc MAN.md -f markdown_github -t man --old-dashes  > man.mansrc
