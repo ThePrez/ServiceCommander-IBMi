@@ -225,6 +225,7 @@ public class ServiceCommander {
                                 + "        --disable-colors: disable colored output\n"
                                 + "        --splf: send output to *SPLF when submitting jobs to batch (instead of log)\n"
                                 + "        --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)\n"
+                                + "        --ignore-globals: ignore globally-configured services\n"
                                 + "\n"
 		                        + "    Valid operations include:\n"
                 				+ "        start: start the service (and any dependencies)\n"
