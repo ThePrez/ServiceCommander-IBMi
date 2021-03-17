@@ -43,6 +43,7 @@ INSTALL_ROOT=%{buildroot} gmake -e install
 
 %changelog
 * Wed Mar 17 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.1.0
+- Performance improvement for actions that don't change state
 - New "--ignore-globals" option
 - Allowans for ad hoc services definition
 - Better handling of services running in LIC tasks
