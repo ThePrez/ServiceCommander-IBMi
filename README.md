@@ -72,32 +72,6 @@ The performance information support (`perfinfo`) has additional requirements, in
     - IBM i 7.2: Group PTF SF99702 Level 23
     - IBM i 7.1 (and earlier): not supported
 
-# Configuring Services
-
-## Through YAML configuration files
-This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
-- A global directory (/QOpenSys/etc/sc/services)
-- A user-specific directory($HOME/.sc/services)
-- If defined, whatever the value of the `services.dir` system property is. 
-The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
-
-## Ad hoc service definition
-Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`. 
-In these instances, the operations will be performed on the specified jobs. This is determined by looking for
-jobs matching the given job name or listening on the given port. The job name can be specified either in
-`jobname` or `subsystem/jobname` format.
-
-If an existing service definition is found (configured via YAML, as in the preceding section) that matches the
-job name or port criteria, that service will be used. For instance, if you have a service configured to run on
-port 80, then specifying `sc info port:80` will show information about the service configured to run on port 80.
-
-Ad hoc service definition is useful for quick checks without the need to create a YAML definition. It's also
-useful if you do not recall the service name, but remember the job name or port. 
-
-It is also useful for cases where you just want to find out who (if anyone) is using a certain port. For instance,
-`sc jobinfo port:8080` will show you which job is listening on port 8080. Similarly, `sc stop port:8080` will kill
-whatever job is running on port 8080.
-
 # Basic usage
 
 Usage of the command is summarized as:
@@ -109,6 +83,7 @@ Usage: sc  [options] <operation> <service(s)>
         --disable-colors: disable colored output
         --splf: send output to *SPLF when submitting jobs to batch (instead of log)
         --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)
+        --ignore-globals: ignore globally-configured services
 
     Valid operations include:
         start: start the service (and any dependencies)
@@ -120,7 +95,12 @@ Usage: sc  [options] <operation> <service(s)>
         perfinfo: print basic performance info about the service
         loginfo: get log file info for the service (best guess only)
         list: print service short name and friendly name
-    
+        
+    Valid formats of the <service(s)> specifier include:
+        - the short name of a configured service
+        - An ad hoc service specification by port (for instance, "port:8080")
+        - An ad hoc service specification by job name (for instance, "job:ZOOKEEPER")
+        - An ad hoc service specification by subsystem and job name (for instance, "job:QHTTPSVR/ADMIN2")
 ```
 The above usage assumes the program is installed with the above installation steps and is therefore
 launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn compile`), 
@@ -156,6 +136,32 @@ List all services
 ```
 sc list group:all
 ```
+
+# Configuring Services
+
+## Through YAML configuration files
+This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
+- A global directory (/QOpenSys/etc/sc/services)
+- A user-specific directory($HOME/.sc/services)
+- If defined, whatever the value of the `services.dir` system property is. 
+The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
+
+## Ad hoc service definition
+Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`. 
+In these instances, the operations will be performed on the specified jobs. This is determined by looking for
+jobs matching the given job name or listening on the given port. The job name can be specified either in
+`jobname` or `subsystem/jobname` format.
+
+If an existing service definition is found (configured via YAML, as in the preceding section) that matches the
+job name or port criteria, that service will be used. For instance, if you have a service configured to run on
+port 80, then specifying `sc info port:80` will show information about the service configured to run on port 80.
+
+Ad hoc service definition is useful for quick checks without the need to create a YAML definition. It's also
+useful if you do not recall the service name, but remember the job name or port. 
+
+It is also useful for cases where you just want to find out who (if anyone) is using a certain port. For instance,
+`sc jobinfo port:8080` will show you which job is listening on port 8080. Similarly, `sc stop port:8080` will kill
+whatever job is running on port 8080.
 
 # Demo (video)
 [![asciicast](https://asciinema.org/a/398648.svg)](https://asciinema.org/a/398648)
