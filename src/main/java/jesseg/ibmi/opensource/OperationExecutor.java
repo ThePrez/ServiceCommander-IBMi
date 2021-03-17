@@ -349,7 +349,7 @@ public class OperationExecutor {
 
                     final long tsDelta = Math.abs(jobStartTs - fileTs);
                     m_logger.printf_verbose("fileTs = %d, jobStart = %d, delta = %d\n", fileTs, jobStartTs, tsDelta);
-                    if (tsDelta < 17500) {
+                    if (tsDelta < 45500) {
                         m_logger.printfln("%s: " + StringUtils.colorizeForTerminal("tail -f " + possibleLogFile, TerminalColor.CYAN), m_mainService.getName());
                         isAnythingFound = true;
                         break;
