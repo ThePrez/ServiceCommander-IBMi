@@ -19,6 +19,7 @@ import jesseg.ibmi.opensource.utils.AppLogger;
  */
 public class YamlServiceDefLoader {
 
+    public static final String PROP_IGNORE_GLOBALS = "sc.ignoreglobalconfigs";
     private final Pattern s_filePattern = Pattern.compile("^([a-z\\-_0-9]+)\\.y[a]{0,1}ml$");
 
     HashMap<String, ServiceDefinition> loadFromDirectory(final File _dir, final AppLogger _logger) throws SCException {
@@ -41,7 +42,11 @@ public class YamlServiceDefLoader {
 
     public HashMap<String, ServiceDefinition> loadFromYamlFiles(final AppLogger _logger) throws SCException {
         final HashMap<String, ServiceDefinition> ret = new HashMap<String, ServiceDefinition>();
-        ret.putAll(loadFromDirectory(AppDirectories.conf.getGlobalServicesDirOrNull(), _logger));
+        if (Boolean.getBoolean(PROP_IGNORE_GLOBALS)) {
+            _logger.println_verbose("Ignoring globally configured services");
+        } else {
+            ret.putAll(loadFromDirectory(AppDirectories.conf.getGlobalServicesDirOrNull(), _logger));
+        }
         ret.putAll(loadFromDirectory(AppDirectories.conf.getUserServicesDirOrNull(), _logger));
         ret.putAll(loadFromDirectory(AppDirectories.conf.getCustomServicesDirOrNull(), _logger));
         return ret;

@@ -122,6 +122,7 @@ public class ServiceCommander {
         // Process all bool-type arguments, including "-v" to initialize our logger
         System.setProperty(StringUtils.PROP_DISABLE_COLORS, "" + Boolean.valueOf(args.remove("--disable-colors")));
         System.setProperty(OperationExecutor.PROP_BATCHOUTPUT_SPLF, "" + Boolean.valueOf(args.remove("--splf")));
+        System.setProperty(YamlServiceDefLoader.PROP_IGNORE_GLOBALS, "" + Boolean.valueOf(args.remove("--ignore-globals")));
         if (args.remove("-h") || args.remove("--help")) {
             printUsageAndExit();
         }
