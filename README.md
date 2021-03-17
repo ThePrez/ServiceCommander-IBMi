@@ -20,6 +20,7 @@ Some of the features of the tool include:
 - Define custom groups for your services, and perform operations on those groups (by default, a group of "all" is defined)
 - Query basic performance attributes of the services
 - Assistance in providing/managing log files. This is a best-guess only and naively assumes the service uses stdout/stderr as its logging mechanism. Service Commander has its own primitive logging system that works well only for certain types of services
+- Ability to define manage ad hoc services specified on the command line
 
 # Important differences from other service management tools
 Service Commander's design is fundamentally different from other tools that accomplish similar tasks, like init.d, supervisord, and so on. Namely, the functions within Service Commander are intended to work regardless of:
@@ -71,16 +72,26 @@ The performance information support (`perfinfo`) has additional requirements, in
     - IBM i 7.2: Group PTF SF99702 Level 23
     - IBM i 7.1 (and earlier): not supported
 
-# Basic usage
-This tool currently requires you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
+# Configuring Services
+
+## Through YAML configuration files
+This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
 - A global directory (/QOpenSys/etc/sc/services)
 - A user-specific directory($HOME/.sc/services)
 - If defined, whatever the value of the `services.dir` system property is. 
-The file name must be in the format of `service_name.yaml`, where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, hyphens, and underscores.
+The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
+
+## Ad hoc service definition
+Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`. 
+In these instances, the operations will be performed on the specified jobs. This is determined by looking for
+jobs matching the given job name or listening on the given port. The job name can be specified either in
+`jobname` or `subsystem/jobname` format.
+
+# Basic usage
 
 Usage of the command is summarized as:
 ```
-Usage: sc  [options] <operation> <service or group:group_name>
+Usage: sc  [options] <operation> <service(s)>
 
     Valid options include:
         -v: verbose mode
@@ -98,11 +109,12 @@ Usage: sc  [options] <operation> <service or group:group_name>
         perfinfo: print basic performance info about the service
         loginfo: get log file info for the service (best guess only)
         list: print service short name and friendly name
-
+    
 ```
 The above usage assumes the program is installed with the above installation steps and is therefore
 launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn compile`), 
 you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
+
 
 # Usage examples
 Start the service named `kafka`:
