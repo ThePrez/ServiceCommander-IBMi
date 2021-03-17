@@ -631,7 +631,7 @@ public class OperationExecutor {
         }
     }
 
-    private void stopViaEndJob(final int _waitTime) throws IOException {
+    private void stopViaEndJob(final int _waitTime) throws IOException, NumberFormatException, SCException {
         if (CheckAliveType.PORT == m_mainService.getCheckAliveType()) {
             final List<String> jobs = QueryUtils.getListeningJobsByPort(m_mainService.getCheckAliveCriteria(), m_logger);
             stopViaEndJob(jobs, _waitTime);

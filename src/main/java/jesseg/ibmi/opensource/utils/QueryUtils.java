@@ -144,18 +144,28 @@ public class QueryUtils {
         return deduplicate(ret);
     }
 
-    private static List<String> getListeningJobsByPort(final int _port, final AppLogger _logger) throws IOException {
+    private static List<String> getListeningJobsByPort(final int _port, final AppLogger _logger) throws IOException, SCException {
         final List<String> ret = new LinkedList<String>();
 
-        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + _port, "SELECT JOB_NAME from QSYS2.NETSTAT_JOB_INFO where LOCAL_PORT = ?" });
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "csv", "-p", "" + _port, "SELECT JOB_NAME,SLIC_TASK_NAME from QSYS2.NETSTAT_JOB_INFO where LOCAL_PORT = ?" });
         final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
         for (final String queryResult : queryResults) {
-            ret.add(queryResult.replace("\"", "").trim());
+            final String[] jobAndTask = queryResult.replace("\"", "").trim().split(",", 2);
+            final String job = jobAndTask[0];
+            final String task = jobAndTask[1];
+            if (StringUtils.isEmpty(job) || job.equalsIgnoreCase("null")) {
+                _logger.printfln_warn("Service at port %d is running in SLIC task %s", _port, task);
+            } else {
+                ret.add(job);
+            }
+        }
+        if(ret.isEmpty()) {
+            throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Unable to determine job running on port %d", _port);
         }
         return deduplicate(ret);
     }
 
-    public static List<String> getListeningJobsByPort(final String _port, final AppLogger _logger) throws NumberFormatException, IOException {
+    public static List<String> getListeningJobsByPort(final String _port, final AppLogger _logger) throws NumberFormatException, IOException, SCException {
         return getListeningJobsByPort(Integer.valueOf(_port), _logger);
     }
 
