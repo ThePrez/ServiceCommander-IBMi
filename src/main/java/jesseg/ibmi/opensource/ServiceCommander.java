@@ -80,11 +80,12 @@ public class ServiceCommander {
 //@formatter:off
         final String friendlyName = "Ad hoc service running at " + _desc.replace(':', ' ');
         _logger.printfln_verbose("Creating ad hoc service for %s", _desc);
+        final String shortName = "ad_hoc_"+_desc.replace(':', '_').replace('/', '_');
         return new ServiceDefinition() {
             @Override public String getCheckAliveCriteria()     { return caCriteria;   }
             @Override public CheckAliveType getCheckAliveType() { return caType;       }
             @Override public String getFriendlyName()           { return friendlyName; }
-            @Override public String getName()                   { return "ad_hoc";     }
+            @Override public String getName()                   { return shortName;    }
             @Override public String getSource()                 { return "<ad hoc>";   }
             @Override public String getStartCommand()           { return "";           }
         };
