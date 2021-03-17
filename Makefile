@@ -29,9 +29,9 @@ clean:
 
 install_runtime_dependencies: /QOpenSys/pkgs/bin/db2util /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/bin/nohup
 
-man/man.1:
+man/man.1: man/man.header man/man.mansrc
 	rm -f man/man.1
-	cat man/header man/man.mansrc > man/man.1
+	cat man/man.header man/man.mansrc > man/man.1
 
 install: sc.bin target/sc.jar install_runtime_dependencies man/man.1
 	install -m 755 -o qsys -D -d ${INSTALL_ROOT}/QOpenSys/pkgs/bin ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services
