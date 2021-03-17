@@ -218,9 +218,9 @@ public class ServiceCommander {
 
     private static void printUsageAndExit() {
         // @formatter:off
-		final String usage = "Usage: sc  [options] <operation> <service>\n" +
-		"\n"
-		                + "    Valid options include:\n"
+		final String usage = "Usage: sc  [options] <operation> <service>\n"
+		                        + "\n"
+		                        + "    Valid options include:\n"
                                 + "        -v: verbose mode\n"
                                 + "        --disable-colors: disable colored output\n"
                                 + "        --splf: send output to *SPLF when submitting jobs to batch (instead of log)\n"
@@ -236,7 +236,16 @@ public class ServiceCommander {
                                 + "        jobinfo: print basic performance info about the service\n"
                                 + "        perfinfo: print basic performance info about the service\n"
                                 + "        loginfo: get log file info for the service (best guess only)\n"
-                                + "        list: print service short name and friendly name\n";
+                                + "        list: print service short name and friendly name\n"
+                                + "\n"
+                                + "    Valid formats of the <service(s)> specifier include:\n"
+                                + "        - the short name of a configured service\n"
+                                + "        - A special value of \"all\" to represent all configured services (same as \"group:all\")\n"
+                                + "        - A group identifier (e.g. \"group:groupname\")\n"
+                                + "        - An ad hoc service specification by port (for instance, \"port:8080\")\n"
+                                + "        - An ad hoc service specification by job name (for instance, \"job:ZOOKEEPER\")\n"
+                                + "        - An ad hoc service specification by subsystem and job name (for instance, \"job:QHTTPSVR/ADMIN2\")\n"
+                                ;
 		// @formatter:on
         System.err.println(usage);
         System.exit(-1);
