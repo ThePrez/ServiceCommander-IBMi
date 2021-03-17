@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
+import java.util.UUID;
 
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.BatchMode;
@@ -121,11 +122,15 @@ public class OperationExecutor {
 
     public File execute() throws SCException {
         final File logDir = AppDirectories.conf.getLogsDirectory();
-        String logFileName;
-        try {
-            logFileName = QueryUtils.getCurrentTime(m_logger) + getLogSuffix();
-        } catch (final IOException e1) {
-            throw new SCException(m_logger, e1, FailureType.GENERAL_ERROR, "Unable to determine current time");
+        final String logFileName;
+        if (m_op.isChangingSystemState()) {
+            try {
+                logFileName = QueryUtils.getCurrentTime(m_logger) + getLogSuffix();
+            } catch (final IOException e1) {
+                throw new SCException(m_logger, e1, FailureType.GENERAL_ERROR, "Unable to determine current time");
+            }
+        } else {
+            logFileName = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).format(new Date()) + getLogSuffix(); // should be unused since we only use log files for state-changing stuff
         }
         final File logFile = new File(logDir.getAbsolutePath() + "/" + logFileName);
         try {
