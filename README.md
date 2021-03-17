@@ -98,6 +98,8 @@ Usage: sc  [options] <operation> <service(s)>
         
     Valid formats of the <service(s)> specifier include:
         - the short name of a configured service
+        - A special value of "all" to represent all configured services (same as "group:all")
+        - A group identifier (e.g. "group:groupname")
         - An ad hoc service specification by port (for instance, "port:8080")
         - An ad hoc service specification by job name (for instance, "job:ZOOKEEPER")
         - An ad hoc service specification by subsystem and job name (for instance, "job:QHTTPSVR/ADMIN2")
@@ -135,6 +137,14 @@ sc start group:host_servers
 List all services
 ```
 sc list group:all
+```
+List jobs running on port 8080
+```
+sc jobinfo port:8080
+```
+Stop jobs running on port 8080
+```
+sc stop port:8080
 ```
 
 # Configuring Services
