@@ -2,13 +2,15 @@
 sc - a tool for managing configured services and applications
 
 # SYNOPSIS
-`sc  [options] <operation> <service or group:group_name>`
 ```
+Usage: sc  [options] <operation> <service(s)>
+
     Valid options include:
         -v: verbose mode
         --disable-colors: disable colored output
         --splf: send output to *SPLF when submitting jobs to batch (instead of log)
         --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)
+        --ignore-globals: ignore globally-configured services
 
     Valid operations include:
         start: start the service (and any dependencies)
@@ -20,6 +22,14 @@ sc - a tool for managing configured services and applications
         perfinfo: print basic performance info about the service
         loginfo: get log file info for the service (best guess only)
         list: print service short name and friendly name
+        
+    Valid formats of the <service(s)> specifier include:
+        - the short name of a configured service
+        - A special value of "all" to represent all configured services (same as "group:all")
+        - A group identifier (e.g. "group:groupname")
+        - An ad hoc service specification by port (for instance, "port:8080")
+        - An ad hoc service specification by job name (for instance, "job:ZOOKEEPER")
+        - An ad hoc service specification by subsystem and job name (for instance, "job:QHTTPSVR/ADMIN2")
 ```
 
 # DESCRIPTION
@@ -35,14 +45,6 @@ This tool can be used to manage a number of services, for instance:
 - Kafka, Zookeeper, ActiveMQ servers, etc
 - Jenkins
 
-
-## Basic usage
-This tool currently requires you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
-- A global directory (/QOpenSys/etc/sc/services)
-- A user-specific directory($HOME/.sc/services)
-- If defined, whatever the value of the `services.dir` system property is. 
-The file name must be in the format of `service_name.yaml`, where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, hyphens, and underscores.
-
 ## Current features
 Some of the features of the tool include:
 - The ability to specify dependencies (for instance, if one application or service dependds on another), and it will start any dependencies as needed
@@ -52,6 +54,7 @@ Some of the features of the tool include:
 - Define custom groups for your services, and perform operations on those groups (by default, a group of "all" is defined)
 - Query basic performance attributes of the services
 - Assistance in providing/managing log files. This is a best-guess only and naively assumes the service uses stdout/stderr as its logging mechanism. Service Commander has its own primitive logging system that works well only for certain types of services
+- Ability to define manage ad hoc services specified on the command line
 
 ## Important differences from other service management tools
 Service Commander's design is fundamentally different from other tools that accomplish similar tasks, like init.d, supervisord, and so on. Namely, the functions within Service Commander are intended to work regardless of:
@@ -64,6 +67,30 @@ Also, this tool doesn't have the privilege of being the unified, integrated solu
 Instead, this tool makes strong assumptions based on checks for a particular job name or port usage (see `check_alive_criteria` in the file format documentation). A known limitation, therefore, is that Service Commander may mistake another job for a configured service based on one of these attributes. For example, if you configure a service that is supposed to be listening on port 80, Service Commander will assume that any job listening on port 80 is indeed that service.
 
 Service Commander's unique design is intended to offer a great deal of flexibility and ease of management through the use of simple `.yaml` files.
+
+## Configuring services through YAML configuration files
+This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
+- A global directory (/QOpenSys/etc/sc/services)
+- A user-specific directory($HOME/.sc/services)
+- If defined, whatever the value of the `services.dir` system property is. 
+The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
+
+## Ad hoc service definition
+Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`. 
+In these instances, the operations will be performed on the specified jobs. This is determined by looking for
+jobs matching the given job name or listening on the given port. The job name can be specified either in
+`jobname` or `subsystem/jobname` format.
+
+If an existing service definition is found (configured via YAML, as in the preceding section) that matches the
+job name or port criteria, that service will be used. For instance, if you have a service configured to run on
+port 80, then specifying `sc info port:80` will show information about the service configured to run on port 80.
+
+Ad hoc service definition is useful for quick checks without the need to create a YAML definition. It's also
+useful if you do not recall the service name, but remember the job name or port. 
+
+It is also useful for cases where you just want to find out who (if anyone) is using a certain port. For instance,
+`sc jobinfo port:8080` will show you which job is listening on port 8080. Similarly, `sc stop port:8080` will kill
+whatever job is running on port 8080.
 
 ## Sample .yaml configuration files
 See the [samples](samples) directory for some sample service definitions. 
@@ -114,13 +141,17 @@ The performance information support (`perfinfo`) has additional requirements, in
  &nbsp; --[@ThePrez](https://github.com/ThePrez/), creator of Service Commander
  
 # OPTIONS
+
+Usage of the command is summarized as:
 ```
-sc  [options] <operation> <service or group:group_name>
+Usage: sc  [options] <operation> <service(s)>
+
     Valid options include:
         -v: verbose mode
         --disable-colors: disable colored output
         --splf: send output to *SPLF when submitting jobs to batch (instead of log)
         --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)
+        --ignore-globals: ignore globally-configured services
 
     Valid operations include:
         start: start the service (and any dependencies)
@@ -128,19 +159,18 @@ sc  [options] <operation> <service or group:group_name>
         restart: restart the service
         check: check status of the service
         info: print configuration info about the service
+        jobinfo: print which jobs the service is running in
         perfinfo: print basic performance info about the service
         loginfo: get log file info for the service (best guess only)
         list: print service short name and friendly name
+        
+    Valid formats of the <service(s)> specifier include:
+        - the short name of a configured service
+        - A group identifier (e.g. "group:groupname")
+        - An ad hoc service specification by port (for instance, "port:8080")
+        - An ad hoc service specification by job name (for instance, "job:ZOOKEEPER")
+        - An ad hoc service specification by subsystem and job name (for instance, "job:QHTTPSVR/ADMIN2")
 ```
-
-
-Usage of the command is summarized as:
-```
-```
-The above usage assumes the program is installed with the above installation steps and is therefore
-launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn compile`), 
-you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
-
 
 # Automatically restarting a service if it fails
 Currently, this tool doees not have built-in monitoring and restart capabilities. This may be a future enhancement. In the meantime, one can use simple scripting to accomplish a similar task. For instance, to check every 40 seconds and ensure that the `navigator` service is running, you could submit a job like this (replace the sleep time, service name, and submitted job name to match your use case):
@@ -180,4 +210,12 @@ sc start group:host_servers
 List all services
 ```
 sc list group:all
+```
+List jobs running on port 8080
+```
+sc jobinfo port:8080
+```
+Stop jobs running on port 8080
+```
+sc stop port:8080
 ```
