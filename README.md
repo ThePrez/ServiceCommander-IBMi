@@ -87,6 +87,17 @@ In these instances, the operations will be performed on the specified jobs. This
 jobs matching the given job name or listening on the given port. The job name can be specified either in
 `jobname` or `subsystem/jobname` format.
 
+If an existing service definition is found (configured via YAML, as in the preceding section) that matches the
+job name or port criteria, that service will be used. For instance, if you have a service configured to run on
+port 80, then specifying `sc info port:80` will show information about the service configured to run on port 80.
+
+Ad hoc service definition is useful for quick checks without the need to create a YAML definition. It's also
+useful if you do not recall the service name, but remember the job name or port. 
+
+It is also useful for cases where you just want to find out who (if anyone) is using a certain port. For instance,
+`sc jobinfo port:8080` will show you which job is listening on port 8080. Similarly, `sc stop port:8080` will kill
+whatever job is running on port 8080.
+
 # Basic usage
 
 Usage of the command is summarized as:
