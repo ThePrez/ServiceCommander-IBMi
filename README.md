@@ -146,6 +146,10 @@ Stop jobs running on port 8080
 ```
 sc stop port:8080
 ```
+Check if anything is running on port 8080
+```
+sc check port:8080
+```
 
 # Configuring Services
 
