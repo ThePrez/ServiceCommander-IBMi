@@ -221,3 +221,30 @@ The following attributes may be specified in the service definition (`.yaml`) fi
 - `environment_vars`: Custom environment variables to be set when launching the service. Specify as an array of strings in `"KEY=VALUE"` format
 - `service_dependencies`: An array of services that this service depends on. This is the simple name of the service (for instance, if the dependency is defined as "myservice", then it is expected to be defined in a file named `myservice.yaml`), not the "friendly" name of the service.
 - `groups`: Custom groups that this service belongs to. Groups can be used to start and stop sets of services in a single operation. Specify as an array of strings.
+
+# STRTCPSVR Integration (experimental)
+Service Commander now has integration with system STRTCPSVR and ENDTCPSVR commands. This feature is experimental and may be removed
+if too problematic.
+
+To integrate with the STRTCPSVR and ENDTCPSVR commands, you can run the following command as an admin user:
+```
+/QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
+```
+This will install create the `SCOMMANDER` library and compile/install the TCP program into that library. To use a different
+library, just set the `SCTARGET` variable. For instance:
+```
+SCTARGET=mylib /QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
+```
+After doing so, you can run the `*SC` TCP server commands, specifying the simple name of the sc-managed service as the instance name. For example:
+```
+STRTCPSVR SERVER(*SC) INSTANCE(kafka)
+```
+If you then want to configure the server to autostart, run:
+```
+CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)
+```
+
+## Special groups used by STRTCPSVR/ENDTCPSVR
+There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
+- `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
+- `autostart`, which is what's started or ended if `*SC` is set to autostart or is invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)

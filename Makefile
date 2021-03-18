@@ -38,4 +38,6 @@ install: sc.bin target/sc.jar install_runtime_dependencies man/man.1
 	install -m 555 -o qsys sc.bin ${INSTALL_ROOT}/QOpenSys/pkgs/bin/sc
 	install -m 444 -o qsys target/sc.jar ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/sc.jar
 	install -m 444 -o qsys -D man/man.1 ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/sc.1
+	install -m 500 -o qsys -D strtcpsvr/install_sc_tcpsvr ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
+	install -m 400 -o qsys -D strtcpsvr/sc_tcpsvr.c ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/tcpsvr/sc_tcpsvr.c
 
