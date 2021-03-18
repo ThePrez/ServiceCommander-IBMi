@@ -107,16 +107,16 @@ public class OperationExecutor {
 
     public OperationExecutor(final Operation _op, final String _service, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) throws SCException {
         this(_op, _serviceDefs.get(_service), _serviceDefs, _logger);
+        if (null == m_mainService) {
+            throw new SCException(m_logger, FailureType.MISSING_SERVICE_DEF, "Could not find definition for service '%s'", _service);
+        }
     }
 
-    public OperationExecutor(final Operation _op, final ServiceDefinition _service, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) throws SCException {
+    public OperationExecutor(final Operation _op, final ServiceDefinition _service, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) {
         m_op = _op;
         m_serviceDefs = _serviceDefs;
         m_logger = _logger;
         m_mainService = _service;
-        if (null == m_mainService) {
-            throw new SCException(m_logger, FailureType.MISSING_SERVICE_DEF, "Could not find definition for service '%s'", _service);
-        }
     }
 
     public File execute() throws SCException {
