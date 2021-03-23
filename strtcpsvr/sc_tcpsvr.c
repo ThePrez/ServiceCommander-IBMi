@@ -21,6 +21,8 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+#include <pwd.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -89,15 +91,35 @@ int main(int argc, char *argv[])
         parm->rc = RC_FAILED;
         return 1;
     }
+    int is_batch = 1;
+    
+    struct passwd *pd;
+    if (NULL != (pd = getpwuid(getuid())))
+    {
+        if(pd->pw_name[0] == 'Q') {
+            is_batch = 1;
+        } else {
+            is_batch = 0;
+        }
 
-    char command[200];
-    if (memcmp(parm->action, START, 10) == 0)
-    {
-        snprintf(command, sizeof(command), "CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '-c' '/QOpenSys/pkgs/bin/sc start %s 2>&1 ; echo ')", instance);
     }
-    else if (memcmp(parm->action, END, 10) == 0)
+    char command[200];
+    
+    if (0 == is_batch && memcmp(parm->action, START, 10) == 0)
     {
-        snprintf(command, sizeof(command), "CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '-c' '/QOpenSys/pkgs/bin/sc stop %s 2>&1 ; echo ')", &instance);
+        snprintf(command, sizeof(command), "CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '-c' '/QOpenSys/pkgs/bin/sc start %s 2>&1 | cat')", instance);
+    }
+    else if (1 == is_batch && memcmp(parm->action, START, 10) == 0)
+    {
+        snprintf(command, sizeof(command), "SBMJOB JOBQ(QSYS/QUSRNOMAX) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '-c' '/QOpenSys/pkgs/bin/sc start %s 2>&1 | cat'))", instance);
+    }
+    else if (0 == is_batch && memcmp(parm->action, END, 10) == 0)
+    {
+        snprintf(command, sizeof(command), "CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '-c' '/QOpenSys/pkgs/bin/sc stop %s 2>&1 | cat')", &instance);
+    }
+    else if (1 == is_batch && memcmp(parm->action, END, 10) == 0)
+    {
+        snprintf(command, sizeof(command), "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '-c' '/QOpenSys/pkgs/bin/sc stop %s 2>&1 | cat'))", &instance);
     }
     else
     {
