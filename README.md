@@ -36,14 +36,14 @@ Service Commander's unique design is intended to offer a great deal of flexibili
 
 # Installation
 
-## Binary distribution (untested)
+## Option 1: Binary distribution
 You can install the binary distribution by copying the link to the `.rpm` file from the releases page of this project and using `yum` to install it. For instance, to install the v0.1.0 release:
 ```
 yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.1.0/sc-0.1.0-0.ibmi7.2.ppc64.rpm
 ```
 Of note, this RPM has not yet been tested. Feel free to evaluate and submit an issue if you encounter any problems.
 
-## From Source
+## Option 2: Build from source
 To ensure you're getting the latest and greatest code, feel free to build from source. This process assumes your `PATH` environment variable is set up properly, otherwise:
 ```
 PATH=/QOpenSys/pkgs/bin:$PATH
