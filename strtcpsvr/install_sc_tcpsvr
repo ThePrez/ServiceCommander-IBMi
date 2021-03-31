@@ -14,6 +14,5 @@ DIR=$(/QOpenSys/pkgs/bin/readlink -f $(dirname $0))
 /QOpenSys/usr/bin/system -Kkpiebv "CHGOBJOWN OBJ(QSYS/${SCTARGET}) OBJTYPE(*LIB) NEWOWN(QTCP) CUROWNAUT(*SAME)"
 /QOpenSys/usr/bin/system -Kkpiebv "CHGOBJOWN OBJ(${SCTARGET}/SC) OBJTYPE(*PGM) NEWOWN(QTCP) CUROWNAUT(*SAME)"
 /QOpenSys/usr/bin/system -Kkpiebv "ADDTCPSVR SVRSPCVAL(*SC) PGM(${SCTARGET}/SC) SVRNAME(SC) SVRTYPE(SC) TEXT('Service Commander')"
-/QOpenSys/usr/bin/system -Kkpiebv "CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)"
 
 echo 'SUCCESS!!'
