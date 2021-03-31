@@ -247,3 +247,12 @@ You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTAR
 There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
 - `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
 - `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
+
+# Specifying options in environment variables
+If you would like to set some of the tool's options via environment variable, you may do so with one of the following:
+- `SC_TCPSVR_OPTIONS`, which will be processed when invoked via the `STRTCPSVR`/`ENDTCPSVR` commands
+- `SC_OPTIONS`, which will be processed on all invocations
+For example, to gather verbose output when using `STRTCPSVR`, run the following before your `STRTCPSVR` command:
+```
+ADDENVVAR ENVVAR(SC_OPTIONS) VALUE('-v') REPLACE(*YES)
+```
