@@ -100,6 +100,10 @@ int main(int argc, char *argv[])
     }
     char command[200];
     char sc_operation[32];
+    char* sc_options = getenv("SC_OPTIONS");
+    if(NULL == sc_options) {
+        sc_options = "";
+    }
 
     if (0 == memcmp(parm->action, START, 10))
     {
@@ -118,11 +122,11 @@ int main(int argc, char *argv[])
 
     if (0 == is_batch)
     {
-        snprintf(command, sizeof(command), "CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' '/QOpenSys/pkgs/bin/sc %s %s 2>&1 | cat')", sc_operation, instance);
+        snprintf(command, sizeof(command), "CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' '/QOpenSys/pkgs/bin/sc %s %s %s 2>&1 | cat')", sc_options, sc_operation, instance);
     }
     else
     {
-        snprintf(command, sizeof(command), "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' 'exec /QOpenSys/pkgs/bin/sc %s %s 2>&1 | cat'))", sc_operation, instance);
+        snprintf(command, sizeof(command), "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' 'exec /QOpenSys/pkgs/bin/sc %s %s %s 2>&1 | cat'))", sc_options, sc_operation, instance);
     }
     Qp0zLprintf("Check spooled file output for progress\n");
     rc = system(command);
