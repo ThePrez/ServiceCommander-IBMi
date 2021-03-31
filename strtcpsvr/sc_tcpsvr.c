@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     }
     char command[200];
     char sc_operation[32];
-    char* sc_options = getenv("SC_OPTIONS");
+    char* sc_options = getenv("SC_TCPSVR_OPTIONS");
     if(NULL == sc_options) {
         sc_options = "";
     }
