@@ -237,14 +237,13 @@ SCTARGET=mylib /QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
 ```
 After doing so, you can run the `*SC` TCP server commands, specifying the simple name of the sc-managed service as the instance name. For example:
 ```
-STRTCPSVR SERVER(*SC) INSTANCE(kafka)
+STRTCPSVR SERVER(*SC) INSTANCE('kafka')
 ```
-If you then want to configure the server to autostart, run:
-```
-CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)
-```
+#### Important Notes about AUTOSTART(*YES)
+You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user.
+
 
 ## Special groups used by STRTCPSVR/ENDTCPSVR
 There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
 - `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
-- `autostart`, which is what's started or ended if `*SC` is set to autostart or is invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
+- `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
