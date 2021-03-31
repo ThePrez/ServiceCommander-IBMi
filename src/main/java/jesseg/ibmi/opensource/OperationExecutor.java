@@ -232,10 +232,13 @@ public class OperationExecutor {
     }
 
     private String getSbmJobOptsForStopping() {
+        String startOpts = m_mainService.getSbmJobOpts();
+        startOpts = startOpts.replaceAll("(?i)jobq\\s*\\([^\\\\)]+\\)", " ");
+        startOpts = startOpts.replaceAll("(?i)hold\\s*\\([^\\\\)]+\\)", " ");
         if (!isLikelyRunningAsAnotherUser()) {
             return "JOBQ(QUSRNOMAX) HOLD(*NO)";
         }
-        final String userParm = m_mainService.getSbmJobOpts().replaceFirst("(i?)USER[ ]*\\(", "USER(").replaceAll("\\).*", ")");
+        final String userParm = m_mainService.getSbmJobOpts().replaceFirst("(?i).*user\\s*\\(", "USER(").replaceAll("\\).*", ")");
         return userParm + " JOBQ(QUSRNOMAX) HOLD(*NO)";
     }
 
