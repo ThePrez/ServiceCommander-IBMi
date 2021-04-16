@@ -329,6 +329,10 @@ public class OperationExecutor {
 
     private void printJobInfo() throws SCException, IOException {
         m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + "):");
+        if (!isServiceRunning()) {
+            m_logger.println("    " + StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
+            return;
+        }
         final List<String> jobs = getActiveJobsForService();
         if (jobs.isEmpty()) {
             m_logger.println("    " + StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
@@ -386,19 +390,20 @@ public class OperationExecutor {
         m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + ")");
         if (!isServiceRunning()) {
             m_logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
-        }
-        m_logger.println();
-        final List<PerfInfoFetcher> dataFetcherThreads = new LinkedList<PerfInfoFetcher>();
-        for (final String job : getActiveJobsForService()) {
-            dataFetcherThreads.add(new PerfInfoFetcher(job, m_logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
-        }
-        for (final PerfInfoFetcher dataFetcherThread : dataFetcherThreads) {
-            m_logger.println(StringUtils.colorizeForTerminal("Job: " + dataFetcherThread.m_job, TerminalColor.CYAN));
-            final SortedMap<String, String> perfInfo = dataFetcherThread.getResults();
-            for (final Entry<String, String> pi : perfInfo.entrySet()) {
-                m_logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), TerminalColor.CYAN) + ": " + pi.getValue());
-            }
+        } else {
             m_logger.println();
+            final List<PerfInfoFetcher> dataFetcherThreads = new LinkedList<PerfInfoFetcher>();
+            for (final String job : getActiveJobsForService()) {
+                dataFetcherThreads.add(new PerfInfoFetcher(job, m_logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
+            }
+            for (final PerfInfoFetcher dataFetcherThread : dataFetcherThreads) {
+                m_logger.println(StringUtils.colorizeForTerminal("Job: " + dataFetcherThread.m_job, TerminalColor.CYAN));
+                final SortedMap<String, String> perfInfo = dataFetcherThread.getResults();
+                for (final Entry<String, String> pi : perfInfo.entrySet()) {
+                    m_logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), TerminalColor.CYAN) + ": " + pi.getValue());
+                }
+                m_logger.println();
+            }
         }
         m_logger.println("---------------------------------------------------------------------");
         m_logger.println();
