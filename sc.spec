@@ -1,5 +1,5 @@
 Name: sc
-Version: 0.1.0
+Version: 0.2.0
 Release: 0
 License: Apache-2.0
 Summary: Service Commander, a utility for managing services and applications on IBM i.
@@ -42,6 +42,12 @@ INSTALL_ROOT=%{buildroot} gmake -e install
 %{_mandir}/man1/%{name}.1
 
 %changelog
+* Thu Apr 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.2.0
+- STRTCPSVR support (experimental)
+- Add support for SC_OPTIONS and SC_TCPSVR_OPTIONS environment variables
+- bugfix: setting permissions for globally defined services in /QOpenSys/etc/sc/services
+- bugfix: bug related to stopping jobs running with a custom JOBQ
+- new '--ignore-globals' option to only operate on user-defined services
 * Wed Mar 17 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.1.0
 - Performance improvement for actions that don't change state
 - New "--ignore-globals" option
