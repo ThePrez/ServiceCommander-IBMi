@@ -42,6 +42,8 @@ INSTALL_ROOT=%{buildroot} gmake -e install
 %{_mandir}/man1/%{name}.*
 
 %changelog
+* Thu Apr 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.2.1
+- bugfix: error when running perfinfo/jobinfo on non-existent service
 * Thu Apr 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.2.0
 - STRTCPSVR support (experimental)
 - Add support for SC_OPTIONS and SC_TCPSVR_OPTIONS environment variables
