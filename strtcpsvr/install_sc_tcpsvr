@@ -1,0 +1,18 @@
+#!/QOpenSys/pkgs/bin/bash
+
+SCTARGET=${SCTARGET:-SCOMMANDER}
+
+/QOpenSys/usr/bin/system -Kkpiebv "CRTLIB LIB(${SCTARGET})" || echo "lib doesn't exist yet"
+/QOpenSys/usr/bin/system -Kkpiebv "DLTMOD MODULE(${SCTARGET}/SC)" || echo "module doesn't exist yet"
+/QOpenSys/usr/bin/system -Kkpiebv "DLTPGM PGM(${SCTARGET}/SC)" || echo "program doesn't exist yet"
+/QOpenSys/usr/bin/system -Kkpiebv "RMVTCPSVR SVRSPCVAL(*SC)" || echo "TCPSVR doesn't exist yet"
+
+set -e
+DIR=$(/QOpenSys/pkgs/bin/readlink -f $(dirname $0))
+/QOpenSys/usr/bin/system -Kkpiebv "CRTCMOD MODULE(${SCTARGET}/SC) SRCSTMF('${DIR}/sc_tcpsvr.c') SYSIFCOPT(*IFS64IO) TERASPACE(*YES *TSIFC)"
+/QOpenSys/usr/bin/system -Kkpiebv "CRTPGM PGM(${SCTARGET}/SC) MODULE(${SCTARGET}/SC) USRPRF(*OWNER) TEXT('Service Commander')"
+/QOpenSys/usr/bin/system -Kkpiebv "CHGOBJOWN OBJ(QSYS/${SCTARGET}) OBJTYPE(*LIB) NEWOWN(QTCP) CUROWNAUT(*SAME)"
+/QOpenSys/usr/bin/system -Kkpiebv "CHGOBJOWN OBJ(${SCTARGET}/SC) OBJTYPE(*PGM) NEWOWN(QTCP) CUROWNAUT(*SAME)"
+/QOpenSys/usr/bin/system -Kkpiebv "ADDTCPSVR SVRSPCVAL(*SC) PGM(${SCTARGET}/SC) SVRNAME(SC) SVRTYPE(SC) TEXT('Service Commander')"
+
+echo 'SUCCESS!!'

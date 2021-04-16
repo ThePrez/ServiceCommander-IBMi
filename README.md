@@ -221,3 +221,38 @@ The following attributes may be specified in the service definition (`.yaml`) fi
 - `environment_vars`: Custom environment variables to be set when launching the service. Specify as an array of strings in `"KEY=VALUE"` format
 - `service_dependencies`: An array of services that this service depends on. This is the simple name of the service (for instance, if the dependency is defined as "myservice", then it is expected to be defined in a file named `myservice.yaml`), not the "friendly" name of the service.
 - `groups`: Custom groups that this service belongs to. Groups can be used to start and stop sets of services in a single operation. Specify as an array of strings.
+
+# STRTCPSVR Integration (experimental)
+Service Commander now has integration with system STRTCPSVR and ENDTCPSVR commands. This feature is experimental and may be removed
+if too problematic.
+
+To integrate with the STRTCPSVR and ENDTCPSVR commands, you can run the following command as an admin user:
+```
+/QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
+```
+This will install create the `SCOMMANDER` library and compile/install the TCP program into that library. To use a different
+library, just set the `SCTARGET` variable. For instance:
+```
+SCTARGET=mylib /QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
+```
+After doing so, you can run the `*SC` TCP server commands, specifying the simple name of the sc-managed service as the instance name. For example:
+```
+STRTCPSVR SERVER(*SC) INSTANCE('kafka')
+```
+#### Important Notes about AUTOSTART(*YES)
+You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user.
+
+
+## Special groups used by STRTCPSVR/ENDTCPSVR
+There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
+- `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
+- `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
+
+# Specifying options in environment variables
+If you would like to set some of the tool's options via environment variable, you may do so with one of the following:
+- `SC_TCPSVR_OPTIONS`, which will be processed when invoked via the `STRTCPSVR`/`ENDTCPSVR` commands
+- `SC_OPTIONS`, which will be processed on all invocations
+For example, to gather verbose output when using `STRTCPSVR`, run the following before your `STRTCPSVR` command:
+```
+ADDENVVAR ENVVAR(SC_OPTIONS) VALUE('-v') REPLACE(*YES)
+```
