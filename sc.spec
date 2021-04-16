@@ -39,7 +39,7 @@ INSTALL_ROOT=%{buildroot} gmake -e install
 %{_bindir}/sc
 %{_libdir}/sc
 %{_sysconfdir}/sc
-%{_mandir}/man1/%{name}.1
+%{_mandir}/man1/%{name}.*
 
 %changelog
 * Thu Apr 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.2.0
