@@ -1,5 +1,5 @@
 Name: sc
-Version: 0.2.1
+Version: 0.2.2
 Release: 0
 License: Apache-2.0
 Summary: Service Commander, a utility for managing services and applications on IBM i.
@@ -42,6 +42,8 @@ INSTALL_ROOT=%{buildroot} gmake -e install
 %{_mandir}/man1/%{name}.*
 
 %changelog
+* Thu May 13 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.2.2
+- bugfix: Internationalize STRTCPSVR support
 * Thu Apr 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.2.1
 - bugfix: error when running perfinfo/jobinfo on non-existent service
 * Thu Apr 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.2.0

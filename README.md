@@ -37,9 +37,9 @@ Service Commander's unique design is intended to offer a great deal of flexibili
 # Installation
 
 ## Option 1: Binary distribution
-You can install the binary distribution by copying the link to the `.rpm` file from the releases page of this project and using `yum` to install it. For instance, to install the v0.2.1 release:
+You can install the binary distribution by copying the link to the `.rpm` file from the releases page of this project and using `yum` to install it. For instance, to install the v0.2.2 release:
 ```
-yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.2.1/sc-0.2.1-0.ibmi7.2.ppc64.rpm
+yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.2.2/sc-0.2.2-0.ibmi7.2.ppc64.rpm
 ```
 Of note, this RPM has not yet been tested. Feel free to evaluate and submit an issue if you encounter any problems.
 
