@@ -25,12 +25,14 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <stddef.h>
 #include <string.h>
 #include <sys/types.h>
-
+#include <iconv.h>
+#include <qtqiconv.h>
 #include <qp0ztrc.h>
-
+#pragma convert(37)
 #define START "*START    "
 #define END "*END      "
 
@@ -56,6 +58,31 @@ size_t unpad_length(const char *padded, size_t length)
         ; // empty body
 
     return length;
+}
+
+void to_job_ccsid(char *out, size_t out_len, char * in)
+{
+    QtqCode_T compile_ccsid = {37, 0, 0, 0, 0, 0};
+    QtqCode_T job_ccsid = {0, 0, 0, 0, 0, 0};
+    iconv_t cd = QtqIconvOpen(&job_ccsid, &compile_ccsid);
+    if (cd.return_value == -1)
+    {
+        fprintf(stderr, "Error in opening conversion descriptors\n");
+        exit(8);
+    }
+
+    size_t inleft = strlen(in);
+    size_t outleft = out_len;
+    char* input = in;
+    char* output = out;
+
+    int rc = iconv(cd, &input, &inleft, &output, &outleft);
+    if (rc == -1)
+    {
+        fprintf(stderr, "Error in converting characters\n");
+        exit(8);
+    }
+    iconv_close(cd);
 }
 
 int main(int argc, char *argv[])
@@ -98,10 +125,13 @@ int main(int argc, char *argv[])
     {
         is_batch = (pd->pw_name[0] == 'Q');
     }
-    char command[200];
+#define CMD_MAX 333
+    char command[CMD_MAX];
+    char command_printf_fmt[CMD_MAX];
     char sc_operation[32];
     char* sc_options = getenv("SC_TCPSVR_OPTIONS");
-    if(NULL == sc_options) {
+    if (NULL == sc_options)
+    {
         sc_options = "";
     }
 
@@ -119,15 +149,14 @@ int main(int argc, char *argv[])
         parm->rc = RC_FAILED;
         return -1;
     }
-
-    if (0 == is_batch)
-    {
-        snprintf(command, sizeof(command), "CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' '/QOpenSys/pkgs/bin/sc %s %s %s 2>&1 | cat')", sc_options, sc_operation, instance);
-    }
-    else
-    {
-        snprintf(command, sizeof(command), "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' 'exec /QOpenSys/pkgs/bin/sc %s %s %s 2>&1 | cat'))", sc_options, sc_operation, instance);
-    }
+    memset(command_printf_fmt, 0x00, sizeof(command));
+    to_job_ccsid(command_printf_fmt, sizeof(command_printf_fmt)-1, 
+        (0 == is_batch) ? 
+        "CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' '/QOpenSys/pkgs/bin/sc %s %s %s 2>&1 | cat')" :
+        "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' 'exec /QOpenSys/pkgs/bin/sc %s %s %s 2>&1 | cat'))"
+    );
+    snprintf(command, sizeof(command), command_printf_fmt, sc_options, sc_operation, instance);
+    Qp0zLprintf("Running command: 'sc %s %s %s'\n", sc_options, sc_operation, instance);
     Qp0zLprintf("Check spooled file output for progress\n");
     rc = system(command);
     rc = rc == 0 ? RC_OK : RC_FAILED;
