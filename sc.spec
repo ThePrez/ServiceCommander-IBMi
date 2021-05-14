@@ -36,7 +36,7 @@ INSTALL_ROOT=%{buildroot} gmake -e install
 %files
 %defattr(-, qsys, *none)
 
-%{_bindir}/sc
+%{_bindir}/sc*
 %{_libdir}/sc
 %{_sysconfdir}/sc
 %{_mandir}/man1/%{name}.*
