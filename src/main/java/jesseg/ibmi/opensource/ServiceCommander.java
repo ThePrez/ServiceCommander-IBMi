@@ -1,13 +1,11 @@
 package jesseg.ibmi.opensource;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -123,8 +121,8 @@ public class ServiceCommander {
         }
 
         final LinkedList<String> args = new LinkedList<String>();
-        String optsEnvVar = System.getenv("SC_OPTIONS");
-        if(!StringUtils.isEmpty(optsEnvVar)) {
+        final String optsEnvVar = System.getenv("SC_OPTIONS");
+        if (!StringUtils.isEmpty(optsEnvVar)) {
             args.addAll(Arrays.asList(optsEnvVar.trim().split("\\s+")));
         }
         args.addAll(Arrays.asList(_args));
