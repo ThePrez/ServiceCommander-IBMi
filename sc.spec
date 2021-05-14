@@ -1,5 +1,5 @@
 Name: sc
-Version: 0.2.2
+Version: 0.2.3
 Release: 0
 License: Apache-2.0
 Summary: Service Commander, a utility for managing services and applications on IBM i.
