@@ -167,9 +167,17 @@ scinit <program start command>
 ```
 The idea is that you would simply:
 1. `cd` to the directory where you'd normally start the service
-2. Run the command you'd normally use to start the service, prefixed by `scinit`, for instance `scinit npm start`
+2. Run the command you'd normally use to start the service, prefixed by `scinit`
 3. Answer a series of questions about how you would like the service deployed
 In doing so, the `scinit` will create the YAML configuration file for you and also show you information about the newly-configured service.
+
+For instance, if you would normally launch a Node.js application from `/home/MYUSR/mydir` by running `node app.js`, you would run:
+```
+cd /home/MYUSR/mydir
+scinit <program start command>
+```
+The `scinit` tool will ask you for a "short name" among other things. When done, a service configuration will be saved under that short
+name. So, for instance, if your short name is "my_node_app", you can run `sc start my_node_app`.
 
 ## Ad hoc service definition
 Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`. 
