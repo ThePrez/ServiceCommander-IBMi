@@ -122,8 +122,18 @@ public class YamlServiceDef extends ServiceDefinition {
     }
 
     @Override
+    public String getConfiguredWorkingDirectory() {
+        return null == m_workingDir ? super.getConfiguredWorkingDirectory() : m_workingDir;
+    }
+
+    @Override
     public List<String> getDependencies() {
         return null == m_dependencies ? super.getDependencies() : m_dependencies;
+    }
+
+    @Override
+    public String getEffectiveWorkingDirectory() {
+        return null == m_workingDir ? super.getEffectiveWorkingDirectory() : m_workingDir;
     }
 
     @Override
@@ -217,11 +227,6 @@ public class YamlServiceDef extends ServiceDefinition {
     @Override
     public String getStopCommand() {
         return null == m_stopCmd ? super.getStopCommand() : m_stopCmd;
-    }
-
-    @Override
-    public String getWorkingDirectory() {
-        return null == m_workingDir ? super.getWorkingDirectory() : m_workingDir;
     }
 
     @Override
