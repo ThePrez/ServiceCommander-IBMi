@@ -18,6 +18,7 @@ import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
 import jesseg.ibmi.opensource.utils.AppLogger;
 import jesseg.ibmi.opensource.utils.ConsoleQuestionAsker;
 import jesseg.ibmi.opensource.utils.StringUtils;
+import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
 import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
 
 public class ServiceInit {
@@ -70,7 +71,7 @@ public class ServiceInit {
         try {
             si.writeToFile(logger);
             HashMap<String, ServiceDefinition> defs = new YamlServiceDefLoader().loadFromYamlFiles(new AppLogger.DeferredLogger(logger));
-            logger.println("\n\nPrinting information about the newly-defined service");
+            logger.println(StringUtils.colorizeForTerminal("\n\nPrinting information about the newly-defined service", TerminalColor.GREEN);
             new OperationExecutor(Operation.INFO, si.m_shortName,defs, logger).execute();
         } catch (final SCException e) {
             logger.printExceptionStack_verbose(e);
