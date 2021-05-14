@@ -109,7 +109,11 @@ public class ServiceCommander {
                 }
             }
         }
-        _logger.printfln_verbose("Services in group '%s' are: %s", _group, ret);
+        if (ret.isEmpty()) {
+            _logger.printfln_warn("WARNING: No services are found in group '%s'", _group);
+        } else {
+            _logger.printfln_verbose("Services in group '%s' are: %s", _group, ret);
+        }
         return ret;
     }
 
