@@ -159,7 +159,7 @@ public class QueryUtils {
                 ret.add(job);
             }
         }
-        if(ret.isEmpty()) {
+        if (ret.isEmpty()) {
             throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Unable to determine job running on port %d", _port);
         }
         return deduplicate(ret);

@@ -20,6 +20,7 @@ import java.io.File;
 public enum AppDirectories {
     conf;
     private static File s_globalServicesDir = new File("/QOpenSys/etc/sc/services");
+    private static File s_userServicesDir = new File(System.getProperty("user.home", "~") + "/.sc/services");
 
     public File getCustomServicesDirOrNull() {
         final String servicesDir = System.getProperty("services.dir", null);
@@ -27,6 +28,10 @@ public enum AppDirectories {
             return null;
         }
         return validateDir(new File(servicesDir));
+    }
+
+    public File getGlobalServicesDir() {
+        return s_globalServicesDir;
     }
 
     public File getGlobalServicesDirOrNull() {
@@ -49,8 +54,15 @@ public enum AppDirectories {
         return retDir;
     }
 
+    public File getUserServicesDir(boolean _create) {
+        if(_create) {
+            s_userServicesDir.mkdirs();
+        }
+        return s_userServicesDir;
+    }
+
     public File getUserServicesDirOrNull() {
-        return validateDir(new File(System.getProperty("user.home") + "/.sc/services"));
+        return validateDir(s_userServicesDir);
     }
 
     private File validateDir(final File _dir) {

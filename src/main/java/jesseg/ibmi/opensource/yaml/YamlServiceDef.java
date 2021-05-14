@@ -228,4 +228,5 @@ public class YamlServiceDef extends ServiceDefinition {
     public boolean isInheritingEnvironmentVars() {
         return m_isInherintingEnvVars;
     }
+
 }
