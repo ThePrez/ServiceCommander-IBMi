@@ -37,9 +37,9 @@ Service Commander's unique design is intended to offer a great deal of flexibili
 # Installation
 
 ## Option 1: Binary distribution
-You can install the binary distribution by copying the link to the `.rpm` file from the releases page of this project and using `yum` to install it. For instance, to install the v0.2.3 release:
+You can install the binary distribution by copying the link to the `.rpm` file from the releases page of this project and using `yum` to install it. For instance, to install the v0.3.0 release:
 ```
-yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.2.3/sc-0.2.3-0.ibmi7.2.ppc64.rpm
+yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.3.0/sc-0.3.0-0.ibmi7.2.ppc64.rpm
 ```
 Of note, this RPM has not yet been tested. Feel free to evaluate and submit an issue if you encounter any problems.
 
@@ -159,6 +159,17 @@ This tool allows you to define any services of interest in `.yaml` files. These 
 - A user-specific directory($HOME/.sc/services)
 - If defined, whatever the value of the `services.dir` system property is. 
 The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
+
+## Using the 'scinit' tool
+You can use the `scinit` tool can be used to create the YAML configuration files for you. Basic usage of the tool is simply:
+```
+scinit <program start command>
+```
+The idea is that you would simply:
+1. `cd` to the directory where you'd normally start the service
+2. Run the command you'd normally use to start the service, prefixed by `scinit`, for instance `scinit npm start`
+3. Answer a series of questions about how you would like the service deployed
+In doing so, the `scinit` will create the YAML configuration file for you and also show you information about the newly-configured service.
 
 ## Ad hoc service definition
 Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`. 
