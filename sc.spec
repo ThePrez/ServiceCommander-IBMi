@@ -42,6 +42,8 @@ INSTALL_ROOT=%{buildroot} gmake -e install
 %{_mandir}/man1/%{name}.*
 
 %changelog
+* Fri May 14 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.2.3
+- enhancement: issue warning when no services are in group
 * Thu May 13 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.2.2
 - bugfix: Internationalize STRTCPSVR support
 * Thu Apr 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.2.1
