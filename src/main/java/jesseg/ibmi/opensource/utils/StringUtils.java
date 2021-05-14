@@ -8,7 +8,7 @@ package jesseg.ibmi.opensource.utils;
  */
 public class StringUtils {
     public enum TerminalColor {
-        GREEN("\u001B[32m"), PURPLE("\u001B[35m"), RED("\u001B[31m"), BRIGHT_RED("\u001b[31;1m"), YELLOW("\u001B[33m"), WHITE("\u001B[37m"), CYAN("\u001B[36m"), BLUE("\u001b[34m");
+        BLUE("\u001b[34m"), BRIGHT_RED("\u001b[31;1m"), CYAN("\u001B[36m"), GREEN("\u001B[32m"), PURPLE("\u001B[35m"), RED("\u001B[31m"), WHITE("\u001B[37m"), YELLOW("\u001B[33m");
 
         public static String stripCodesFromString(final String _str) {
             if (!s_isTerminalColorsSupported) {
@@ -33,20 +33,30 @@ public class StringUtils {
         }
     }
 
+    private static final String LOTSA_SPACES = "                                             ";
+
     /**
      * System property that can be used for disabling terminal colorizations
      */
     public static final String PROP_DISABLE_COLORS = "sc.disablecolors";
 
-    private static final String LOTSA_SPACES = "                                             ";
+    // We can print emojis (maybe) if we're running in a UTF-8 SSH terminal
+    private static final boolean s_isEmojiSupported = (null != System.console() && !isEmpty(System.getenv("SSH_TTY")) && System.getProperty("file.encoding", "").equalsIgnoreCase("UTF-8"));
 
     // SSH_TTY will be unset in non-SSH environments, and System.console() returns null when output is being piped
     private static final boolean s_isTerminalColorsSupported = (null != System.console() && !isEmpty(System.getenv("SSH_TTY")) && !Boolean.getBoolean(PROP_DISABLE_COLORS));
 
-    // We can print emojis (maybe) if we're running in a UTF-8 SSH terminal
-    private static final boolean s_isEmojiSupported = (null != System.console() && !isEmpty(System.getenv("SSH_TTY")) && System.getProperty("file.encoding", "").equalsIgnoreCase("UTF-8"));
-
     private static final String TERM_COLOR_RESET = "\u001B[0m";
+
+    @SafeVarargs
+    public static <T extends Object> String arrayToSpaceSeparatedString(final T... constants) {
+        final StringBuilder ret = new StringBuilder();
+        for (final T o : constants) {
+            ret.append("" + o);
+            ret.append(' ');
+        }
+        return ret.toString().trim();
+    }
 
     public static String colorizeForTerminal(final String _str, final TerminalColor _color) {
         if (s_isTerminalColorsSupported) {
@@ -54,6 +64,10 @@ public class StringUtils {
         } else {
             return _str;
         }
+    }
+
+    public static String getShrugForOutput() {
+        return s_isEmojiSupported ? "¯\\_\uD83D\uDE00_/¯" : "<unknown>";
     }
 
     public static boolean isEmpty(final String _str) {
@@ -69,9 +83,5 @@ public class StringUtils {
             ret += LOTSA_SPACES;
         }
         return ret.substring(0, _len);
-    }
-
-    public static String getShrugForOutput() {
-        return s_isEmojiSupported ? "¯\\_\uD83D\uDE00_/¯" : "<unknown>";
     }
 }
