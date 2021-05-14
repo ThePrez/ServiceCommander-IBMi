@@ -196,10 +196,19 @@ public abstract class ServiceDefinition {
     /**
      * Get the working directory to be used for starting and stopping the service
      *
-     * @return the working directory (this method will not return <tt>null</tt>
+     * @return the working directory (this method will not return <tt>null</tt>)
      */
-    public String getWorkingDirectory() {
+    public String getEffectiveWorkingDirectory() {
         return System.getProperty("user.dir");
+    }
+
+    /**
+     * Get the working directory that is configured to be used for starting and stopping the service, or <tt>null</tt> if unset
+     *
+     * @return the working directory (this method will return <tt>null</tt> if there is no directory configured
+     */
+    public String getConfiguredWorkingDirectory() {
+        return null;
     }
 
     /**

@@ -277,8 +277,11 @@ public class OperationExecutor {
         m_logger.println();
         m_logger.println(StringUtils.colorizeForTerminal("Defined in: ", TerminalColor.CYAN) + m_mainService.getSource());
         m_logger.println();
-        m_logger.println(StringUtils.colorizeForTerminal("Working Directory: ", TerminalColor.CYAN) + m_mainService.getWorkingDirectory());
-        m_logger.println();
+        final String dir = m_mainService.getConfiguredWorkingDirectory();
+        if (!StringUtils.isEmpty(dir)) {
+            m_logger.println(StringUtils.colorizeForTerminal("Working Directory: ", TerminalColor.CYAN) + dir);
+            m_logger.println();
+        }
         m_logger.println(StringUtils.colorizeForTerminal("Startup Command: ", TerminalColor.CYAN) + m_mainService.getStartCommand());
         m_logger.println(StringUtils.colorizeForTerminal("Startup Wait Time (s): ", TerminalColor.CYAN) + m_mainService.getStartupWaitTime());
         m_logger.println();
@@ -458,7 +461,7 @@ public class OperationExecutor {
         if (StringUtils.isEmpty(command)) {
             throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "No start command specified for service '%s'", m_mainService.getFriendlyName());
         }
-        final File directory = new File(m_mainService.getWorkingDirectory());
+        final File directory = new File(m_mainService.getEffectiveWorkingDirectory());
         if (!directory.exists() || !directory.canExecute()) {
             throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Cannot access configured directory %s", directory.getAbsolutePath());
         }
@@ -567,7 +570,7 @@ public class OperationExecutor {
             stopViaEndJob(m_mainService.getShutdownWaitTime());
         } else {
             // If the user provided a custom stop command, let's go try to execute it.
-            final File directory = new File(m_mainService.getWorkingDirectory());
+            final File directory = new File(m_mainService.getEffectiveWorkingDirectory());
 
             final ArrayList<String> envp = new ArrayList<String>();
             if (m_mainService.isInheritingEnvironmentVars()) {
