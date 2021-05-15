@@ -49,10 +49,16 @@ public class StringUtils {
     private static final String TERM_COLOR_RESET = "\u001B[0m";
 
     @SafeVarargs
-    public static <T extends Object> String arrayToSpaceSeparatedString(final T... constants) {
+    public static <T extends Object> String arrayToSpaceSeparatedString(final T... _arr) {
         final StringBuilder ret = new StringBuilder();
-        for (final T o : constants) {
-            ret.append("" + o);
+        for (final T o : _arr) {
+            final String str = ("" + o);
+            if (str.matches("^[\\w\\.\\-]+$")) {
+                ret.append(str);
+            } else {
+                char delim = str.contains("'") ? '\"' : '\'';
+                ret.append("" + delim + str + delim);
+            }
             ret.append(' ');
         }
         return ret.toString().trim();
