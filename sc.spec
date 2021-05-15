@@ -1,5 +1,5 @@
 Name: sc
-Version: 0.3.0
+Version: 0.3.1
 Release: 0
 License: Apache-2.0
 Summary: Service Commander, a utility for managing services and applications on IBM i.
@@ -42,6 +42,8 @@ INSTALL_ROOT=%{buildroot} gmake -e install
 %{_mandir}/man1/%{name}.*
 
 %changelog
+* Sat May 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.3.1
+- bugfix: proper handling of quoted args for 'scinit'
 * Fri May 14 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.3.0
 - enhancement: Add 'scinit' tool
 * Fri May 14 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.2.3
