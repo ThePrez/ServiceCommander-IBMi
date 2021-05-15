@@ -37,9 +37,9 @@ Service Commander's unique design is intended to offer a great deal of flexibili
 # Installation
 
 ## Option 1: Binary distribution
-You can install the binary distribution by copying the link to the `.rpm` file from the releases page of this project and using `yum` to install it. For instance, to install the v0.3.1 release:
+You can install the binary distribution by copying the link to the `.rpm` file from the releases page of this project and using `yum` to install it. For instance, to install the v0.3.2 release:
 ```
-yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.3.1/sc-0.3.1-0.ibmi7.2.ppc64.rpm
+yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.3.2/sc-0.3.2-0.ibmi7.2.ppc64.rpm
 ```
 Of note, this RPM has not yet been tested. Feel free to evaluate and submit an issue if you encounter any problems.
 
@@ -155,7 +155,7 @@ sc check port:8080
 
 ## Through YAML configuration files
 This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
-- A global directory (/QOpenSys/etc/sc/services)
+- A global directory (/QOpenSys/etc/sc/services). This, of coures, requires you to have admin access (`*ALLOBJ` special authority).
 - A user-specific directory($HOME/.sc/services)
 - If defined, whatever the value of the `services.dir` system property is. 
 The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.

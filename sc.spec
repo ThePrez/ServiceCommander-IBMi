@@ -1,5 +1,6 @@
+%undefine _disable_source_fetch
 Name: sc
-Version: 0.3.1
+Version: 0.3.2
 Release: 0
 License: Apache-2.0
 Summary: Service Commander, a utility for managing services and applications on IBM i.
@@ -33,6 +34,18 @@ gmake all
 %install
 INSTALL_ROOT=%{buildroot} gmake -e install
 
+%post -p %{_bindir}/bash
+if [ -e /QOpenSys/etc/sc ]; then
+    chown qsys /QOpenSys/etc/sc
+    chmod 755 /QOpenSys/etc/sc
+fi
+if [ -e /QOpenSys/etc/sc/services ]; then
+    chown qsys /QOpenSys/etc/sc/services
+    chmod 755 /QOpenSys/etc/sc/services
+    /QOpenSys/usr/bin/find  /QOpenSys/etc/sc/services/ -type f -exec chmod 644 {} \;
+    /QOpenSys/usr/bin/find  /QOpenSys/etc/sc/services/ -type l -exec chmod 644 {} \;
+fi
+
 %files
 %defattr(-, qsys, *none)
 
@@ -42,6 +55,8 @@ INSTALL_ROOT=%{buildroot} gmake -e install
 %{_mandir}/man1/%{name}.*
 
 %changelog
+* Sat May 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.3.2
+- enhancement: install scriptlet to lock down permissions of existing YAML configurations
 * Sat May 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.3.1
 - bugfix: proper handling of quoted args for 'scinit'
 * Fri May 14 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.3.0
