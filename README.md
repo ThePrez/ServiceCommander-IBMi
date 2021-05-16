@@ -223,7 +223,7 @@ This will result in several jobs that continuously check on the service and atte
 > &nbsp; --[@ThePrez](https://github.com/ThePrez/), creator of Service Commander
 
 # Sample .yaml configuration files
-See the [samples](samples) directory for some sample service definitions. 
+See the [samples](https://github.com/ThePrez/ServiceCommander-IBMi/tree/main/samples) directory for some sample service definitions. 
 
 # YAML File Format
 
