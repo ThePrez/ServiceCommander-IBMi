@@ -41,7 +41,10 @@ You can install the binary distribution by copying the link to the `.rpm` file f
 ```
 yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.3.2/sc-0.3.2-0.ibmi7.2.ppc64.rpm
 ```
-Of note, this RPM has not yet been tested. Feel free to evaluate and submit an issue if you encounter any problems.
+If you cannot access github directly from your IBM i system, simply download the RPM from the "Releases" page, upload the file to your IBM i system, and install via `yum`, like so:
+```
+yum install ./sc-0.3.2-0.ibmi7.2.ppc64.rpm
+```
 
 ## Option 2: Build from source
 To ensure you're getting the latest and greatest code, feel free to build from source. This process assumes your `PATH` environment variable is set up properly, otherwise:
