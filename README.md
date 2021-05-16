@@ -228,16 +228,16 @@ See the [samples](samples) directory for some sample service definitions.
 # YAML File Format
 
 The following attributes may be specified in the service definition (`.yaml`) file:
-## Required:
+## Required fields
 - `start_cmd`: the command used to start the service
 - `check_alive`: the technique used to check whether the service is alive or not. This is either "jobname" or "port".
 - `check_alive_criteria`: The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname".
 
-## Optional but often needed/wanted:
+## Optional fields that are often needed/wanted
 - `name`: A "friendly" name of the service
 - `dir`: The working directory in which to run the startup/shutdown commands
 
-## Optional:
+## Other optional fields
 - `stop_cmd`: The service shutdown command. If unspecified, the service will be located by port number or job name.
 - `startup_wait_time`: The wait time, in seconds, to wait for the service to start up (the default is 60 seconds if unspecified)
 - `stop_wait_time`: The wait time, in seconds, to wait for the service to stop (the default is 45 seconds if unspecified)
