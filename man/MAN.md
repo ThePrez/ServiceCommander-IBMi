@@ -1,6 +1,5 @@
 ---
 nav_exclude: true
-search_exclude: true
 ---
 # NAME
 sc - a tool for managing configured services and applications
