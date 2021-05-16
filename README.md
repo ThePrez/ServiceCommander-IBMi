@@ -83,7 +83,7 @@ The performance information support (`perfinfo`) has additional requirements, in
 # Basic usage
 
 Usage of the command is summarized as:
-```
+```text
 Usage: sc  [options] <operation> <service(s)>
 
     Valid options include:
