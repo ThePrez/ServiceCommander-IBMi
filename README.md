@@ -228,16 +228,16 @@ See the [samples](samples) directory for some sample service definitions.
 # YAML File Format
 
 The following attributes may be specified in the service definition (`.yaml`) file:
-### Required:
+## Required:
 - `start_cmd`: the command used to start the service
 - `check_alive`: the technique used to check whether the service is alive or not. This is either "jobname" or "port".
 - `check_alive_criteria`: The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname".
 
-### Optional but often needed/wanted:
+## Optional but often needed/wanted:
 - `name`: A "friendly" name of the service
 - `dir`: The working directory in which to run the startup/shutdown commands
 
-### Optional:
+## Optional:
 - `stop_cmd`: The service shutdown command. If unspecified, the service will be located by port number or job name.
 - `startup_wait_time`: The wait time, in seconds, to wait for the service to start up (the default is 60 seconds if unspecified)
 - `stop_wait_time`: The wait time, in seconds, to wait for the service to stop (the default is 45 seconds if unspecified)
@@ -250,6 +250,7 @@ The following attributes may be specified in the service definition (`.yaml`) fi
 - `groups`: Custom groups that this service belongs to. Groups can be used to start and stop sets of services in a single operation. Specify as an array of strings.
 
 # STRTCPSVR Integration (experimental)
+
 Service Commander now has integration with system STRTCPSVR and ENDTCPSVR commands. This feature is experimental and may be removed
 if too problematic.
 
@@ -266,7 +267,7 @@ After doing so, you can run the `*SC` TCP server commands, specifying the simple
 ```
 STRTCPSVR SERVER(*SC) INSTANCE('kafka')
 ```
-#### Important Notes about AUTOSTART(*YES)
+## Important Notes about AUTOSTART(*YES)
 You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user. Be are that adding QTCP to new group profiles or granting special authorities may represent a security exposure. Also, due to the highly-flexible nature of this tool, it is not good practice to run this command as an elevated user in an unattended fashion. 
 In summary, it is likely not a good idea to use `AUTOSTART(*YES)`.
 
