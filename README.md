@@ -22,6 +22,11 @@ Some of the features of the tool include:
 - Assistance in providing/managing log files. This is a best-guess only and naively assumes the service uses stdout/stderr as its logging mechanism. Service Commander has its own primitive logging system that works well only for certain types of services
 - Ability to define manage ad hoc services specified on the command line
 
+# Have feedback or want to contribute?
+Feel free to [open an issue](https://github.com/ThePrez/ServiceCommander-IBMi/issues/new/choose) with any qiestions, problems, or other comments. If you'd like to contribute to the project, see [CONTRIBUTING.md](CONTRIBUTING.md) for more information on how to get started. 
+
+In any event, we're glad to have you aboard in any capacity, whether as a user, spectator, or contributor!
+
 # Important differences from other service management tools
 Service Commander's design is fundamentally different from other tools that accomplish similar tasks, like init.d, supervisord, and so on. Namely, the functions within Service Commander are intended to work regardless of:
 - Who else may start or stop the service
