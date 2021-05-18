@@ -42,7 +42,7 @@ public class ServiceInit {
         final String shortName = console.askStringMatchingRegexQuestion(logger, null, "^([a-z\\\\-_0-9]+)$", "lowercase letters, numbers, hyphens, or underscores", "Short name:");
         final String friendlyName = console.askStringMatchingRegexQuestion(logger, null, "^[^\\:]+$", "a string not containing a colon", "Friendly name:");
         final boolean isCurrentDir = console.askBooleanQuestion(logger, "y", "Must the application be started in the current directory (%s)?", currentDir);
-        final String startCmd = StringUtils.arrayToSpaceSeparatedString(_args);
+        final String startCmd = (1 == _args.length) ? _args[0] : StringUtils.arrayToSpaceSeparatedString(_args);
         final CheckAliveType checkAliveType = console.askEnumQuestion(logger, "How can the application be checked for liveliness?", CheckAliveType.class);
         String checkAliveCriteria;
         if (CheckAliveType.PORT == checkAliveType) {
