@@ -15,7 +15,7 @@ echo 'echo starting' > myscript.sh
 echo 'while :; do sleep 5 && echo running ;done' >> myscript.sh
 chmod +x ./myscript.sh
 ```
-As you can see, this "service" does nothing more than periodically produce output. If you'd like to, you may run `./myscript.sh` to see what it does (<ctrl>+C to exit).
+As you can see, this "service" does nothing more than periodically produce output. If you'd like to, you may run `./myscript.sh` to see what it does (`<ctrl>+c` to exit).
 
 ## 2. Use the `scinit` utility to make a service definition
 From your SSH session, run:
