@@ -1,6 +1,8 @@
 ---
+title: Hands-on Exercise
 nav_exclude: true
 ---
+
 
 # Introductory (hands-on) Exercise
 In this exercise, you will define a simple "service" and manage it with the Service Commander. For demonstrative purposes, the "service" is just a simple script that doesn't do anything besides produce output. 
