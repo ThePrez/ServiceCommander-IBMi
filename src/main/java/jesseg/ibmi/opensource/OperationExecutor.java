@@ -651,7 +651,7 @@ public class OperationExecutor {
             final List<String> jobs = QueryUtils.getJobs(m_mainService.getCheckAliveCriteria(), m_logger);
             if (jobs.isEmpty()) {
                 return;
-            } else if (1 == jobs.size()) {
+            } else if (15 >= jobs.size()) {
                 stopViaEndJob(jobs, _waitTime);
             } else {
                 m_logger.println_err("ERROR: Multiple jobs found matching job name criteria!! Those jobs were: ");
