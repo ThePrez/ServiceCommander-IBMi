@@ -352,7 +352,7 @@ public class OperationExecutor {
         for (final String job : getActiveJobsForService()) {
             try {
                 for (final String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
-                    m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName() + ": " + splf, TerminalColor.CYAN));
+                    m_logger.println(m_mainService.getName() + ": " + StringUtils.colorizeForTerminal(splf, TerminalColor.CYAN));
                     isAnythingFound = true;
                 }
             } catch (final Exception e) {
