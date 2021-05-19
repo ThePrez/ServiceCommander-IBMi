@@ -6,6 +6,5 @@ hljs_style: github-gist
 repo_url: https://github.com/ThePrez/ServiceCommander-IBMi
 collapse_navigation: true
 include_homepage_in_sidebar: false
-url: "https://theprez.github.io/ServiceCommander-IBMi/#service-commander-for-ibm-i"
-include:
+binclude:
   - quickstart/HANDS_ON.md
