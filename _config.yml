@@ -5,6 +5,6 @@ hljs_style: github-gist
 repo_url: https://github.com/ThePrez/ServiceCommander-IBMi
 collapse_navigation: true
 include_homepage_in_sidebar: false
-include:
+binclude:
   - quickstart/HANDS_ON.md
   - CONTRIBUTING.md
