@@ -352,35 +352,37 @@ public class OperationExecutor {
         if (null != possibleLogFile) {
             for (final String job : getActiveJobsForService()) {
                 try {
-                    final long fileTs = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).parse(new File(possibleLogFile).getName().substring(0, QueryUtils.DB_TIMESTAMP_FORMAT.length())).getTime();
-                    final String jobStartDate = QueryUtils.getJobStartTime(job, m_logger);
-                    m_logger.printf_verbose("Job start time is %s\n", jobStartDate.toString());
-                    final long jobStartTs = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).parse(jobStartDate).getTime();
-
-                    final long tsDelta = Math.abs(jobStartTs - fileTs);
-                    m_logger.printf_verbose("fileTs = %d, jobStart = %d, delta = %d\n", fileTs, jobStartTs, tsDelta);
-                    if (tsDelta < 45500) {
-                        m_logger.printfln("%s: " + StringUtils.colorizeForTerminal("tail -f " + possibleLogFile, TerminalColor.CYAN), m_mainService.getName());
+                    for (final String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
+                        m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName() + ": " + splf, TerminalColor.CYAN));
                         isAnythingFound = true;
-                        break;
                     }
                 } catch (final Exception e) {
-                    // This could be files that aren't in our expected date format, or an issue getting the job start time. No need to throw here.
                     m_logger.printExceptionStack_verbose(e);
                 }
             }
-        }
+            if (!isAnythingFound) {
+                for (final String job : getActiveJobsForService()) {
+                    try {
+                        final long fileTs = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).parse(new File(possibleLogFile).getName().substring(0, QueryUtils.DB_TIMESTAMP_FORMAT.length())).getTime();
+                        final String jobStartDate = QueryUtils.getJobStartTime(job, m_logger);
+                        m_logger.printf_verbose("Job start time is %s\n", jobStartDate.toString());
+                        final long jobStartTs = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).parse(jobStartDate).getTime();
 
-        for (final String job : getActiveJobsForService()) {
-            try {
-                for (final String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
-                    m_logger.println(StringUtils.colorizeForTerminal(splf, TerminalColor.CYAN));
-                    isAnythingFound = true;
+                        final long tsDelta = Math.abs(jobStartTs - fileTs);
+                        m_logger.printf_verbose("fileTs = %d, jobStart = %d, delta = %d\n", fileTs, jobStartTs, tsDelta);
+                        if (tsDelta < 45500) {
+                            m_logger.printfln("%s: " + StringUtils.colorizeForTerminal("tail -f " + possibleLogFile, TerminalColor.CYAN), m_mainService.getName());
+                            isAnythingFound = true;
+                            break;
+                        }
+                    } catch (final Exception e) {
+                        // This could be files that aren't in our expected date format, or an issue getting the job start time. No need to throw here.
+                        m_logger.printExceptionStack_verbose(e);
+                    }
                 }
-            } catch (final Exception e) {
-                m_logger.printExceptionStack_verbose(e);
             }
         }
+
         if (!isAnythingFound) {
             m_logger.printfln_err("%s: " + StringUtils.getShrugForOutput(), m_mainService.getName());
         }
