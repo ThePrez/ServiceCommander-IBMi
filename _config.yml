@@ -4,5 +4,6 @@ description: Service Commander for IBM i
 search_enabled: true
 hljs_style: github-gist
 repo_url: https://github.com/ThePrez/ServiceCommander-IBMi
+collapse_navigation: true
 include:
   - quickstart/HANDS_ON.md
