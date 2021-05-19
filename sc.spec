@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: sc
-Version: 0.3.2
+Version: 0.3.3
 Release: 0
 License: Apache-2.0
 Summary: Service Commander, a utility for managing services and applications on IBM i.
@@ -55,6 +55,8 @@ fi
 %{_mandir}/man1/%{name}.*
 
 %changelog
+* Wed May 19 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.3.3
+- bugfix: minor bugfixes to loginfo operation
 * Sat May 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.3.2
 - enhancement: install scriptlet to lock down permissions of existing YAML configurations
 * Sat May 15 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.3.1
