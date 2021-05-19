@@ -4,5 +4,4 @@ description: Service Commander for IBM i
 search_enabled: true
 hljs_style: github-gist
 include:
-  - README.md
   - quickstart/HANDS_ON.md
