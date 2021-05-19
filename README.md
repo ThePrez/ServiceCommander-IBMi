@@ -44,7 +44,7 @@ Service Commander's unique design is intended to offer a great deal of flexibili
 
 # Installation
 
-**System Requirements**
+## System Requirements
 
 For most of the features of this tool, the following is required to be installed (the `make install` of the installation steps should handle these for you):
 - db2util (`yum install db2util`)
