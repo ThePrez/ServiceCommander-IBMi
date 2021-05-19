@@ -25,23 +25,6 @@ From your SSH session, run:
 scinit ./myscript.sh
 ```
 Answer the questions like so:
-```
-Would you like this service to be available to all users? [y] n
-Short name: myscript
-Friendly name: My Script that I used to learn Service Commander
-Must the application be started in the current directory (/home/JGORZINS)? [y] y
-How can the application be checked for liveliness? (one of: JOBNAME/PORT) JOBNAME
-What job does your application run in? myscript
-Will your application need to be submitted to batch? [n] y
-What job name should be used? (leave blank for default) myscript
-What custom SBMJOB options should be used? (leave blank for none) JOBQ(QUSRNOMAX)
-What group(s) would this application be a part of?
-        (press <enter> after each entry, leave blank to entering values)
-1>
-What service(s) does this application rely on?
-        (press <enter> after each entry, leave blank to entering values)
-1>
-```
 
 ![image](https://user-images.githubusercontent.com/17914061/118847976-ef559a00-b893-11eb-802b-1d2fedddb446.png)
 
