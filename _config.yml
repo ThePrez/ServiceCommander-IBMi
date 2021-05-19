@@ -5,5 +5,4 @@ search_enabled: true
 hljs_style: github-gist
 include:
   - README.md
-  - CONTRIBUTING.md
   - quickstart/HANDS_ON.md
