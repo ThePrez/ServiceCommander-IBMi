@@ -45,6 +45,7 @@ Since the short name of the service is `myscript`, you can start your newly-crea
 ```bash
 sc start myscript
 ```
+
 ## 4. Observe the service running in WRKACTJOB
 From a 5250 session, run
 ```
@@ -65,10 +66,42 @@ myscript: tail -f /home/JGORZINS/.sc/logs/2021-05-19-12.05.38.myscript.log
 In this case, it will be a `tail -f` command. Copy/paste that command to watch the log file. 
 ![image](https://user-images.githubusercontent.com/17914061/118849720-9edf3c00-b895-11eb-9050-77b15dbaae07.png)
 
+Press `<ctrl>+c` to stop watching the log file
 
 ## 6. Stop the service
-## 7. Start the service again (this time with --splf-output
-## 8. Display the log file
-## 8. View performance info
-## 9. Stop the service
-## 10. Delete the service definition
+From your SSH session, run:
+```bash
+sc stop myscript
+```
+## 7. Clear your logs directory
+```bash
+rm $HOME/.sc/logs/*
+```
+
+## 8. Start the service again (this time with `--splf`)
+```bash
+sc --splf start myscript
+```
+
+## 9. View performance info
+```bash
+sc perfinfo myscript
+```
+
+## 10. Display the log file
+```bash
+sc loginfo myscript
+```
+Note that this time, it will give you a `DSPSPLF` command. This is because you started the service with the `--splf` option. 
+Unfortunately, you cannot view this file while it is still open by the job. So, copy the `DSPSPLF` command, stop the service by running:
+```bash
+sc stop myscript
+```
+and then run the `DSPSPLF` command in 5250 to view the spooled file
+
+## 12. Delete the service definition
+View the information about the service by running:
+```bash
+sc info myscrpt
+```
+Part of the output will show you what file the service is defined in. You can delete the service definition by simply deleting the YAML file. 
