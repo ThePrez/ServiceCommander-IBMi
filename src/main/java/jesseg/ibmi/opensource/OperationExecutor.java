@@ -349,17 +349,17 @@ public class OperationExecutor {
     private void printLogInfo() throws SCException {
         final String possibleLogFile = getPossibleLogFile();
         boolean isAnythingFound = false;
-        if (null != possibleLogFile) {
-            for (final String job : getActiveJobsForService()) {
-                try {
-                    for (final String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
-                        m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName() + ": " + splf, TerminalColor.CYAN));
-                        isAnythingFound = true;
-                    }
-                } catch (final Exception e) {
-                    m_logger.printExceptionStack_verbose(e);
+        for (final String job : getActiveJobsForService()) {
+            try {
+                for (final String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
+                    m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName() + ": " + splf, TerminalColor.CYAN));
+                    isAnythingFound = true;
                 }
+            } catch (final Exception e) {
+                m_logger.printExceptionStack_verbose(e);
             }
+        }
+        if (null != possibleLogFile) {
             if (!isAnythingFound) {
                 for (final String job : getActiveJobsForService()) {
                     try {
