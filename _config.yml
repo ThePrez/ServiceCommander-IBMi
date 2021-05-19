@@ -3,5 +3,6 @@ title: sc
 description: Service Commander for IBM i
 search_enabled: true
 hljs_style: github-gist
+repo_url: https://github.com/ThePrez/ServiceCommander-IBMi
 include:
   - quickstart/HANDS_ON.md
