@@ -1,4 +1,9 @@
-#Introductory (hands-on) Exercise
+---
+nav_exclude: true
+---
+
+# Introductory (hands-on) Exercise
+In this exercise, you will define a simple "service" and manage it with the Service Commander. For demonstrative purposes, the "service" is just a simple script that doesn't do anything besides produce output. 
 
 ## 1. Create a simple program (shell script)
 To create a sample "service", open an SSH terminal, 'cd' to a directory of your choice, and run the following commands.
