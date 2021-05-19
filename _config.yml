@@ -1,10 +1,10 @@
 remote_theme: carlosperate/jekyll-theme-rtd
 title: sc
 description: Service Commander for IBM i
-search_enabled: true
 hljs_style: github-gist
 repo_url: https://github.com/ThePrez/ServiceCommander-IBMi
 collapse_navigation: true
 include_homepage_in_sidebar: false
-binclude:
+include:
   - quickstart/HANDS_ON.md
+  - CONTRIBUTING.md
