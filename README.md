@@ -44,6 +44,23 @@ Service Commander's unique design is intended to offer a great deal of flexibili
 
 # Installation
 
+**System Requirements**
+
+For most of the features of this tool, the following is required to be installed (the `make install` of the installation steps should handle these for you):
+- db2util (`yum install db2util`)
+- OpenJDK (`yum install openjdk-11`)
+- bash (`yum install bash`)
+- GNU coreutils (`yum install coreutils-gnu`)
+
+The performance information support (`perfinfo`) has additional requirements, including:
+- Python 3 with the ibm_db database connector (`yum install python3-ibm_db`)
+- Required operating system support, which depends on your IBM i operating system level, as follows:
+    - IBM i 7.4: included with base OS
+    - IBM i 7.3: Group PTF SF99703 Level 11
+    - IBM i 7.2: Group PTF SF99702 Level 23
+    - IBM i 7.1 (and earlier): not supported
+
+
 ## Option 1: Binary distribution
 You can install the binary distribution by copying the link to the `.rpm` file from the releases page of this project and using `yum` to install it. For instance, to install the v0.3.3 release:
 ```
@@ -67,21 +84,6 @@ git clone https://github.com/ThePrez/ServiceCommander-IBMi/
 cd ServiceCommander-IBMi
 make install
 ```
-
-# System Requirements
-For most of the features of this tool, the following is required to be installed (the `make install` of the installation steps should handle these for you):
-- db2util (`yum install db2util`)
-- OpenJDK (`yum install openjdk-11`)
-- bash (`yum install bash`)
-- GNU coreutils (`yum install coreutils-gnu`)
-
-The performance information support (`perfinfo`) has additional requirements, including:
-- Python 3 with the ibm_db database connector (`yum install python3-ibm_db`)
-- Required operating system support, which depends on your IBM i operating system level, as follows:
-    - IBM i 7.4: included with base OS
-    - IBM i 7.3: Group PTF SF99703 Level 11
-    - IBM i 7.2: Group PTF SF99702 Level 23
-    - IBM i 7.1 (and earlier): not supported
 
 # Basic usage
 
@@ -120,7 +122,16 @@ launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn 
 you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
 
 
-# Usage examples
+**Specifying options in environment variables**
+If you would like to set some of the tool's options via environment variable, you may do so with one of the following:
+- `SC_TCPSVR_OPTIONS`, which will be processed when invoked via the `STRTCPSVR`/`ENDTCPSVR` commands
+- `SC_OPTIONS`, which will be processed on all invocations
+For example, to gather verbose output when using `STRTCPSVR`, run the following before your `STRTCPSVR` command:
+```
+ADDENVVAR ENVVAR(SC_OPTIONS) VALUE('-v') REPLACE(*YES)
+```
+
+## Usage examples
 Start the service named `kafka`:
 ```
 sc start kafka
@@ -170,6 +181,35 @@ This tool allows you to define any services of interest in `.yaml` files. These 
 - A user-specific directory($HOME/.sc/services)
 - If defined, whatever the value of the `services.dir` system property is. 
 The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
+
+### YAML File Format
+See the [samples](https://github.com/ThePrez/ServiceCommander-IBMi/tree/main/samples) directory for some sample service definitions. 
+The following attributes may be specified in the service definition (`.yaml`) file:
+
+**Required fields**
+
+- `start_cmd`: the command used to start the service
+- `check_alive`: the technique used to check whether the service is alive or not. This is either "jobname" or "port".
+- `check_alive_criteria`: The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname".
+
+**Optional fields that are often needed/wanted**
+
+- `name`: A "friendly" name of the service
+- `dir`: The working directory in which to run the startup/shutdown commands
+
+**Other optional fields**
+
+- `stop_cmd`: The service shutdown command. If unspecified, the service will be located by port number or job name.
+- `startup_wait_time`: The wait time, in seconds, to wait for the service to start up (the default is 60 seconds if unspecified)
+- `stop_wait_time`: The wait time, in seconds, to wait for the service to stop (the default is 45 seconds if unspecified)
+- `batch_mode`: Whether or not to submit the service to batch
+- `sbmjob_jobname`: If submitting to batch, the custom job name to be used for the batch job
+- `sbmjob_opts`: If submitting to batch, custom options for the SBMJOB command (for instance, a custom JOBD) 
+- `environment_is_inheriting_vars`: Whether the service inherits environment variables from the current environment (default is true)
+- `environment_vars`: Custom environment variables to be set when launching the service. Specify as an array of strings in `"KEY=VALUE"` format
+- `service_dependencies`: An array of services that this service depends on. This is the simple name of the service (for instance, if the dependency is defined as "myservice", then it is expected to be defined in a file named `myservice.yaml`), not the "friendly" name of the service.
+- `groups`: Custom groups that this service belongs to. Groups can be used to start and stop sets of services in a single operation. Specify as an array of strings.
+
 
 ## Using the 'scinit' tool
 You can use the `scinit` tool can be used to create the YAML configuration files for you. Basic usage of the tool is simply:
@@ -225,34 +265,7 @@ This will result in several jobs that continuously check on the service and atte
 >
 > &nbsp; --[@ThePrez](https://github.com/ThePrez/), creator of Service Commander
 
-# Sample .yaml configuration files
-See the [samples](https://github.com/ThePrez/ServiceCommander-IBMi/tree/main/samples) directory for some sample service definitions. 
-
-# YAML File Format
-
-The following attributes may be specified in the service definition (`.yaml`) file:
-## Required fields
-- `start_cmd`: the command used to start the service
-- `check_alive`: the technique used to check whether the service is alive or not. This is either "jobname" or "port".
-- `check_alive_criteria`: The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname".
-
-## Optional fields that are often needed/wanted
-- `name`: A "friendly" name of the service
-- `dir`: The working directory in which to run the startup/shutdown commands
-
-## Other optional fields
-- `stop_cmd`: The service shutdown command. If unspecified, the service will be located by port number or job name.
-- `startup_wait_time`: The wait time, in seconds, to wait for the service to start up (the default is 60 seconds if unspecified)
-- `stop_wait_time`: The wait time, in seconds, to wait for the service to stop (the default is 45 seconds if unspecified)
-- `batch_mode`: Whether or not to submit the service to batch
-- `sbmjob_jobname`: If submitting to batch, the custom job name to be used for the batch job
-- `sbmjob_opts`: If submitting to batch, custom options for the SBMJOB command (for instance, a custom JOBD) 
-- `environment_is_inheriting_vars`: Whether the service inherits environment variables from the current environment (default is true)
-- `environment_vars`: Custom environment variables to be set when launching the service. Specify as an array of strings in `"KEY=VALUE"` format
-- `service_dependencies`: An array of services that this service depends on. This is the simple name of the service (for instance, if the dependency is defined as "myservice", then it is expected to be defined in a file named `myservice.yaml`), not the "friendly" name of the service.
-- `groups`: Custom groups that this service belongs to. Groups can be used to start and stop sets of services in a single operation. Specify as an array of strings.
-
-# STRTCPSVR Integration (experimental)
+# STRTCPSVR Integration
 
 Service Commander now has integration with system STRTCPSVR and ENDTCPSVR commands. This feature is experimental and may be removed
 if too problematic.
@@ -270,21 +283,13 @@ After doing so, you can run the `*SC` TCP server commands, specifying the simple
 ```
 STRTCPSVR SERVER(*SC) INSTANCE('kafka')
 ```
-## Important Notes about AUTOSTART(*YES)
+**Important Notes about AUTOSTART(*YES)**
+
 You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user. Be are that adding QTCP to new group profiles or granting special authorities may represent a security exposure. Also, due to the highly-flexible nature of this tool, it is not good practice to run this command as an elevated user in an unattended fashion. 
 In summary, it is likely not a good idea to use `AUTOSTART(*YES)`.
 
 
-## Special groups used by STRTCPSVR/ENDTCPSVR
+**Special groups used by STRTCPSVR/ENDTCPSVR**
 There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
 - `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
 - `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
-
-# Specifying options in environment variables
-If you would like to set some of the tool's options via environment variable, you may do so with one of the following:
-- `SC_TCPSVR_OPTIONS`, which will be processed when invoked via the `STRTCPSVR`/`ENDTCPSVR` commands
-- `SC_OPTIONS`, which will be processed on all invocations
-For example, to gather verbose output when using `STRTCPSVR`, run the following before your `STRTCPSVR` command:
-```
-ADDENVVAR ENVVAR(SC_OPTIONS) VALUE('-v') REPLACE(*YES)
-```
