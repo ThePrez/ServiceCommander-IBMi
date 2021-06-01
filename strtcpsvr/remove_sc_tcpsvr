@@ -1,6 +1,11 @@
 #!/QOpenSys/pkgs/bin/bash
 
-SCTARGET=${SCTARGET:-SCOMMANDER}
+SCTARGET=$(db2util -p *SC "select LIBRARY from QUSRSYS.QATOCSTART where SERVER=?" | tr -d '"')
+if [ "$SCTARGET" == "" ]
+then
+  echo "TCPSVR has not been installed"
+  exit 1
+fi
 
 /QOpenSys/usr/bin/system -Kkpiebv "RMVTCPSVR SVRSPCVAL(*SC)" || echo "TCPSVR has not been installed"
 /QOpenSys/usr/bin/system -Kkpiebv "DLTMOD MODULE(${SCTARGET}/SC)" || echo "module doesn't exist"
