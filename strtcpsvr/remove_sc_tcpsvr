@@ -1,6 +1,6 @@
 #!/QOpenSys/pkgs/bin/bash
 
-SCTARGET=$(db2util -p *SC "select LIBRARY from QUSRSYS.QATOCSTART where SERVER=?" | tr -d '"')
+SCTARGET=$(db2util -p *SC "select LIBRARY from QUSRSYS.QATOCSTART where SERVER=?" | tr -d '" ')
 if [ "$SCTARGET" == "" ]
 then
   echo "TCPSVR has not been installed"
