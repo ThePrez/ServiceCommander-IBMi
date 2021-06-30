@@ -9,6 +9,7 @@ This tool can be used to manage a number of services, for instance:
 - Apache Camel routes
 - Kafka, Zookeeper, ActiveMQ servers, etc
 - Jenkins
+- OSS Database servers (PostgreSQL, MariaDB)
 
 
 # Current features
