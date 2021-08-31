@@ -48,7 +48,7 @@ install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar ins
 	install -m 555 -o qsys -D strtcpsvr/remove_sc_tcpsvr ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/tcpsvr/remove_sc_tcpsvr
 	install -m 444 -o qsys -D strtcpsvr/sc_tcpsvr.c ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/tcpsvr/sc_tcpsvr.c
 	cp -R samples/ ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc
-	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/etc/sc/samples/ -type f -print -exec chmod 644 {} \;
-	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/etc/sc/samples/ -type l -print -exec chmod 644 {} \;
-	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/etc/sc/samples/ -type d -print -exec chmod 755 {} \;
+	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/samples/ -type f -print -exec chmod 644 {} \;
+	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/samples/ -type l -print -exec chmod 644 {} \;
+	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/samples/ -type d -print -exec chmod 755 {} \;
 
