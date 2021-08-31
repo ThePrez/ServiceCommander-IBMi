@@ -65,11 +65,11 @@ The performance information support (`perfinfo`) has additional requirements, in
 ## Option 1: Binary distribution
 You can install the binary distribution by copying the link to the `.rpm` file from the releases page of this project and using `yum` to install it. For instance, to install the v0.3.3 release:
 ```
-yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.3.4/sc-0.3.4-0.ibmi7.2.ppc64.rpm
+yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.4.0/sc-0.4.0-0.ibmi7.2.ppc64.rpm
 ```
 If you cannot access github directly from your IBM i system, simply download the RPM from the ["Releases" page](https://github.com/ThePrez/ServiceCommander-IBMi/releases), upload the file to your IBM i system, and install via `yum`, like so:
 ```
-yum install ./sc-0.3.4-0.ibmi7.2.ppc64.rpm
+yum install ./sc-0.4.0-0.ibmi7.2.ppc64.rpm
 ```
 
 ## Option 2: Build from source
@@ -175,6 +175,17 @@ sc check port:8080
 ```
 
 # Configuring Services
+
+## Initializing your configuration with defaults
+If you'd like to start with pre-made configurations for common services, simply run:
+```
+sc_install_defaults
+```
+This will install service definitions for:
+- IBM i TCP servers
+- IBM i Host Servers
+- The Cron daemon (if you have cron installed)
+- MariaDB (if you have mariadb installed)
 
 ## Through YAML configuration files
 This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
