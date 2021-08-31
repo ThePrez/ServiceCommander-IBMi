@@ -1,5 +1,5 @@
 name: MariaDB Server
-start_cmd: /QOpenSys/pkgs/bin/mysqld
+start_cmd: /QOpenSys/pkgs/bin/mysqld_safe --datadir=/QOpenSys/var/lib/mariadb/data
 
 check_alive: port
 check_alive_criteria: 3306
