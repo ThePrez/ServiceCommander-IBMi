@@ -12,6 +12,26 @@ function install {
 	echo "installing $1..."
 	cp "$1" $TARGET_DIR
 }
+function install_apache {
+	echo "installing apache server $1..."
+	
+    if [ ! -d "$1/htdocs" ]; then
+    	echo "OOPS\!\! Not an Apache server here..."
+    	return
+    fi
+    PORT=$(grep -iE '^Listen ' ./$1/conf/httpd.conf |  sed 's|.*:||g' | tail -n 1)
+    if [[ "" == "$PORT" ]]; then
+    	echo "OOPS\!\! Not an Apache server here..."
+    	return
+    fi
+	echo "name: Apache server $1" > $TARGET_DIR/apache_$1.yaml
+	echo "start_cmd: system \"STRTCPSVR SERVER(*HTTP) HTTPSVR($1)\"" >> $TARGET_DIR/apache_$1.yaml
+	echo "stop_cmd: system \"ENDTCPSVR SERVER(*HTTP) HTTPSVR($1)\"" >> $TARGET_DIR/apache_$1.yaml
+	echo 'check_alive: port' >> $TARGET_DIR/apache_$1.yaml
+	echo "check_alive_criteria: $PORT" >> $TARGET_DIR/apache_$1.yaml
+	echo "groups:" >> $TARGET_DIR/apache_$1.yaml
+	echo ' - "apache"' >> $TARGET_DIR/apache_$1.yaml
+}
 cd /QOpenSys/pkgs/lib/sc/samples
 for HOSTSVR in $(find host_servers -name as-\*)
 do
@@ -24,3 +44,10 @@ done
 install navigator.yaml
 install_if_executable /QOpenSys/pkgs/bin/mysqld mariadb.yaml
 install_if_executable /QOpenSys/pkgs/bin/crond crond.yaml
+
+cd /www
+
+for APACHE in $(ls)
+do
+	install_apache $APACHE
+done
