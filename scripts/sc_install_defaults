@@ -1,0 +1,26 @@
+#!/QOpenSys/pkgs/bin/bash
+TARGET_DIR="$HOME/.sc/services"
+function install_if_executable {
+    if [[ -x "$1" ]]; then
+    	echo "installing $2..."
+    	cp "$2" $TARGET_DIR
+    else
+    	echo "not installing $2..."
+    fi
+}
+function install {
+	echo "installing $1..."
+	cp "$1" $TARGET_DIR
+}
+cd /QOpenSys/pkgs/lib/sc/samples
+for HOSTSVR in $(find host_servers -name as-\*)
+do
+	install $HOSTSVR
+done
+for TCPSVR in $(find system_tcpsvr -name \*.yaml)
+do
+	install $TCPSVR
+done
+install navigator.yaml
+install_if_executable /QOpenSys/pkgs/bin/mysqld mariadb.yaml
+install_if_executable /QOpenSys/pkgs/bin/crond crond.yaml

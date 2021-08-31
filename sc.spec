@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: sc
-Version: 0.3.4
+Version: 0.4.0
 Release: 0
 License: Apache-2.0
 Summary: Service Commander, a utility for managing services and applications on IBM i.
@@ -55,6 +55,10 @@ fi
 %{_mandir}/man1/%{name}.*
 
 %changelog
+* Mon Aug 30 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.4.0
+- Add examples for cron and mariadb
+- Install example files to /QOpenSys/pkgs/lib/sc/samples
+- Deliver new 'sc_install_defaults' command
 * Tue Aug 24 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.3.4
 - bugfix: allow port numbers greater than 9999
 * Wed May 19 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.3.3
