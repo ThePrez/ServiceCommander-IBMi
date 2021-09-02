@@ -1,19 +1,20 @@
 %undefine _disable_source_fetch
 Name: sc
-Version: 0.4.0
+Version: 0.4.1
 Release: 0
 License: Apache-2.0
 Summary: Service Commander, a utility for managing services and applications on IBM i.
 Url: https://github.com/ThePrez/ServiceCommander-IBMi
 
+BuildRequires: coreutils-gnu
+BuildRequires: db2util
+BuildRequires: make-gnu
 BuildRequires: maven
 BuildRequires: openjdk-11
-BuildRequires: coreutils-gnu
-BuildRequires: make-gnu
-Requires: openjdk-11
 Requires: bash
 Requires: coreutils-gnu
 Requires: db2util
+Requires: openjdk-11
 Requires: python3-ibm_db
 
 Source0: https://github.com/ThePrez/ServiceCommander-IBMi/archive/v%{version}.tar.gz
@@ -55,6 +56,8 @@ fi
 %{_mandir}/man1/%{name}.*
 
 %changelog
+* Thu Sep 02 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.4.1
+- Allow 'sc_install_defaults' to autogen definitions for apache
 * Mon Aug 30 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.4.0
 - Add examples for cron and mariadb
 - Install example files to /QOpenSys/pkgs/lib/sc/samples
