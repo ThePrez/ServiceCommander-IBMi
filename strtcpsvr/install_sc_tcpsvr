@@ -9,8 +9,8 @@ SCTARGET=${SCTARGET:-SCOMMANDER}
 
 set -e
 DIR=$(/QOpenSys/pkgs/bin/readlink -f $(dirname $0))
-/QOpenSys/usr/bin/system -Kkpiebv "CRTCMOD MODULE(${SCTARGET}/SC) SRCSTMF('${DIR}/sc_tcpsvr.c') SYSIFCOPT(*IFS64IO) TERASPACE(*YES *TSIFC) TGTCCSID(37)"
-/QOpenSys/usr/bin/system -Kkpiebv "CRTPGM PGM(${SCTARGET}/SC) MODULE(${SCTARGET}/SC) USRPRF(*OWNER) TGTRLS(V7R4M0) TEXT('Service Commander')"
+/QOpenSys/usr/bin/system -Kkpiebv "CRTCMOD MODULE(${SCTARGET}/SC) SRCSTMF('${DIR}/sc_tcpsvr.c') SYSIFCOPT(*IFS64IO) TERASPACE(*YES *TSIFC) TGTCCSID(37) TGTRLS(V7R1M0)"
+/QOpenSys/usr/bin/system -Kkpiebv "CRTPGM PGM(${SCTARGET}/SC) MODULE(${SCTARGET}/SC) USRPRF(*OWNER) TEXT('Service Commander')"
 /QOpenSys/usr/bin/system -Kkpiebv "CHGOBJOWN OBJ(QSYS/${SCTARGET}) OBJTYPE(*LIB) NEWOWN(QTCP) CUROWNAUT(*SAME)"
 /QOpenSys/usr/bin/system -Kkpiebv "CHGOBJOWN OBJ(${SCTARGET}/SC) OBJTYPE(*PGM) NEWOWN(QTCP) CUROWNAUT(*SAME)"
 /QOpenSys/usr/bin/system -Kkpiebv "ADDTCPSVR SVRSPCVAL(*SC) PGM(${SCTARGET}/SC) SVRNAME(SC) SVRTYPE(SC) TEXT('Service Commander')"
