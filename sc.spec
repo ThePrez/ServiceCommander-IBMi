@@ -35,16 +35,20 @@ gmake all
 %install
 INSTALL_ROOT=%{buildroot} gmake -e install
 
-%post -p %{_bindir}/bash
-if [ -e /QOpenSys/etc/sc ]; then
-    chown qsys /QOpenSys/etc/sc
-    chmod 755 /QOpenSys/etc/sc
+%post
+# This will explicitly make sure that permissions are set correctly on the global
+# configuration directory. In most cases, this is unnecessary, but it is needed
+# to fix up scenarios where an older version of sc was used and a user created
+# the directories manually with incorrect permissions/ownership.
+if [ -e %sysconfdir/sc ]; then
+    chown qsys %sysconfdir/sc
+    chmod 755 %sysconfdir/sc
 fi
-if [ -e /QOpenSys/etc/sc/services ]; then
-    chown qsys /QOpenSys/etc/sc/services
-    chmod 755 /QOpenSys/etc/sc/services
-    /QOpenSys/usr/bin/find  /QOpenSys/etc/sc/services/ -type f -exec chmod 644 {} \;
-    /QOpenSys/usr/bin/find  /QOpenSys/etc/sc/services/ -type l -exec chmod 644 {} \;
+if [ -e %sysconfdir/sc/services ]; then
+    chown qsys %sysconfdir/sc/services
+    chmod 755 %sysconfdir/sc/services
+    /QOpenSys/usr/bin/find  %sysconfdir/sc/services/ -type f -exec chmod 644 {} \;
+    /QOpenSys/usr/bin/find  %sysconfdir/sc/services/ -type l -exec chmod 644 {} \;
 fi
 
 %files
