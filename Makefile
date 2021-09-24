@@ -29,11 +29,13 @@ clean:
 
 install_runtime_dependencies: /QOpenSys/pkgs/bin/db2util /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/bin/nohup
 
+install_with_runtime_dependencies: install install_runtime_dependencies
+
 man/man.1: man/man.header man/man.mansrc
 	rm -f man/man.1
 	cat man/man.header man/man.mansrc > man/man.1
 
-install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar install_runtime_dependencies man/man.1
+install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man/man.1
 	install -m 755 -o qsys -D -d ${INSTALL_ROOT}/QOpenSys/pkgs/bin ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services
 	chmod 755 ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services
 	chown -R qsys ${INSTALL_ROOT}/QOpenSys/etc/sc
