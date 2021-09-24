@@ -1,10 +1,12 @@
 %undefine _disable_source_fetch
-Name: sc
-Version: 0.4.1
+Name: service-commander
+Version: 0.5.0
 Release: 0
 License: Apache-2.0
-Summary: Service Commander, a utility for managing services and applications on IBM i.
+Summary: Utility for managing services and applications on IBM i
 Url: https://github.com/ThePrez/ServiceCommander-IBMi
+
+Obsoletes: sc
 
 BuildRequires: coreutils-gnu
 BuildRequires: db2util
@@ -29,26 +31,26 @@ to batch, and more
 %setup -n ServiceCommander-IBMi-%{version}
 
 %build
-gmake all
+%make_build all
 
 
 %install
-INSTALL_ROOT=%{buildroot} gmake -e install
+%make_install INSTALL_ROOT=%{buildroot}
 
 %post
 # This will explicitly make sure that permissions are set correctly on the global
 # configuration directory. In most cases, this is unnecessary, but it is needed
 # to fix up scenarios where an older version of sc was used and a user created
 # the directories manually with incorrect permissions/ownership.
-if [ -e %sysconfdir/sc ]; then
-    chown qsys %sysconfdir/sc
-    chmod 755 %sysconfdir/sc
+if [ -e %{_sysconfdir}/sc ]; then
+    chown qsys %{_sysconfdir}/sc
+    chmod 755 %{_sysconfdir}/sc
 fi
-if [ -e %sysconfdir/sc/services ]; then
-    chown qsys %sysconfdir/sc/services
-    chmod 755 %sysconfdir/sc/services
-    /QOpenSys/usr/bin/find  %sysconfdir/sc/services/ -type f -exec chmod 644 {} \;
-    /QOpenSys/usr/bin/find  %sysconfdir/sc/services/ -type l -exec chmod 644 {} \;
+if [ -e %{_sysconfdir}/sc/services ]; then
+    chown qsys %{_sysconfdir}/sc/services
+    chmod 755 %{_sysconfdir}/sc/services
+    /QOpenSys/usr/bin/find  %{_sysconfdir}/sc/services/ -type f -exec chmod 644 {} \;
+    /QOpenSys/usr/bin/find  %{_sysconfdir}/sc/services/ -type l -exec chmod 644 {} \;
 fi
 
 %files
@@ -57,9 +59,11 @@ fi
 %{_bindir}/sc*
 %{_libdir}/sc
 %{_sysconfdir}/sc
-%{_mandir}/man1/%{name}.*
+%{_mandir}/man1/sc.*
 
 %changelog
+* Thu Sep 02 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.5.0
+- Rename package to 'service-commander'
 * Thu Sep 02 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.4.1
 - Allow 'sc_install_defaults' to autogen definitions for apache
 * Mon Aug 30 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.4.0
