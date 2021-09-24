@@ -8,11 +8,10 @@ Url: https://github.com/ThePrez/ServiceCommander-IBMi
 
 Obsoletes: sc
 
-BuildRequires: coreutils-gnu
-BuildRequires: db2util
 BuildRequires: make-gnu
 BuildRequires: maven
 BuildRequires: openjdk-11
+
 Requires: bash
 Requires: coreutils-gnu
 Requires: db2util
@@ -27,6 +26,8 @@ A utility for unifying the daunting task of managing various services and
 applications running on IBM i. Some of the features of the tool include
 management of dependent services, creating custom groups, easily submitting
 to batch, and more
+
+
 %prep
 %setup -n ServiceCommander-IBMi-%{version}
 
@@ -36,6 +37,7 @@ to batch, and more
 
 %install
 %make_install INSTALL_ROOT=%{buildroot}
+
 
 %post
 # This will explicitly make sure that permissions are set correctly on the global
@@ -52,6 +54,7 @@ if [ -e %{_sysconfdir}/sc/services ]; then
     /QOpenSys/usr/bin/find  %{_sysconfdir}/sc/services/ -type f -exec chmod 644 {} \;
     /QOpenSys/usr/bin/find  %{_sysconfdir}/sc/services/ -type l -exec chmod 644 {} \;
 fi
+
 
 %files
 %defattr(-, qsys, *none)
