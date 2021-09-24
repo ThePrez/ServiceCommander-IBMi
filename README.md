@@ -47,13 +47,13 @@ Service Commander's unique design is intended to offer a great deal of flexibili
 
 ## System Requirements
 
-For most of the features of this tool, the following is required to be installed (the `make install_with_runtime_dependencies` of the installation steps should handle these for you):
+For most of the features of this tool, the following is required to be installed (the installation steps should handle these for you):
 - db2util (`yum install db2util`)
 - OpenJDK (`yum install openjdk-11`)
 - bash (`yum install bash`)
 - GNU coreutils (`yum install coreutils-gnu`)
 
-The performance information support (`perfinfo`) has additional requirements, including:
+The performance information support (`perfinfo`) has additional requirements that are not automatically installed, including:
 - Python 3 with the ibm_db database connector (`yum install python3-ibm_db`)
 - Required operating system support, which depends on your IBM i operating system level, as follows:
     - IBM i 7.4: included with base OS
@@ -63,17 +63,14 @@ The performance information support (`perfinfo`) has additional requirements, in
 
 
 ## Option 1: Binary distribution
-You can install the binary distribution by copying the link to the `.rpm` file from the releases page of this project and using `yum` to install it. For instance, to install the v0.3.3 release:
+You can install the binary distribution by installing the `service-commander` package:
 ```
-yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v0.4.0/sc-0.4.1-0.ibmi7.2.ppc64.rpm
+yum install service-commander
 ```
-If you cannot access github directly from your IBM i system, simply download the RPM from the ["Releases" page](https://github.com/ThePrez/ServiceCommander-IBMi/releases), upload the file to your IBM i system, and install via `yum`, like so:
-```
-yum install ./sc-0.4.1-0.ibmi7.2.ppc64.rpm
-```
+If you are not familiar with IBM i RPMs, see [this documentation](http://ibm.biz/ibmi-rpms) to get started.
 
-## Option 2: Build from source
-To ensure you're getting the latest and greatest code, feel free to build from source. This process assumes your `PATH` environment variable is set up properly, otherwise:
+## Option 2: Build from source (for development or fix evaluation)
+Feel free to build from the `main` branch to start making code contributions or to evaluate a fix/feature not yet publish. This process assumes your `PATH` environment variable is set up properly, otherwise:
 ```
 PATH=/QOpenSys/pkgs/bin:$PATH
 export PATH
