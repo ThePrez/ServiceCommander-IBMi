@@ -47,7 +47,7 @@ Service Commander's unique design is intended to offer a great deal of flexibili
 
 ## System Requirements
 
-For most of the features of this tool, the following is required to be installed (the `make install` of the installation steps should handle these for you):
+For most of the features of this tool, the following is required to be installed (the `make install_with_runtime_dependencies` of the installation steps should handle these for you):
 - db2util (`yum install db2util`)
 - OpenJDK (`yum install openjdk-11`)
 - bash (`yum install bash`)
@@ -83,7 +83,7 @@ The build itself can be done with the following steps:
 yum install git ca-certificates-mozilla make-gnu
 git clone https://github.com/ThePrez/ServiceCommander-IBMi/
 cd ServiceCommander-IBMi
-make install
+make install_with_runtime_dependencies
 ```
 
 # Basic usage
