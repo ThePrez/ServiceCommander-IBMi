@@ -62,7 +62,7 @@ fi
 %{_mandir}/man1/sc.*
 
 %changelog
-* Thu Sep 02 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.5.0
+* Fri Sep 24 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.5.0
 - Rename package to 'service-commander'
 * Thu Sep 02 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.4.1
 - Allow 'sc_install_defaults' to autogen definitions for apache
