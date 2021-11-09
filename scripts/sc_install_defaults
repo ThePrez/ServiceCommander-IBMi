@@ -1,5 +1,6 @@
 #!/QOpenSys/pkgs/bin/bash
 TARGET_DIR="$HOME/.sc/services"
+mkdir -p $TARGET_DIR
 function install_if_executable {
     if [[ -x "$1" ]]; then
     	echo "installing $2..."
