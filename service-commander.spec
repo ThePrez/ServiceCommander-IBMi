@@ -65,6 +65,10 @@ fi
 %{_mandir}/man1/sc.*
 
 %changelog
+* Wed Nov 10 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.6.0
+ - feature: Automatically infer checkalive job name or SBMJOB job name
+ - feature: Issue warning when there are conflicting definitions
+ - bugfix: handling circular dependencies
 * Fri Sep 24 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.5.0
 - Rename package to 'service-commander'
 * Thu Sep 02 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.4.1
