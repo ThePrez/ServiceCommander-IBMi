@@ -598,7 +598,8 @@ public class OperationExecutor {
                 }
 
                 if (shouldOutputGoToSplf()) {
-                    bashCommand = ("exec " + SbmJobScript.getQp2() + " " + command);
+                    final char quoteChar = command.contains("'") ? '\"' : '\'';
+                    bashCommand = ("exec " + SbmJobScript.getQp2() + " " + quoteChar + command + quoteChar);
                 } else {
                     final char quoteChar = command.contains("'") ? '\"' : '\'';
                     bashCommand = ("exec " + SbmJobScript.getQp2() + " " + quoteChar + command + " >> " + _logFile.getAbsolutePath() + " 2>&1" + quoteChar);
