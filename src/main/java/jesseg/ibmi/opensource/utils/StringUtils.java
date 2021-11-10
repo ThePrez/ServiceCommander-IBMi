@@ -56,7 +56,7 @@ public class StringUtils {
             if (str.matches("^[\\w\\.\\-]+$")) {
                 ret.append(str);
             } else {
-                char delim = str.contains("'") ? '\"' : '\'';
+                final char delim = str.contains("'") ? '\"' : '\'';
                 ret.append("" + delim + str + delim);
             }
             ret.append(' ');

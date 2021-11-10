@@ -174,7 +174,7 @@ public class QueryUtils {
     }
 
     public static boolean isListeningOnPort(final int _port, final AppLogger _logger) throws IOException {
-        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "SELECT COUNT(*) FROM QSYS2.NETSTAT_INFO WHERE LOCAL_PORT = "+_port+" and TCP_STATE = 'LISTEN'" });
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "SELECT COUNT(*) FROM QSYS2.NETSTAT_INFO WHERE LOCAL_PORT = " + _port + " and TCP_STATE = 'LISTEN'" });
         final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
         final String firstLine = queryResults.get(0);
         return !firstLine.contains("0") && firstLine.matches("^\\\"[0-9]+\\\"");
