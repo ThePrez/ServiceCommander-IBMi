@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 0.5.0
+Version: 0.6.0
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
