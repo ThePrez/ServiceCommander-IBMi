@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import jesseg.ibmi.opensource.AppDirectories;
 import jesseg.ibmi.opensource.SCException;
 import jesseg.ibmi.opensource.ServiceDefinition;
+import jesseg.ibmi.opensource.ServiceDefinitionCollection;
 import jesseg.ibmi.opensource.utils.AppLogger;
 
 /**
@@ -22,8 +23,8 @@ public class YamlServiceDefLoader {
     public static final String PROP_IGNORE_GLOBALS = "sc.ignoreglobalconfigs";
     private final Pattern s_filePattern = Pattern.compile("^([a-z\\-_0-9]+)\\.y[a]{0,1}ml$");
 
-    HashMap<String, ServiceDefinition> loadFromDirectory(final File _dir, final AppLogger _logger) throws SCException {
-        final HashMap<String, ServiceDefinition> ret = new HashMap<String, ServiceDefinition>();
+    ServiceDefinitionCollection loadFromDirectory(final File _dir, final AppLogger _logger) throws SCException {
+        final ServiceDefinitionCollection ret = new ServiceDefinitionCollection();
         if (null == _dir) {
             return ret;
         }
@@ -35,13 +36,13 @@ public class YamlServiceDefLoader {
                 continue;
             }
             final String serviceName = m.group(1);
-            ret.put(serviceName, new YamlServiceDef(serviceName, f, _logger));
+            ret.put(new YamlServiceDef(serviceName, f, _logger));
         }
         return ret;
     }
 
-    public HashMap<String, ServiceDefinition> loadFromYamlFiles(final AppLogger _logger) throws SCException {
-        final HashMap<String, ServiceDefinition> ret = new HashMap<String, ServiceDefinition>();
+    public ServiceDefinitionCollection loadFromYamlFiles(final AppLogger _logger) throws SCException {
+        final ServiceDefinitionCollection ret = new ServiceDefinitionCollection();
         if (Boolean.getBoolean(PROP_IGNORE_GLOBALS)) {
             _logger.println_verbose("Ignoring globally configured services");
         } else {

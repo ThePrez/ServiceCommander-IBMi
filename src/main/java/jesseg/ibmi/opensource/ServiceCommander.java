@@ -4,9 +4,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
@@ -68,10 +66,10 @@ public class ServiceCommander {
         }
     }
 
-    private static ServiceDefinition getAdHocServiceDef(final String _desc, final Map<String, ServiceDefinition> _configuredServiceDefs, final AppLogger _logger) {
+    private static ServiceDefinition getAdHocServiceDef(final String _desc, final ServiceDefinitionCollection serviceDefs, final AppLogger _logger) {
         final CheckAliveType caType = _desc.toLowerCase().trim().startsWith("port:") ? CheckAliveType.PORT : CheckAliveType.JOBNAME;
         final String caCriteria = _desc.toLowerCase().trim().replaceFirst(".*:", "").trim();
-        for (final ServiceDefinition svc : _configuredServiceDefs.values()) {
+        for (final ServiceDefinition svc : serviceDefs.getServices()) {
             if (caType == svc.getCheckAliveType() && caCriteria.equalsIgnoreCase(svc.getCheckAliveCriteria().trim())) {
                 _logger.printfln_verbose("Found pre-existing service for ad hoc specs: %s", svc.getFriendlyName());
                 return svc;
@@ -91,28 +89,6 @@ public class ServiceCommander {
         };
 //@formatter:on
 
-    }
-
-    private static Set<String> getServicesInGroup(final String _group, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) {
-        _logger.printfln_verbose("Looking for services in group '%s'", _group);
-        final LinkedHashSet<String> ret = new LinkedHashSet<String>();
-        for (final ServiceDefinition svcDef : _serviceDefs.values()) {
-            if ("all".equalsIgnoreCase(_group)) {
-                ret.add(svcDef.getName());
-                continue;
-            }
-            for (final String svcGroup : svcDef.getGroups()) {
-                if (svcGroup.trim().equalsIgnoreCase(_group)) {
-                    ret.add(svcDef.getName());
-                }
-            }
-        }
-        if (ret.isEmpty()) {
-            _logger.printfln_warn("WARNING: No services are found in group '%s'", _group);
-        } else {
-            _logger.printfln_verbose("Services in group '%s' are: %s", _group, ret);
-        }
-        return ret;
     }
 
     public static void main(final String... _args) {
@@ -157,8 +133,8 @@ public class ServiceCommander {
         checkApplicationDependencies(logger);
 
         try {
-            final Map<String, ServiceDefinition> serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger);
-            ServiceDefinition.checkForCheckaliveConflicts(logger, serviceDefs.values());
+            final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger);
+            serviceDefs.checkForCheckaliveConflicts(logger);
             final Operation op;
             try {
                 op = Operation.valueOfWithAliasing(operation);
@@ -169,9 +145,11 @@ public class ServiceCommander {
                 service = "group:all";
             }
             if (service.toLowerCase().startsWith("group:")) {
-                performOperationsOnServices(op, getServicesInGroup(service.substring("group:".length()).trim(), serviceDefs, logger), serviceDefs, logger);
+                performOperationsOnServices(op, serviceDefs.getServicesInGroup(service.substring("group:".length()).trim(), logger), serviceDefs, logger);
             } else if (service.toLowerCase().startsWith("port:") || service.toLowerCase().startsWith("job:")) {
-                new OperationExecutor(op, getAdHocServiceDef(service, serviceDefs, logger), serviceDefs, logger).execute();
+                final ServiceDefinition adHoc = getAdHocServiceDef(service, serviceDefs, logger);
+                serviceDefs.put(adHoc);
+                performOperationsOnServices(op, Collections.singleton(adHoc.getName()), serviceDefs, logger);
             } else {
                 performOperationsOnServices(op, Collections.singleton(service), serviceDefs, logger);
             }
@@ -182,7 +160,7 @@ public class ServiceCommander {
         logger.println();
     }
 
-    private static void performOperationsOnServices(final Operation _op, final Set<String> _services, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) throws SCException {
+    private static void performOperationsOnServices(final Operation _op, final Set<String> _services, final ServiceDefinitionCollection _serviceDefs, final AppLogger _logger) throws SCException {
         final Stack<SCException> exceptions = new Stack<SCException>();
         if (!_op.isChangingSystemState()) {
             if (Operation.PERFINFO == _op) { // this one's treated special because it might take a very long time.f
@@ -211,6 +189,7 @@ public class ServiceCommander {
                 }
             }
         } else {
+            _serviceDefs.validateNoCircularDependencies(_logger);
             for (final String service : _services) {
                 _logger.printf("Performing operation '%s' on service '%s'\n", _op.name(), service);
                 try {
