@@ -1,8 +1,14 @@
 package jesseg.ibmi.opensource;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
+import jesseg.ibmi.opensource.utils.AppLogger;
 import jesseg.ibmi.opensource.yaml.YamlServiceDef;
 
 /**
@@ -216,5 +222,32 @@ public abstract class ServiceDefinition {
      */
     public boolean isInheritingEnvironmentVars() {
         return true;
+    }
+
+    public static void checkForCheckaliveConflicts(AppLogger _logger, Collection<ServiceDefinition> _defs) {
+        checkForCheckaliveConflicts(_logger, new ArrayList(_defs));
+    }
+
+    public static void checkForCheckaliveConflicts(AppLogger _logger, List<ServiceDefinition> _defs) {
+        HashMap<String, List<ServiceDefinition>> defsByCheckalive = new HashMap<String, List<ServiceDefinition>>();
+        for (ServiceDefinition def : _defs) {
+            String checkAliveKey = "" + def.getCheckAliveType().name() + ":" + def.getCheckAliveCriteria();
+            List<ServiceDefinition> currentList = defsByCheckalive.get(checkAliveKey);
+            if (null == currentList) {
+                defsByCheckalive.put(checkAliveKey, currentList = new LinkedList<ServiceDefinition>());
+            }
+            currentList.add(def);
+        }
+        for (Entry<String, List<ServiceDefinition>> entry : defsByCheckalive.entrySet()) {
+            List<ServiceDefinition> defs = entry.getValue();
+            if (1 >= defs.size()) {
+                continue;
+            }
+            String warningStr = "WARNING: the following services all have conflicting definitions for liveliness check " + entry.getKey() + ":";
+            for (ServiceDefinition def : defs) {
+                warningStr += "\n    " + def.getName() + " (" + def.getFriendlyName() + ")";
+            }
+            _logger.println_warn(warningStr);
+        }
     }
 }
