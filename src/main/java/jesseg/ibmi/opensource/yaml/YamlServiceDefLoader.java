@@ -1,13 +1,11 @@
 package jesseg.ibmi.opensource.yaml;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jesseg.ibmi.opensource.AppDirectories;
 import jesseg.ibmi.opensource.SCException;
-import jesseg.ibmi.opensource.ServiceDefinition;
 import jesseg.ibmi.opensource.ServiceDefinitionCollection;
 import jesseg.ibmi.opensource.utils.AppLogger;
 

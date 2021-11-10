@@ -54,8 +54,8 @@ public enum AppDirectories {
         return retDir;
     }
 
-    public File getUserServicesDir(boolean _create) {
-        if(_create) {
+    public File getUserServicesDir(final boolean _create) {
+        if (_create) {
             s_userServicesDir.mkdirs();
         }
         return s_userServicesDir;

@@ -118,7 +118,7 @@ public class YamlServiceDef extends ServiceDefinition {
     @Override
     public String getCheckAliveCriteria() {
         // If we don't have a job name for checkalive criteria, but we do know the name of the job submitted to batch, infer it
-        if (CheckAliveType.JOBNAME==getCheckAliveType() &&  StringUtils.isEmpty(m_checkAliveCriteria) && !StringUtils.isEmpty(m_batchJobName) && BatchMode.NO_BATCH != getBatchMode()) {
+        if (CheckAliveType.JOBNAME == getCheckAliveType() && StringUtils.isEmpty(m_checkAliveCriteria) && !StringUtils.isEmpty(m_batchJobName) && BatchMode.NO_BATCH != getBatchMode()) {
             return m_batchJobName;
         }
         return m_checkAliveCriteria;
