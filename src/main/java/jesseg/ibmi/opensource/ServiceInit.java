@@ -3,11 +3,9 @@ package jesseg.ibmi.opensource;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -70,10 +68,10 @@ public class ServiceInit {
 
         try {
             si.writeToFile(logger);
-            HashMap<String, ServiceDefinition> defs = new YamlServiceDefLoader().loadFromYamlFiles(new AppLogger.DeferredLogger(logger));
+            final ServiceDefinitionCollection defs = new YamlServiceDefLoader().loadFromYamlFiles(new AppLogger.DeferredLogger(logger));
             logger.println(StringUtils.colorizeForTerminal("\n\nPrinting information about the newly-defined service", TerminalColor.GREEN));
-            new OperationExecutor(Operation.INFO, si.m_shortName,defs, logger).execute();
-            ServiceDefinition.checkForCheckaliveConflicts(logger,defs.values());
+            new OperationExecutor(Operation.INFO, si.m_shortName, defs, logger).execute();
+            defs.checkForCheckaliveConflicts(logger);
         } catch (final SCException e) {
             logger.printExceptionStack_verbose(e);
             System.exit(46);

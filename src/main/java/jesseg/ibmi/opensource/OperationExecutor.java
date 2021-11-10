@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 
@@ -99,20 +98,20 @@ public class OperationExecutor {
     }
 
     private final Operation m_op;
-    private final Map<String, ServiceDefinition> m_serviceDefs;
+    private final ServiceDefinitionCollection m_serviceDefs;
 
     private final AppLogger m_logger;
 
     private final ServiceDefinition m_mainService;
 
-    public OperationExecutor(final Operation _op, final String _service, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) throws SCException {
+    public OperationExecutor(final Operation _op, final String _service, final ServiceDefinitionCollection _serviceDefs, final AppLogger _logger) throws SCException {
         this(_op, _serviceDefs.get(_service), _serviceDefs, _logger);
         if (null == m_mainService) {
             throw new SCException(m_logger, FailureType.MISSING_SERVICE_DEF, "Could not find definition for service '%s'", _service);
         }
     }
 
-    public OperationExecutor(final Operation _op, final ServiceDefinition _service, final Map<String, ServiceDefinition> _serviceDefs, final AppLogger _logger) {
+    public OperationExecutor(final Operation _op, final ServiceDefinition _service, final ServiceDefinitionCollection _serviceDefs, final AppLogger _logger) {
         m_op = _op;
         m_serviceDefs = _serviceDefs;
         m_logger = _logger;
@@ -186,7 +185,7 @@ public class OperationExecutor {
 
     private List<ServiceDefinition> findKnownDependents() {
         final List<ServiceDefinition> ret = new LinkedList<ServiceDefinition>();
-        for (final ServiceDefinition entry : m_serviceDefs.values()) {
+        for (final ServiceDefinition entry : m_serviceDefs.getServices()) {
             for (final String entryDependency : entry.getDependencies()) {
                 if (entryDependency.equalsIgnoreCase(m_mainService.getName())) {
                     ret.add(entry);
