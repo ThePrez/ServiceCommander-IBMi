@@ -73,6 +73,7 @@ public class ServiceInit {
             HashMap<String, ServiceDefinition> defs = new YamlServiceDefLoader().loadFromYamlFiles(new AppLogger.DeferredLogger(logger));
             logger.println(StringUtils.colorizeForTerminal("\n\nPrinting information about the newly-defined service", TerminalColor.GREEN));
             new OperationExecutor(Operation.INFO, si.m_shortName,defs, logger).execute();
+            ServiceDefinition.checkForCheckaliveConflicts(logger,defs.values());
         } catch (final SCException e) {
             logger.printExceptionStack_verbose(e);
             System.exit(46);

@@ -158,6 +158,7 @@ public class ServiceCommander {
 
         try {
             final Map<String, ServiceDefinition> serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger);
+            ServiceDefinition.checkForCheckaliveConflicts(logger, serviceDefs.values());
             final Operation op;
             try {
                 op = Operation.valueOfWithAliasing(operation);
