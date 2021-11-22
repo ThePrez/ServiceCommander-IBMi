@@ -4,10 +4,11 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.github.theprez.jcmdutils.AppLogger;
+
 import jesseg.ibmi.opensource.AppDirectories;
 import jesseg.ibmi.opensource.SCException;
 import jesseg.ibmi.opensource.ServiceDefinitionCollection;
-import jesseg.ibmi.opensource.utils.AppLogger;
 
 /**
  * Loads service definitions from <tt>.yaml</tt> files found in any of the global, user, or

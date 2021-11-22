@@ -10,13 +10,14 @@ import java.util.List;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
+import com.github.theprez.jcmdutils.AppLogger;
+import com.github.theprez.jcmdutils.ConsoleQuestionAsker;
+import com.github.theprez.jcmdutils.StringUtils;
+import com.github.theprez.jcmdutils.StringUtils.TerminalColor;
+
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
-import jesseg.ibmi.opensource.utils.AppLogger;
-import jesseg.ibmi.opensource.utils.ConsoleQuestionAsker;
-import jesseg.ibmi.opensource.utils.StringUtils;
-import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
 import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
 
 public class ServiceInit {

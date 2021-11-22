@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.github.theprez.jcmdutils.AppLogger;
+import com.github.theprez.jcmdutils.StringUtils;
+
 import jesseg.ibmi.opensource.SCException;
 import jesseg.ibmi.opensource.SCException.FailureType;
 

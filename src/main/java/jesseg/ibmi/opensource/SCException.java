@@ -1,6 +1,6 @@
 package jesseg.ibmi.opensource;
 
-import jesseg.ibmi.opensource.utils.AppLogger;
+import com.github.theprez.jcmdutils.AppLogger;
 
 /**
  * Custom exception class

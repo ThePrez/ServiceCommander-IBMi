@@ -9,14 +9,14 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 
+import com.github.theprez.jcmdutils.AppLogger;
+import com.github.theprez.jcmdutils.AppLogger.DeferredLogger;
+import com.github.theprez.jcmdutils.StringUtils;
+
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
-import jesseg.ibmi.opensource.utils.AppLogger;
-import jesseg.ibmi.opensource.utils.AppLogger.DeferredLogger;
-import jesseg.ibmi.opensource.utils.StringUtils;
 import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
-
 /**
  * Main entry point for the application
  *
