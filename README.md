@@ -22,6 +22,7 @@ Some of the features of the tool include:
 - Query basic performance attributes of the services
 - Assistance in providing/managing log files. This is a best-guess only and naively assumes the service uses stdout/stderr as its logging mechanism. Service Commander has its own primitive logging system that works well only for certain types of services
 - Ability to define manage ad hoc services specified on the command line
+- Ability to see what ports are currently opening (have a job listening)
 
 # Hands-on Exercise
 Want to walk through a quick exercise to get some basic "hands-on" experience with this tool? If so, please see [our very simple hands-on exercise](quickstart/HANDS_ON.md)
@@ -170,6 +171,27 @@ Check if anything is running on port 8080
 ```
 sc check port:8080
 ```
+
+## Checking which ports are currently open
+As of version 0.7.x, Service Commander also comes with a utility, `scopenports` that allow you to see which ports are open.
+Usage is as follows:
+```fortran
+Usage: scopenports  [options]
+
+    Valid options include:
+        -v: verbose mode
+        --mine: only show ports that you have listening
+```
+Example output when invoked with the `--mine` option:
+
+![image](https://user-images.githubusercontent.com/17914061/146984207-826a1f5e-5021-494e-820d-a3b44d2be20a.png)
+
+The value in the service name column can be used with the `sc` command. For instance, with
+the above example, if I wanted to see which job was running on port 62006, I could run
+```bash
+sc jobinfo port:62006
+```
+
 
 # Configuring Services
 
