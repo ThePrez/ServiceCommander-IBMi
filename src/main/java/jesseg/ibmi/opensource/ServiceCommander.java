@@ -261,18 +261,21 @@ public class ServiceCommander {
         try {
             final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(_logger);
             serviceDefs.checkForCheckaliveConflicts(_logger);
-            final List<Integer> ports = QueryUtils.getListeningPorts(_logger, _args.contains("--mine"));
-            _logger.println("Port      'sc' service name (and friendly name)");
-            _logger.println("--------  --------------------------------------------");
-            for (final Integer port : ports) {
+            final List<String> addrs = QueryUtils.getListeningAddrs(_logger, _args.contains("--mine"));
+            _logger.println("Address          Port    'sc' service name (and friendly name)");
+            _logger.println("---------------  ------  --------------------------------------------");
+            for (final String addr : addrs) {
+                Integer port = Integer.valueOf(addr.replaceAll(".*:", ""));
+                String ip = addr.replaceAll(":.*", "");
                 final ServiceDefinition svcDef = getAdHocServiceDef("port:" + port, serviceDefs, _logger);
-                String line = StringUtils.spacePad("" + port, 10);
+                String line = StringUtils.spacePad(ip, 17);
+                line += StringUtils.spacePad(""+port, 8);
                 if (svcDef.isAdHoc()) {
                     line += StringUtils.colorizeForTerminal("port:" + port, TerminalColor.CYAN);
                 } else {
                     line += StringUtils.colorizeForTerminal(svcDef.getName(), TerminalColor.CYAN);
+                    line += " (" + svcDef.getFriendlyName() + ")";
                 }
-                line += " (" + svcDef.getFriendlyName() + ")";
                 _logger.println(line);
             }
         } catch (final Exception e) {
