@@ -248,6 +248,7 @@ public class ServiceCommander {
                                 + "        - the short name of a configured service\n"
                                 + "        - A special value of \"all\" to represent all configured services (same as \"group:all\")\n"
                                 + "        - A group identifier (e.g. \"group:groupname\")\n"
+                                + "        - the path to a YAML file with a service configuration\n"
                                 + "        - An ad hoc service specification by port (for instance, \"port:8080\")\n"
                                 + "        - An ad hoc service specification by job name (for instance, \"job:ZOOKEEPER\")\n"
                                 + "        - An ad hoc service specification by subsystem and job name (for instance, \"job:QHTTPSVR/ADMIN2\")\n"
