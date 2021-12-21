@@ -3,6 +3,7 @@ package jesseg.ibmi.opensource.utils;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -187,6 +188,18 @@ public class QueryUtils {
 
     public static List<String> getListeningJobsByPort(final String _port, final AppLogger _logger) throws NumberFormatException, IOException, SCException {
         return getListeningJobsByPort(Integer.valueOf(_port), _logger);
+    }
+
+    public static List<Integer> getListeningPorts(final AppLogger _logger, final boolean _mineOnly) throws UnsupportedEncodingException, IOException {
+        final String query = _mineOnly ? "SELECT LOCAL_PORT FROM QSYS2.NETSTAT_INFO WHERE BIND_USER = CURRENT_USER and TCP_STATE = 'LISTEN' order by LOCAL_PORT ASC" : "SELECT LOCAL_PORT FROM QSYS2.NETSTAT_INFO WHERE TCP_STATE = 'LISTEN' order by LOCAL_PORT ASC";
+
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", query });
+        final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
+        final List<Integer> ret = new ArrayList<Integer>(queryResults.size());
+        for (final String queryResult : queryResults) {
+            ret.add(Integer.valueOf(queryResult.replace("\"", "")));
+        }
+        return ret;
     }
 
     public static List<String> getSplfsForJob(final String _job, final AppLogger _logger) throws IOException {
