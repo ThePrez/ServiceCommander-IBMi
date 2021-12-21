@@ -95,15 +95,15 @@ public class ServiceInit {
 
     private String m_batchJobName = null;
 
-    private final String m_checkAliveCriteria;
+    private final List<String> m_capturedEnvVars = new LinkedList<String>();
 
+    private final String m_checkAliveCriteria;
     private final CheckAliveType m_checkAliveType;
     private final List<String> m_dependencies = new LinkedList<String>();
     private final String m_dir;
     private final String m_friendlyName;
     private final List<String> m_groups = new LinkedList<String>();
     private boolean m_isBatch = false;
-    private final List<String> m_capturedEnvVars = new LinkedList<String>();
     private final boolean m_isGlobal;
     private String m_sbmjobOpts = null;
     private final String m_shortName;

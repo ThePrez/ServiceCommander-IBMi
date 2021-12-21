@@ -16,7 +16,9 @@ import com.github.theprez.jcmdutils.StringUtils;
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
+import jesseg.ibmi.opensource.yaml.YamlServiceDef;
 import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
+
 /**
  * Main entry point for the application
  *
@@ -92,6 +94,13 @@ public class ServiceCommander {
 
     }
 
+    private static boolean looksLikeFilename(final String _svc) {
+        if (_svc.startsWith("/") || _svc.contains(".")) {
+            return true;
+        }
+        return new File(_svc).canRead();
+    }
+
     public static void main(final String... _args) {
         if (_args.length < 2) {
             printUsageAndExit();
@@ -151,6 +160,10 @@ public class ServiceCommander {
                 final ServiceDefinition adHoc = getAdHocServiceDef(service, serviceDefs, logger);
                 serviceDefs.put(adHoc);
                 performOperationsOnServices(op, Collections.singleton(adHoc.getName()), serviceDefs, logger);
+            } else if (looksLikeFilename(service)) {
+                final YamlServiceDef def = new YamlServiceDef(null, new File(service), logger);
+                serviceDefs.put(def);
+                performOperationsOnServices(op, Collections.singleton(def.getName()), serviceDefs, logger);
             } else {
                 performOperationsOnServices(op, Collections.singleton(service), serviceDefs, logger);
             }

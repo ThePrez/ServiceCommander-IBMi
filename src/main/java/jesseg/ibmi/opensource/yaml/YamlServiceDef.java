@@ -45,7 +45,7 @@ public class YamlServiceDef extends ServiceDefinition {
             _logger.println_verbose("Initializing service " + _name);
             _logger.println_verbose("Loading yaml service definition from file " + _file);
             m_source = _file;
-            m_name = _name;
+            m_name = ((null == _name) ? YamlServiceDefLoader.getServiceNameFromFile(_file) : _name);
             final Yaml yaml = new Yaml();
             final Map<String, Object> yamlData;
             try (FileInputStream fis = new FileInputStream(_file)) {
