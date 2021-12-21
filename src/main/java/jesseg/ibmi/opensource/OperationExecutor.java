@@ -272,11 +272,12 @@ public class OperationExecutor {
     }
 
     private void printFile() {
-        if(m_mainService.isAdHoc()) {
+        if (m_mainService.isAdHoc()) {
             return;
         }
         m_logger.println(m_mainService.getSource());
     }
+
     private void printInfo() {
         m_logger.println();
         m_logger.println();

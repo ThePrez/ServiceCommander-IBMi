@@ -20,7 +20,19 @@ import jesseg.ibmi.opensource.ServiceDefinitionCollection;
 public class YamlServiceDefLoader {
 
     public static final String PROP_IGNORE_GLOBALS = "sc.ignoreglobalconfigs";
-    private final Pattern s_filePattern = Pattern.compile("^([a-z\\-_0-9]+)\\.y[a]{0,1}ml$");
+    private static final Pattern s_filePattern = Pattern.compile("^([a-z\\-_0-9]+)\\.y[a]{0,1}ml$");
+
+    public static Pattern getFilePattern() {
+        return s_filePattern;
+    }
+
+    public static String getServiceNameFromFile(final File _f) {
+        final Matcher m = s_filePattern.matcher(_f.getName());
+        if (!m.find()) {
+            return null;
+        }
+        return m.group(1);
+    }
 
     ServiceDefinitionCollection loadFromDirectory(final File _dir, final AppLogger _logger) throws SCException {
         final ServiceDefinitionCollection ret = new ServiceDefinitionCollection();
