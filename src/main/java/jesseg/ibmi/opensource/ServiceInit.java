@@ -3,6 +3,7 @@ package jesseg.ibmi.opensource;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,6 +54,14 @@ public class ServiceInit {
 
         final boolean isBatch = console.askBooleanQuestion(logger, "n", "Will your application need to be submitted to batch?");
         si.setBatch(isBatch);
+
+        final boolean isCapturingEnvVars = console.askBooleanQuestion(logger, "y", "(Recommended) Will your application need to run with the PATH and JAVA_HOME values of the current process?");
+        if (isCapturingEnvVars) {
+            si.addCapturedEnvVars("PATH", "JAVA_HOME");
+        }
+
+        si.addCapturedEnvVars(console.askListOfStringsQuestion(logger, "What other environment variables from this current process should be used?"));
+
         if (isBatch) {
             final String jobName = console.askStringQuestion(logger, "", "What job name should be used? (leave blank for default)");
             if (!StringUtils.isEmpty(jobName)) {
@@ -85,13 +94,16 @@ public class ServiceInit {
     }
 
     private String m_batchJobName = null;
+
     private final String m_checkAliveCriteria;
+
     private final CheckAliveType m_checkAliveType;
     private final List<String> m_dependencies = new LinkedList<String>();
     private final String m_dir;
     private final String m_friendlyName;
     private final List<String> m_groups = new LinkedList<String>();
     private boolean m_isBatch = false;
+    private final List<String> m_capturedEnvVars = new LinkedList<String>();
     private final boolean m_isGlobal;
     private String m_sbmjobOpts = null;
     private final String m_shortName;
@@ -106,6 +118,14 @@ public class ServiceInit {
         m_checkAliveType = _checkAliveType;
         m_checkAliveCriteria = _checkAliveCriteria;
         m_friendlyName = _friendlyName;
+    }
+
+    private void addCapturedEnvVars(final List<String> _vars) {
+        m_capturedEnvVars.addAll(_vars);
+    }
+
+    private void addCapturedEnvVars(final String... _vars) {
+        addCapturedEnvVars(Arrays.asList(_vars));
     }
 
     private void addDeps(final List<String> _deps) {
@@ -156,6 +176,19 @@ public class ServiceInit {
             }
             if (!StringUtils.isEmpty(m_sbmjobOpts)) {
                 data.put("sbmjob_opts", m_sbmjobOpts);
+            }
+        }
+
+        if (!m_capturedEnvVars.isEmpty()) {
+            final List<String> copiedEnvVars = new LinkedList<String>();
+            for (final String envvar : m_capturedEnvVars) {
+                final String value = System.getenv(envvar);
+                if (StringUtils.isNonEmpty(value)) {
+                    copiedEnvVars.add(envvar + "=" + value);
+                }
+            }
+            if (!copiedEnvVars.isEmpty()) {
+                data.put("environment_vars", copiedEnvVars.toArray(new String[0]));
             }
         }
 
