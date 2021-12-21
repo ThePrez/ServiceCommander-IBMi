@@ -21,23 +21,23 @@ import jesseg.ibmi.opensource.ServiceDefinition;
  */
 public class YamlServiceDef extends ServiceDefinition {
     private static final int UNSPECIFIED_INT = -1;
-    private final File m_source;
-    private final String m_name;
-    private final String m_startCmd;
-    private final CheckAliveType m_checkAliveType;
-    private final String m_checkAliveCriteria;
-    private final List<String> m_envVars;
-    private final boolean m_isInherintingEnvVars;
-    private final String m_workingDir;
-    private final String m_stopCmd;
-    private final int m_startupWaitTime;
-    private final int m_stopWaitTime;
-    private final String m_sbmJobOpts;
-    private final String m_friendlyName;
-    private final List<String> m_dependencies;
     private final String m_batchJobName;
     private final BatchMode m_batchMode;
+    private final String m_checkAliveCriteria;
+    private final CheckAliveType m_checkAliveType;
+    private final List<String> m_dependencies;
+    private final List<String> m_envVars;
+    private final String m_friendlyName;
     private final List<String> m_groups;
+    private final boolean m_isInherintingEnvVars;
+    private final String m_name;
+    private final String m_sbmJobOpts;
+    private final File m_source;
+    private final String m_startCmd;
+    private final int m_startupWaitTime;
+    private final String m_stopCmd;
+    private final int m_stopWaitTime;
+    private final String m_workingDir;
 
     @SuppressWarnings("unchecked")
     public YamlServiceDef(final String _name, final File _file, final AppLogger _logger) throws SCException {

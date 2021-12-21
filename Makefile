@@ -41,6 +41,7 @@ install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man
 	chown -R qsys ${INSTALL_ROOT}/QOpenSys/etc/sc
 	install -m 555 -o qsys scripts/sc ${INSTALL_ROOT}/QOpenSys/pkgs/bin/
 	install -m 555 -o qsys scripts/scinit ${INSTALL_ROOT}/QOpenSys/pkgs/bin/
+	install -m 555 -o qsys scripts/scedit ${INSTALL_ROOT}/QOpenSys/pkgs/bin/
 	install -m 555 -o qsys scripts/sc_install_defaults ${INSTALL_ROOT}/QOpenSys/pkgs/bin/
 	install -m 444 -o qsys target/sc.jar ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/sc.jar
 	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/etc/sc/services/ -type f -print -exec chmod 644 {} \;
