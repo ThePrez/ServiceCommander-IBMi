@@ -190,14 +190,14 @@ public class QueryUtils {
         return getListeningJobsByPort(Integer.valueOf(_port), _logger);
     }
 
-    public static List<Integer> getListeningPorts(final AppLogger _logger, final boolean _mineOnly) throws UnsupportedEncodingException, IOException {
-        final String query = _mineOnly ? "SELECT LOCAL_PORT FROM QSYS2.NETSTAT_INFO WHERE BIND_USER = CURRENT_USER and TCP_STATE = 'LISTEN' order by LOCAL_PORT ASC" : "SELECT LOCAL_PORT FROM QSYS2.NETSTAT_INFO WHERE TCP_STATE = 'LISTEN' order by LOCAL_PORT ASC";
+    public static List<String> getListeningAddrs(final AppLogger _logger, final boolean _mineOnly) throws UnsupportedEncodingException, IOException {
+        final String query = _mineOnly ? "SELECT CONCAT(CONCAT(LOCAL_ADDRESS,':'),LOCAL_PORT) FROM QSYS2.NETSTAT_INFO WHERE BIND_USER = CURRENT_USER and TCP_STATE = 'LISTEN' order by LOCAL_PORT ASC" : "SELECT CONCAT(CONCAT(LOCAL_ADDRESS,':'),LOCAL_PORT) FROM QSYS2.NETSTAT_INFO WHERE TCP_STATE = 'LISTEN' order by LOCAL_PORT ASC";
 
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", query });
         final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
-        final List<Integer> ret = new ArrayList<Integer>(queryResults.size());
+        final List<String> ret = new ArrayList<String>(queryResults.size());
         for (final String queryResult : queryResults) {
-            ret.add(Integer.valueOf(queryResult.replace("\"", "")));
+            ret.add(queryResult.replace("\"", ""));
         }
         return ret;
     }
