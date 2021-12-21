@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
@@ -12,10 +13,12 @@ import java.util.Stack;
 import com.github.theprez.jcmdutils.AppLogger;
 import com.github.theprez.jcmdutils.AppLogger.DeferredLogger;
 import com.github.theprez.jcmdutils.StringUtils;
+import com.github.theprez.jcmdutils.StringUtils.TerminalColor;
 
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
+import jesseg.ibmi.opensource.utils.QueryUtils;
 import jesseg.ibmi.opensource.yaml.YamlServiceDef;
 import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
 
@@ -32,7 +35,7 @@ public class ServiceCommander {
      *
      * @param _logger
      */
-    private static void checkApplicationDependencies(final AppLogger _logger) {
+    static void checkApplicationDependencies(final AppLogger _logger) {
         // Why does this program require OSS Java distributions?
         // Why can't it just work with JV1?
         //
@@ -252,6 +255,29 @@ public class ServiceCommander {
 		// @formatter:on
         System.err.println(usage);
         System.exit(-1);
+    }
+
+    public static void listOpenPorts(final AppLogger _logger, final LinkedList<String> _args) throws SCException {
+        try {
+            final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(_logger);
+            serviceDefs.checkForCheckaliveConflicts(_logger);
+            final List<Integer> ports = QueryUtils.getListeningPorts(_logger, _args.contains("--mine"));
+            _logger.println("Port      'sc' service name (and friendly name)");
+            _logger.println("--------  --------------------------------------------");
+            for (final Integer port : ports) {
+                final ServiceDefinition svcDef = getAdHocServiceDef("port:" + port, serviceDefs, _logger);
+                String line = StringUtils.spacePad("" + port, 10);
+                if (svcDef.isAdHoc()) {
+                    line += StringUtils.colorizeForTerminal("port:" + port, TerminalColor.CYAN);
+                } else {
+                    line += StringUtils.colorizeForTerminal(svcDef.getName(), TerminalColor.CYAN);
+                }
+                line += " (" + svcDef.getFriendlyName() + ")";
+                _logger.println(line);
+            }
+        } catch (final Exception e) {
+            throw SCException.fromException(e, _logger);
+        }
     }
 
 }
