@@ -8,10 +8,11 @@ import java.util.Map;
 
 import org.yaml.snakeyaml.Yaml;
 
+import com.github.theprez.jcmdutils.AppLogger;
+import com.github.theprez.jcmdutils.StringUtils;
+
 import jesseg.ibmi.opensource.SCException;
 import jesseg.ibmi.opensource.ServiceDefinition;
-import jesseg.ibmi.opensource.utils.AppLogger;
-import jesseg.ibmi.opensource.utils.StringUtils;
 
 /**
  * A service definition loaded from a .yaml file.

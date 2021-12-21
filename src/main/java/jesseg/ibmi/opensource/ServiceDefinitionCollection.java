@@ -10,8 +10,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 
+import com.github.theprez.jcmdutils.AppLogger;
+
 import jesseg.ibmi.opensource.SCException.FailureType;
-import jesseg.ibmi.opensource.utils.AppLogger;
 
 public class ServiceDefinitionCollection {
     private final Hashtable<String, ServiceDefinition> m_data = new Hashtable<String, ServiceDefinition>();

@@ -12,6 +12,10 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.github.theprez.jcmdutils.AppLogger;
+import com.github.theprez.jcmdutils.StringUtils;
+import com.github.theprez.jcmdutils.ProcessLauncher;
+
 import jesseg.ibmi.opensource.SCException;
 import jesseg.ibmi.opensource.SCException.FailureType;
 
@@ -69,7 +73,7 @@ public class QueryUtils {
         stdin.flush();
         stdin.close();
 
-        final List<String> queryResults = ProcessUtils.getStdout("python3", p, _logger);
+        final List<String> queryResults = ProcessLauncher.getStdout("python3", p, _logger);
         if (queryResults.isEmpty()) {
             throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS,
                     "Unable to retrieve performance data for job %s. The job may no longer be active, or you may be missing required operating system support. The required operating system capability is included in IBM i 7.4. For IBM i 7.3, it is available with group PTF SF99703 Level 11. For IBM i 7.2, it is available with group PTF SF99702 Level 23.",
@@ -91,7 +95,7 @@ public class QueryUtils {
 
         final Process pJava = Runtime.getRuntime()
                 .exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + jobName, "SELECT CURRENT_HEAP_SIZE, IN_USE_HEAP_SIZE, MAX_HEAP_SIZE, SHARED_CLASS_SIZE, MALLOC_MEMORY_SIZE, JIT_MEMORY_SIZE, GC_CYCLE_NUMBER, TOTAL_GC_TIME from QSYS2.JVM_INFO where JOB_NAME =  ?" });
-        final List<String> javaQueryResults = ProcessUtils.getStdout("db2util", pJava, _logger);
+        final List<String> javaQueryResults = ProcessLauncher.getStdout("db2util", pJava, _logger);
         if (javaQueryResults.isEmpty()) {
             return ret;
         }
@@ -124,7 +128,7 @@ public class QueryUtils {
         final List<String> ret = new LinkedList<String>();
 
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", _jobName.trim().toUpperCase(), "SELECT JOB_NAME FROM TABLE(QSYS2.ACTIVE_JOB_INFO(JOB_NAME_FILTER => ?)) as X" });
-        final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
+        final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
 
         for (final String queryResult : queryResults) {
             ret.add(queryResult.replace("\"", "").trim());
@@ -136,7 +140,7 @@ public class QueryUtils {
         final List<String> ret = new LinkedList<String>();
 
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + _jobName.trim().toUpperCase(), "-p", _sbs.trim().toUpperCase(), "SELECT JOB_NAME FROM TABLE(QSYS2.ACTIVE_JOB_INFO(JOB_NAME_FILTER => ?, SUBSYSTEM_LIST_FILTER => ?)) as X" });
-        final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
+        final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
 
         for (final String queryResult : queryResults) {
             ret.add(queryResult.replace("\"", "").trim());
@@ -148,7 +152,7 @@ public class QueryUtils {
         final List<String> ret = new LinkedList<String>();
 
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "csv", "SELECT JOB_NAME,SLIC_TASK_NAME from QSYS2.NETSTAT_JOB_INFO where LOCAL_PORT = " + _port });
-        final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
+        final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
         for (final String queryResult : queryResults) {
             final String[] jobAndTask = queryResult.replace("\"", "").trim().split(",", 2);
             final String job = jobAndTask[0];
@@ -175,7 +179,7 @@ public class QueryUtils {
 
     public static boolean isListeningOnPort(final int _port, final AppLogger _logger) throws IOException {
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "SELECT COUNT(*) FROM QSYS2.NETSTAT_INFO WHERE LOCAL_PORT = " + _port + " and TCP_STATE = 'LISTEN'" });
-        final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
+        final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
         final String firstLine = queryResults.get(0);
         return !firstLine.contains("0") && firstLine.matches("^\\\"[0-9]+\\\"");
     }
@@ -186,7 +190,7 @@ public class QueryUtils {
 
     public static String getJobStartTime(final String _job, final AppLogger _logger) throws IOException {
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + _job, "SELECT VARCHAR_FORMAT(job_entered_system_time, '" + DB_TIMESTAMP_FORMAT + "') FROM TABLE(qsys2.job_info(JOB_USER_FILTER => '*ALL'))as x WHERE job_name = ?" });
-        final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
+        final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
         final String firstLine = queryResults.get(0).replace("\"", "");
         _logger.println_verbose("database says job start time is " + firstLine);
         return firstLine;
@@ -194,7 +198,7 @@ public class QueryUtils {
 
     public static String getCurrentTime(final AppLogger _logger) throws IOException {
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "values(VARCHAR_FORMAT(CURRENT_TIMESTAMP, '" + DB_TIMESTAMP_FORMAT + "'))" });
-        final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
+        final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
         final String firstLine = queryResults.get(0).replace("\"", "");
         _logger.println_verbose("database says current time is " + firstLine);
         return firstLine;
@@ -202,7 +206,7 @@ public class QueryUtils {
 
     public static List<String> getSplfsForJob(final String _job, final AppLogger _logger) throws IOException {
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + _job, "SELECT SPOOLED_FILE_NAME,JOB_NAME,FILE_NUMBER FROM QSYS2.OUTPUT_QUEUE_ENTRIES_BASIC WHERE job_name = ?" });
-        final List<String> queryResults = ProcessUtils.getStdout("db2util", p, _logger);
+        final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
         final List<String> ret = new ArrayList<String>(queryResults.size());
         for (final String queryResult : queryResults) {
             final String[] split = queryResult.replace("\"", "").split(" ");

@@ -13,15 +13,16 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 
+import com.github.theprez.jcmdutils.AppLogger;
+import com.github.theprez.jcmdutils.ProcessLauncher;
+import com.github.theprez.jcmdutils.StringUtils;
+import com.github.theprez.jcmdutils.StringUtils.TerminalColor;
+
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.BatchMode;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
-import jesseg.ibmi.opensource.utils.AppLogger;
-import jesseg.ibmi.opensource.utils.ProcessUtils;
 import jesseg.ibmi.opensource.utils.QueryUtils;
 import jesseg.ibmi.opensource.utils.SbmJobScript;
-import jesseg.ibmi.opensource.utils.StringUtils;
-import jesseg.ibmi.opensource.utils.StringUtils.TerminalColor;
 
 /**
  * Where all the work happens
@@ -514,7 +515,7 @@ public class OperationExecutor {
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/nohup", "/QOpenSys/pkgs/bin/bash", "-c", bashCommand }, envp.toArray(new String[0]), directory);
         final long startTime = new Date().getTime();
         final OutputStream stdin = p.getOutputStream();
-        ProcessUtils.pipeStreamsToCurrentProcess(m_mainService.getName(), p, m_logger);
+        ProcessLauncher.pipeStreamsToCurrentProcess(m_mainService.getName(), p, m_logger);
         stdin.flush();
         stdin.close();
 
@@ -607,7 +608,7 @@ public class OperationExecutor {
             }
             final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/bash", "-c", bashCommand }, envp.toArray(new String[0]), directory);
             final OutputStream stdin = p.getOutputStream();
-            ProcessUtils.pipeStreamsToCurrentProcess(m_mainService.getName(), p, m_logger);
+            ProcessLauncher.pipeStreamsToCurrentProcess(m_mainService.getName(), p, m_logger);
             stdin.flush();
             stdin.close();
         }
