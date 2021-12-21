@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 0.6.0
+Version: 0.7.0
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -65,6 +65,11 @@ fi
 %{_mandir}/man1/sc.*
 
 %changelog
+* Tue Dec 21 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.7.0
+ - feature: add new 'scedit' command
+ - feature: add new 'scopenports' command
+ - feature: point 'sc' directly at a file
+ - feature: Have 'scinit' capture current environment variables
 * Wed Nov 10 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.6.0
  - feature: Automatically infer checkalive job name or SBMJOB job name
  - feature: Issue warning when there are conflicting definitions
