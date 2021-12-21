@@ -112,6 +112,7 @@ Usage: sc  [options] <operation> <service(s)>
         - the short name of a configured service
         - A special value of "all" to represent all configured services (same as "group:all")
         - A group identifier (e.g. "group:groupname")
+        - the path to a YAML file with a service configuration
         - An ad hoc service specification by port (for instance, "port:8080")
         - An ad hoc service specification by job name (for instance, "job:ZOOKEEPER")
         - An ad hoc service specification by subsystem and job name (for instance, "job:QHTTPSVR/ADMIN2")
@@ -171,6 +172,10 @@ Check if anything is running on port 8080
 ```
 sc check port:8080
 ```
+Start the service defined in a local file, `myservice.yml`
+```
+sc start myservice.yml
+```
 
 ## Checking which ports are currently open
 As of version 0.7.x, Service Commander also comes with a utility, `scopenports` that allow you to see which ports are open.
@@ -212,6 +217,11 @@ This tool allows you to define any services of interest in `.yaml` files. These 
 - A user-specific directory($HOME/.sc/services)
 - If defined, whatever the value of the `services.dir` system property is. 
 The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
+
+The file can also be located in any arbitrary directory, but it must be explicitly passed along to the `sc` command, for instance
+```
+sc start myservice.yml
+```
 
 ### YAML File Format
 See the [samples](https://github.com/ThePrez/ServiceCommander-IBMi/tree/main/samples) directory for some sample service definitions. 
