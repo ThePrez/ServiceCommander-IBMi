@@ -86,6 +86,7 @@ public class ServiceCommander {
             @Override public String getName()                   { return shortName;    }
             @Override public String getSource()                 { return "<ad hoc>";   }
             @Override public String getStartCommand()           { return "";           }
+            @Override public boolean isAdHoc()                  { return true;         }
         };
 //@formatter:on
 

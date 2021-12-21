@@ -1,0 +1,19 @@
+#!/QOpenSys/pkgs/bin/bash
+FILE_NAME=$($(dirname $0)/sc file $1)
+if [ -z "$FILE_NAME" ]
+then
+    >&2 echo "No configuration file found for '$1'"
+    exit 5
+fi
+
+echo "Configuration for '$1' found at $FILE_NAME"
+
+for FILE_EDITOR in "$EDITOR" "/QOpenSys/pkgs/bin/nano" "/QOpenSys/pkgs/bin/joe" "/QOpenSys/pkgs/bin/vim"
+do
+    :
+    if [[ -x "$FILE_EDITOR" ]]
+    then
+        exec "$FILE_EDITOR" "$FILE_NAME"
+    fi
+done
+exec /QOpenSys/usr/bin/vi "$FILE_NAME"

@@ -32,7 +32,7 @@ import jesseg.ibmi.opensource.utils.SbmJobScript;
 public class OperationExecutor {
 
     public enum Operation {
-        START(true), STOP(true), RESTART(true), CHECK(false), INFO(false), PERFINFO(false), JOBINFO(false), LOGINFO(false), LIST(false);
+        CHECK(false), FILE(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), START(true), STOP(true);
         public static Operation valueOfWithAliasing(final String _opStr) {
             final String lookupStr = _opStr.trim().toUpperCase();
             if (lookupStr.equals("STATUS")) {
@@ -53,11 +53,11 @@ public class OperationExecutor {
     }
 
     static class PerfInfoFetcher extends Thread {
-        protected SortedMap<String, String> m_res = null;
+        private SCException m_exc = null;
         private final String m_job;
         private final AppLogger m_logger;
+        protected SortedMap<String, String> m_res = null;
         private final float m_sampleTime;
-        private SCException m_exc = null;
 
         public PerfInfoFetcher(final String _job, final AppLogger _logger, final float _sampleTime) {
             super("PerformanceInfo-" + _job);
@@ -98,25 +98,25 @@ public class OperationExecutor {
         return prohibited.contains(_var);
     }
 
-    private final Operation m_op;
-    private final ServiceDefinitionCollection m_serviceDefs;
-
     private final AppLogger m_logger;
-
     private final ServiceDefinition m_mainService;
 
-    public OperationExecutor(final Operation _op, final String _service, final ServiceDefinitionCollection _serviceDefs, final AppLogger _logger) throws SCException {
-        this(_op, _serviceDefs.get(_service), _serviceDefs, _logger);
-        if (null == m_mainService) {
-            throw new SCException(m_logger, FailureType.MISSING_SERVICE_DEF, "Could not find definition for service '%s'", _service);
-        }
-    }
+    private final Operation m_op;
+
+    private final ServiceDefinitionCollection m_serviceDefs;
 
     public OperationExecutor(final Operation _op, final ServiceDefinition _service, final ServiceDefinitionCollection _serviceDefs, final AppLogger _logger) {
         m_op = _op;
         m_serviceDefs = _serviceDefs;
         m_logger = _logger;
         m_mainService = _service;
+    }
+
+    public OperationExecutor(final Operation _op, final String _service, final ServiceDefinitionCollection _serviceDefs, final AppLogger _logger) throws SCException {
+        this(_op, _serviceDefs.get(_service), _serviceDefs, _logger);
+        if (null == m_mainService) {
+            throw new SCException(m_logger, FailureType.MISSING_SERVICE_DEF, "Could not find definition for service '%s'", _service);
+        }
     }
 
     public File execute() throws SCException {
@@ -148,6 +148,9 @@ public class OperationExecutor {
                     return null;
                 case INFO:
                     printInfo();
+                    return null;
+                case FILE:
+                    printFile();
                     return null;
                 case PERFINFO:
                     printPerfInfo();
@@ -268,6 +271,12 @@ public class OperationExecutor {
         throw new SCException(m_logger, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation has been requested");
     }
 
+    private void printFile() {
+        if(m_mainService.isAdHoc()) {
+            return;
+        }
+        m_logger.println(m_mainService.getSource());
+    }
     private void printInfo() {
         m_logger.println();
         m_logger.println();
