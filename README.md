@@ -197,6 +197,8 @@ the above example, if I wanted to see which job was running on port 62006, I cou
 sc jobinfo port:62006
 ```
 
+**Important Note:** Currently, the `scopenports` utility can only show human-readable descriptions for services that have
+been configured for `sc`'s use. To populate some common defaults, run `sc_install_defaults`.
 
 # Configuring Services
 
