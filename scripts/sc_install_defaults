@@ -3,44 +3,45 @@ TARGET_DIR="$HOME/.sc/services"
 mkdir -p $TARGET_DIR
 function install_if_executable {
     if [[ -x "$1" ]]; then
-    	echo "installing $2..."
-    	cp "$2" $TARGET_DIR
+        echo "installing $2..."
+        cp "$2" $TARGET_DIR
     else
-    	echo "not installing $2..."
+        echo "not installing $2..."
     fi
 }
 function install {
-	echo "installing $1..."
-	cp "$1" $TARGET_DIR
+        echo "installing $1..."
+        cp "$1" $TARGET_DIR
 }
 function install_apache {
-	echo "installing apache server $1..."
-	
+    echo "installing apache server $1..."
+
     if [ ! -d "$1/htdocs" ]; then
-    	echo "OOPS\!\! Not an Apache server here..."
-    	return
+        echo "OOPS\!\! Not an Apache server here..."
+        return
     fi
     PORT=$(grep -iE '^Listen ' ./$1/conf/httpd.conf |  sed 's|.*:||g' | tail -n 1)
     if [[ "" == "$PORT" ]]; then
-    	echo "OOPS\!\! Not an Apache server here..."
-    	return
+        echo "OOPS\!\! Not an Apache server here..."
+        return
     fi
-	echo "name: Apache server $1" > $TARGET_DIR/apache_$1.yaml
-	echo "start_cmd: system \"STRTCPSVR SERVER(*HTTP) HTTPSVR($1)\"" >> $TARGET_DIR/apache_$1.yaml
-	echo "stop_cmd: system \"ENDTCPSVR SERVER(*HTTP) HTTPSVR($1)\"" >> $TARGET_DIR/apache_$1.yaml
-	echo 'check_alive: port' >> $TARGET_DIR/apache_$1.yaml
-	echo "check_alive_criteria: $PORT" >> $TARGET_DIR/apache_$1.yaml
-	echo "groups:" >> $TARGET_DIR/apache_$1.yaml
-	echo ' - "apache"' >> $TARGET_DIR/apache_$1.yaml
+        YAMLFILE="$TARGET_DIR/apache_$(echo "$1" | awk '{ print tolower($0) }').yaml"
+        echo "name: Apache server $1" > $YAMLFILE
+        echo "start_cmd: system \"STRTCPSVR SERVER(*HTTP) HTTPSVR($1)\"" >> $YAMLFILE
+        echo "stop_cmd: system \"ENDTCPSVR SERVER(*HTTP) HTTPSVR($1)\"" >> $YAMLFILE
+        echo 'check_alive: port' >> $YAMLFILE
+        echo "check_alive_criteria: $PORT" >> $YAMLFILE
+        echo "groups:" >> $YAMLFILE
+        echo ' - "apache"' >> $YAMLFILE
 }
 cd /QOpenSys/pkgs/lib/sc/samples
 for HOSTSVR in $(find host_servers -name as-\*)
 do
-	install $HOSTSVR
+    install $HOSTSVR
 done
 for TCPSVR in $(find system_tcpsvr -name \*.yaml)
 do
-	install $TCPSVR
+    install $TCPSVR
 done
 install navigator.yaml
 install_if_executable /QOpenSys/pkgs/bin/mysqld mariadb.yaml
@@ -50,5 +51,5 @@ cd /www
 
 for APACHE in $(ls)
 do
-	install_apache $APACHE
+    install_apache $APACHE
 done
