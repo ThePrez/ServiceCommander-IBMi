@@ -65,6 +65,9 @@ fi
 %{_mandir}/man1/sc.*
 
 %changelog
+* Wed Dec 29 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.7.1
+- bugfix: sc_install_defaults produced invalid configs
+
 * Tue Dec 21 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.7.0
 - feature: add new 'scedit' command
 - feature: add new 'scopenports' command
