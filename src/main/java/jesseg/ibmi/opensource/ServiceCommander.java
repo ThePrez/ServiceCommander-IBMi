@@ -267,7 +267,7 @@ public class ServiceCommander {
             _logger.println("---------------  ------  --------------------------------------------");
             for (final String addr : addrs) {
                 Integer port = Integer.valueOf(addr.replaceAll(".*:", ""));
-                String ip = addr.replaceAll(":.*", "");
+                String ip = addr.replaceAll(":[^:]+", "");
                 final ServiceDefinition svcDef = getAdHocServiceDef("port:" + port, serviceDefs, _logger);
                 String line = StringUtils.spacePad(ip, 17);
                 line += StringUtils.spacePad(""+port, 8);
