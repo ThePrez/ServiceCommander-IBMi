@@ -97,13 +97,14 @@ public class OperationExecutor {
 
         }
 
-        private int m_running;
-        private int m_total;
+        private List<CheckAlive> m_notRunningList = new LinkedList<CheckAlive>();
+        private List<CheckAlive> m_runningList = new LinkedList<CheckAlive>();
+        private List<CheckAlive> m_allList = new LinkedList<CheckAlive>();
 
         public Status getStatus() {
-            if (0 == m_running) {
+            if (0 == m_runningList.size()) {
                 return Status.NOT_RUNNING;
-            } else if (m_total == m_running) {
+            } else if (m_notRunningList.isEmpty() && !m_runningList.isEmpty()) {
                 return Status.RUNNING;
             }
             return Status.PARTIALLY_RUNNING;
@@ -294,15 +295,19 @@ public class OperationExecutor {
                 throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAlivesHumanReadable());
             }
             for (final CheckAlive checkalive : checkalives) {
-                ret.m_total++;
+                ret.m_allList.add(checkalive);
+                final boolean isRunning;
                 if (CheckAliveType.PORT == checkalive.getType()) {
-                    final boolean isRunning = QueryUtils.isListeningOnPort(checkalive.getValue(), m_logger);
-                    ret.m_running += (isRunning ? 1 : 0);
+                    isRunning = QueryUtils.isListeningOnPort(checkalive.getValue(), m_logger);
                 } else if (CheckAliveType.JOBNAME == checkalive.getType()) {
-                    final boolean isRunning = QueryUtils.isJobRunning(checkalive.getValue(), m_logger);
-                    ret.m_running += (isRunning ? 1 : 0);
+                    isRunning = QueryUtils.isJobRunning(checkalive.getValue(), m_logger);
                 } else {
                     throw new SCException(m_logger, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation has been requested");
+                }
+                if(isRunning) {
+                    ret.m_runningList.add(checkalive);
+                }else {
+                    ret.m_notRunningList.add(checkalive);
                 }
             }
             return ret;
@@ -483,12 +488,16 @@ public class OperationExecutor {
                 paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("NOT RUNNING", 23), TerminalColor.PURPLE);
                 break;
             default:
-                final String statusString = String.format("PARTIAL (%d/%d)", status.m_running, status.m_total);
+                final String statusString = String.format("PARTIAL (%d/%d)", status.m_runningList.size(), status.m_allList.size());
                 paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(statusString, 23), TerminalColor.YELLOW);
                 break;
 
         }
-        m_logger.printfln("  %s | %s (%s)", paddedStatusString, m_mainService.getName(), m_mainService.getFriendlyName());
+        String partialInfo = "";
+        if(status.isPartial()) {
+            partialInfo +="[not running at -->"+ListUtils.toString(status.m_notRunningList, ", ")+"]";
+        }
+        m_logger.printfln("  %s | %s (%s) %s", paddedStatusString, m_mainService.getName(), m_mainService.getFriendlyName(), partialInfo);
     }
 
     private boolean shouldOutputGoToSplf() throws SCException {
@@ -605,7 +614,8 @@ public class OperationExecutor {
             final long currentTime = new Date().getTime();
             if ((currentTime - startTime) > (1000 * secondsToWait)) {
                 if (status.isPartial()) {
-                    m_logger.printf_warn("WARNING: Service '%s' only %d/%d started\n", m_mainService.getFriendlyName(), status.m_running, status.m_total);
+                    String partialInfo ="[not running at -->"+ListUtils.toString(status.m_notRunningList, ", ")+"]";
+                    m_logger.printf_warn("WARNING: Service '%s' only %d/%d started [failed to start --> %s]\n", m_mainService.getFriendlyName(), status.m_runningList.size(), status.m_allList.size(), partialInfo);
                 }
                 throw new SCException(m_logger, FailureType.TIMEOUT_ON_SERVICE_STARTUP, "ERROR: Timed out waiting for service '%s' to start\n", m_mainService.getFriendlyName());
             }
@@ -720,7 +730,7 @@ public class OperationExecutor {
     private void stopViaEndJob(final int _waitTime) throws IOException, NumberFormatException, SCException {
         final List<String> jobs = getActiveJobsForService();
         if (jobs.isEmpty()) {
-            return;
+            throw new SCException(m_logger, FailureType.GENERAL_ERROR, "Unable to determine job");
         }
         if (15 <= jobs.size()) {
             m_logger.println_err("ERROR: Too many jobs found!! Those jobs were: ");

@@ -47,7 +47,11 @@ public class YamlServiceDefLoader {
                 continue;
             }
             final String serviceName = m.group(1);
-            ret.put(new YamlServiceDef(serviceName, f, _logger));
+            try {
+                ret.put(new YamlServiceDef(serviceName, f, _logger));
+            } catch (SCException e) {
+                _logger.println_warn("WARNING: Ignoring file due to load errors: " + f.getAbsolutePath());
+            }
         }
         return ret;
     }
