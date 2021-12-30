@@ -3,6 +3,7 @@ package jesseg.ibmi.opensource.yaml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -20,11 +21,11 @@ import jesseg.ibmi.opensource.ServiceDefinition;
  * @author Jesse Gorzinski
  */
 public class YamlServiceDef extends ServiceDefinition {
+
     private static final int UNSPECIFIED_INT = -1;
     private final String m_batchJobName;
     private final BatchMode m_batchMode;
-    private final String m_checkAliveCriteria;
-    private final CheckAliveType m_checkAliveType;
+    private final List<CheckAlive> m_checkAlives = new LinkedList<CheckAlive>();
     private final List<String> m_dependencies;
     private final List<String> m_envVars;
     private final String m_friendlyName;
@@ -37,6 +38,7 @@ public class YamlServiceDef extends ServiceDefinition {
     private final int m_startupWaitTime;
     private final String m_stopCmd;
     private final int m_stopWaitTime;
+
     private final String m_workingDir;
 
     @SuppressWarnings("unchecked")
@@ -54,14 +56,36 @@ public class YamlServiceDef extends ServiceDefinition {
 
             // First, process all the required options, because these should be fatal if nonpresent
             m_startCmd = getRequiredYamlString(yamlData, "start_cmd");
-            final String checkAliveType = getRequiredYamlString(yamlData, "check_alive");
+
+            // For checkalive criteria, support both:
+            // - the classic singleton format (with a separate "check_alive" and "check_alive_criteria" with only one value supported
+            // - the new format introduced in v1.x, where the only
+            Object checkAlive = getRequiredYamlObject(yamlData, "check_alive");
             try {
-                m_checkAliveType = CheckAliveType.valueOf(checkAliveType.toUpperCase());
+                final CheckAliveType checkAliveType = CheckAliveType.valueOf(checkAlive.toString().toUpperCase());
+
+                // If we get here, we know we are processing the classic singleton format
+                final String criteria = getRequiredYamlString(yamlData, "check_alive_criteria");
+                m_checkAlives.add(new SimpleCheckAlive(checkAliveType, criteria));
             } catch (final Exception e) {
+                // If we get here, we're processing the new v1.x format, which can either be a comma-separated list or an actual YAML array
+                if (checkAlive instanceof Number) {
+                    checkAlive = checkAlive.toString();
+                }
+                if (checkAlive instanceof String) {
+                    final String[] components = checkAlive.toString().split("\\s*,\\s*");
+                    for (final String component : components) {
+                        m_checkAlives.add(getCheckAliveFromString(component));
+                    }
+                } else if (checkAlive instanceof List<?>) {
+                    for (final Object component : (List<?>) checkAlive) {
+                        m_checkAlives.add(getCheckAliveFromString(component.toString()));
+                    }
+                }
+            }
+            if (m_checkAlives.isEmpty()) {
                 throw new IOException("ERROR: attribute 'check_alive' contains an invalid value for service '" + m_name + "'");
             }
-
-            m_checkAliveCriteria = getRequiredYamlString(yamlData, "check_alive_criteria");
 
             // now for some optional stuff.
             m_friendlyName = getRequiredYamlString(yamlData, "name");
@@ -105,8 +129,12 @@ public class YamlServiceDef extends ServiceDefinition {
     @Override
     public String getBatchJobName() {
         // If we don't have a job name, but we do have a guess from the checkalive criteria, infer it
-        if (StringUtils.isEmpty(m_batchJobName) && !StringUtils.isEmpty(m_checkAliveCriteria) && BatchMode.NO_BATCH != getBatchMode()) {
-            return m_checkAliveCriteria.replaceAll("^.*\\/", "");
+        if (StringUtils.isEmpty(m_batchJobName) && BatchMode.NO_BATCH != getBatchMode()) {
+            for (final CheckAlive checkalive : m_checkAlives) {
+                if (CheckAliveType.JOBNAME == checkalive.getType()) {
+                    return checkalive.getValue().replaceAll("^.*\\/", "").trim();
+                }
+            }
         }
         return null == m_batchJobName ? super.getBatchJobName() : m_batchJobName;
     }
@@ -116,18 +144,38 @@ public class YamlServiceDef extends ServiceDefinition {
         return null == m_batchMode ? super.getBatchMode() : m_batchMode;
     }
 
-    @Override
-    public String getCheckAliveCriteria() {
-        // If we don't have a job name for checkalive criteria, but we do know the name of the job submitted to batch, infer it
-        if (CheckAliveType.JOBNAME == getCheckAliveType() && StringUtils.isEmpty(m_checkAliveCriteria) && !StringUtils.isEmpty(m_batchJobName) && BatchMode.NO_BATCH != getBatchMode()) {
-            return m_batchJobName;
+    private CheckAlive getCheckAliveFromString(final String _str) throws IOException {
+        final String str = _str.trim().toUpperCase();
+        // System.out.printf("getting checkalive from string '%s'\n", str);
+        if (str.isEmpty()) {
+            throw new IOException("ERROR: attribute 'check_alive' contains an invalid value for service '" + m_name + "'");
         }
-        return m_checkAliveCriteria;
+        // First, check for a simple port number
+        try {
+            return new SimpleCheckAlive(CheckAliveType.PORT, Integer.valueOf(str).toString());
+        } catch (final Exception e) {
+        }
+        // Next, check for the format PORT:xxx
+        if (str.startsWith("PORT:")) {
+            try {
+                return new SimpleCheckAlive(CheckAliveType.PORT, Integer.valueOf(str.replaceFirst(".*:", "")).toString());
+            } catch (final Exception e) {
+            }
+        }
+        // Next, check for the format JOB:sss
+        if (str.startsWith("JOB:")) {
+            try {
+                return new SimpleCheckAlive(CheckAliveType.JOBNAME, str.replaceFirst(".*:", "").trim());
+            } catch (final Exception e) {
+            }
+        }
+        // Hmm, must be a job name filter....
+        return new SimpleCheckAlive(CheckAliveType.JOBNAME, str);
     }
 
     @Override
-    public CheckAliveType getCheckAliveType() {
-        return m_checkAliveType;
+    public List<CheckAlive> getCheckAlives() {
+        return m_checkAlives;
     }
 
     @Override
@@ -198,6 +246,14 @@ public class YamlServiceDef extends ServiceDefinition {
             return null;
         }
         return data.toString().trim();
+    }
+
+    private Object getRequiredYamlObject(final Map<String, Object> _yamlData, final String _key) throws IOException {
+        final Object data = _yamlData.remove(_key);
+        if (null == data || StringUtils.isEmpty(data.toString())) {
+            throw new IOException("Required attribute '" + _key + "' not specified");
+        }
+        return data;
     }
 
     private String getRequiredYamlString(final Map<String, Object> _yamlData, final String _key) throws IOException {

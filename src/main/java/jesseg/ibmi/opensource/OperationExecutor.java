@@ -20,7 +20,9 @@ import com.github.theprez.jcmdutils.StringUtils.TerminalColor;
 
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.BatchMode;
+import jesseg.ibmi.opensource.ServiceDefinition.CheckAlive;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
+import jesseg.ibmi.opensource.utils.ListUtils;
 import jesseg.ibmi.opensource.utils.QueryUtils;
 import jesseg.ibmi.opensource.utils.SbmJobScript;
 
@@ -89,6 +91,37 @@ public class OperationExecutor {
         }
     }
 
+    private static class ServiceStatusInfo {
+        public enum Status {
+            NOT_RUNNING, PARTIALLY_RUNNING, RUNNING;
+
+        }
+
+        private int m_running;
+        private int m_total;
+
+        public Status getStatus() {
+            if (0 == m_running) {
+                return Status.NOT_RUNNING;
+            } else if (m_total == m_running) {
+                return Status.RUNNING;
+            }
+            return Status.PARTIALLY_RUNNING;
+        }
+
+        public boolean isPartial() {
+            return Status.PARTIALLY_RUNNING == getStatus();
+        }
+
+        public boolean isRunning() {
+            return Status.RUNNING == getStatus();
+        }
+
+        public boolean isStopped() {
+            return Status.NOT_RUNNING == getStatus();
+        }
+    }
+
     static final String PROP_BATCHOUTPUT_SPLF = "sc.batchoutput.splf";
 
     static final String PROP_SAMPLE_TIME = "sc.perfsamplingtime";
@@ -99,6 +132,7 @@ public class OperationExecutor {
     }
 
     private final AppLogger m_logger;
+
     private final ServiceDefinition m_mainService;
 
     private final Operation m_op;
@@ -202,15 +236,22 @@ public class OperationExecutor {
 
     private List<String> getActiveJobsForService() throws SCException {
         try {
-            if (CheckAliveType.PORT == m_mainService.getCheckAliveType()) {
-                return QueryUtils.getListeningJobsByPort(m_mainService.getCheckAliveCriteria(), m_logger);
-            } else {
-                return QueryUtils.getJobs(m_mainService.getCheckAliveCriteria(), m_logger);
+            final List<String> ret = new LinkedList<String>();
+            for (final CheckAlive checkalive : m_mainService.getCheckAlives()) {
+                if (CheckAliveType.PORT == checkalive.getType()) {
+                    ret.addAll(QueryUtils.getListeningJobsByPort(checkalive.getValue(), m_logger));
+                } else {
+                    ret.addAll(QueryUtils.getJobs(checkalive.getValue(), m_logger));
+                }
             }
+            // if (ret.isEmpty()) {
+            // throw new SCException(m_logger, FailureType.ERROR_CHECKING_STATUS, "Unable to determine jobs for service '%s'", m_mainService.getFriendlyName());
+            // }
+            return ListUtils.deduplicate(ret);
         } catch (final IOException ioe) {
             throw new SCException(m_logger, ioe, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
         } catch (final NumberFormatException nfe) {
-            throw new SCException(m_logger, nfe, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
+            throw new SCException(m_logger, nfe, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAlivesHumanReadable());
         }
     }
 
@@ -245,6 +286,33 @@ public class OperationExecutor {
         return userParm + " JOBQ(QUSRNOMAX) HOLD(*NO)";
     }
 
+    public ServiceStatusInfo getServiceStatus() throws SCException {
+        try {
+            final ServiceStatusInfo ret = new ServiceStatusInfo();
+            final List<CheckAlive> checkalives = m_mainService.getCheckAlives();
+            if (checkalives.isEmpty()) {
+                throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAlivesHumanReadable());
+            }
+            for (final CheckAlive checkalive : checkalives) {
+                ret.m_total++;
+                if (CheckAliveType.PORT == checkalive.getType()) {
+                    final boolean isRunning = QueryUtils.isListeningOnPort(checkalive.getValue(), m_logger);
+                    ret.m_running += (isRunning ? 1 : 0);
+                } else if (CheckAliveType.JOBNAME == checkalive.getType()) {
+                    final boolean isRunning = QueryUtils.isJobRunning(checkalive.getValue(), m_logger);
+                    ret.m_running += (isRunning ? 1 : 0);
+                } else {
+                    throw new SCException(m_logger, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation has been requested");
+                }
+            }
+            return ret;
+        } catch (final IOException ioe) {
+            throw new SCException(m_logger, ioe, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
+        } catch (final NumberFormatException nfe) {
+            throw new SCException(m_logger, nfe, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAlivesHumanReadable());
+        }
+    }
+
     public List<String> getSpooledFiles() {
         final LinkedList<String> ret = new LinkedList<String>();
         return ret;
@@ -253,22 +321,6 @@ public class OperationExecutor {
 
     private boolean isLikelyRunningAsAnotherUser() {
         return m_mainService.getBatchMode().isBatch() && m_mainService.getSbmJobOpts().toUpperCase().contains("USER(");
-    }
-
-    public boolean isServiceRunning() throws SCException {
-        final CheckAliveType checkType = m_mainService.getCheckAliveType();
-        try {
-            if (CheckAliveType.PORT == checkType) {
-                return QueryUtils.isListeningOnPort(m_mainService.getCheckAliveCriteria(), m_logger);
-            } else if (CheckAliveType.JOBNAME == checkType) {
-                return QueryUtils.isJobRunning(m_mainService.getCheckAliveCriteria(), m_logger);
-            }
-        } catch (final IOException ioe) {
-            throw new SCException(m_logger, ioe, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
-        } catch (final NumberFormatException nfe) {
-            throw new SCException(m_logger, nfe, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAliveCriteria());
-        }
-        throw new SCException(m_logger, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation has been requested");
     }
 
     private void printFile() {
@@ -301,8 +353,7 @@ public class OperationExecutor {
         }
         m_logger.println(StringUtils.colorizeForTerminal("Shutdown Wait Time (s): ", TerminalColor.CYAN) + m_mainService.getShutdownWaitTime());
         m_logger.println();
-        m_logger.println(StringUtils.colorizeForTerminal("Check-alive type: ", TerminalColor.CYAN) + m_mainService.getCheckAliveType().name());
-        m_logger.println(StringUtils.colorizeForTerminal("Check-alive condition: ", TerminalColor.CYAN) + m_mainService.getCheckAliveCriteria());
+        m_logger.println(StringUtils.colorizeForTerminal("Check-alive conditions: ", TerminalColor.CYAN) + m_mainService.getCheckAlivesHumanReadable());
         final BatchMode batchMode = m_mainService.getBatchMode();
         if (BatchMode.NO_BATCH == batchMode) {
             m_logger.println(StringUtils.colorizeForTerminal("Batch Mode: ", TerminalColor.CYAN) + "<not running in batch>");
@@ -342,13 +393,9 @@ public class OperationExecutor {
 
     private void printJobInfo() throws SCException, IOException {
         m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + "):");
-        if (!isServiceRunning()) {
-            m_logger.println("    " + StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
-            return;
-        }
         final List<String> jobs = getActiveJobsForService();
         if (jobs.isEmpty()) {
-            m_logger.println("    " + StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
+            m_logger.println("    " + StringUtils.colorizeForTerminal("NO JOB INFO (either not running, or running in kernel task)", TerminalColor.PURPLE));
         } else {
             for (final String job : jobs) {
                 m_logger.println("    " + job);
@@ -403,12 +450,13 @@ public class OperationExecutor {
         m_logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
 
         m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + ")");
-        if (!isServiceRunning()) {
+        final List<String> jobs = getActiveJobsForService();
+        if (jobs.isEmpty()) {
             m_logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
         } else {
             m_logger.println();
             final List<PerfInfoFetcher> dataFetcherThreads = new LinkedList<PerfInfoFetcher>();
-            for (final String job : getActiveJobsForService()) {
+            for (final String job : jobs) {
                 dataFetcherThreads.add(new PerfInfoFetcher(job, m_logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
             }
             for (final PerfInfoFetcher dataFetcherThread : dataFetcherThreads) {
@@ -424,16 +472,23 @@ public class OperationExecutor {
         m_logger.println();
     }
 
-    private boolean printServiceStatus() throws NumberFormatException, IOException, SCException {
-        final boolean isRunning = isServiceRunning();
+    private void printServiceStatus() throws NumberFormatException, IOException, SCException {
+        final ServiceStatusInfo status = getServiceStatus();
         final String paddedStatusString;
-        if (isRunning) {
-            paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("RUNNING", 23), TerminalColor.GREEN);
-        } else {
-            paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("NOT RUNNING", 23), TerminalColor.PURPLE);
+        switch (status.getStatus()) {
+            case RUNNING:
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("RUNNING", 23), TerminalColor.GREEN);
+                break;
+            case NOT_RUNNING:
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("NOT RUNNING", 23), TerminalColor.PURPLE);
+                break;
+            default:
+                final String statusString = String.format("PARTIAL (%d/%d)", status.m_running, status.m_total);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(statusString, 23), TerminalColor.YELLOW);
+                break;
+
         }
         m_logger.printfln("  %s | %s (%s)", paddedStatusString, m_mainService.getName(), m_mainService.getFriendlyName());
-        return isRunning;
     }
 
     private boolean shouldOutputGoToSplf() throws SCException {
@@ -464,10 +519,13 @@ public class OperationExecutor {
                 throw new SCException(m_logger, e, FailureType.ERROR_STARTING_DEPENDENCY, "ERROR: Could not start dependency '%s' for service '%s': %s", dependencyName, m_mainService.getFriendlyName(), e.getLocalizedMessage());
             }
         }
-
-        if (isServiceRunning()) {
+        final ServiceStatusInfo currentStatus = getServiceStatus();
+        if (ServiceStatusInfo.Status.RUNNING == currentStatus.getStatus()) {
             m_logger.printf("Service '%s' is already running\n", m_mainService.getFriendlyName());
             return;
+        }
+        if (ServiceStatusInfo.Status.PARTIALLY_RUNNING == currentStatus.getStatus()) {
+            m_logger.printf_warn("Service '%s' is already partially running. You may need to restart if this operation fails.\n", m_mainService.getFriendlyName());
         }
         final String command = m_mainService.getStartCommand();
         if (StringUtils.isEmpty(command)) {
@@ -539,12 +597,16 @@ public class OperationExecutor {
 
         final int secondsToWait = m_mainService.getStartupWaitTime();
         while (true) {
-            if (isServiceRunning()) {
+            final ServiceStatusInfo status = getServiceStatus();
+            if (status.isRunning()) {
                 m_logger.printf_success("Service '%s' successfully started\n", m_mainService.getFriendlyName());
                 return;
             }
             final long currentTime = new Date().getTime();
             if ((currentTime - startTime) > (1000 * secondsToWait)) {
+                if (status.isPartial()) {
+                    m_logger.printf_warn("WARNING: Service '%s' only %d/%d started\n", m_mainService.getFriendlyName(), status.m_running, status.m_total);
+                }
                 throw new SCException(m_logger, FailureType.TIMEOUT_ON_SERVICE_STARTUP, "ERROR: Timed out waiting for service '%s' to start\n", m_mainService.getFriendlyName());
             }
             try {
@@ -568,7 +630,7 @@ public class OperationExecutor {
         }
 
         // If the service is already stopped, hey, we're done! WOOHOO!!
-        if (!isServiceRunning()) {
+        if (getServiceStatus().isStopped()) {
             m_logger.printf("Service '%s' is already stopped\n", m_mainService.getFriendlyName());
             return;
         }
@@ -629,7 +691,7 @@ public class OperationExecutor {
         // If an ENDJOB with OPTION(*CNTRLD) fails, or if the custom stop command fails, then we keep track of it here, because we fall baco to ENDJOB with OPTION(*IMMED)
         boolean hasEndJobImmedBeenTried = false;
         while (true) {
-            if (!isServiceRunning()) {
+            if (getServiceStatus().isStopped()) {
                 // HOORAY!!
                 m_logger.printf_success("Service '%s' successfully stopped\n", m_mainService.getFriendlyName());
                 return;
@@ -656,23 +718,20 @@ public class OperationExecutor {
     }
 
     private void stopViaEndJob(final int _waitTime) throws IOException, NumberFormatException, SCException {
-        if (CheckAliveType.PORT == m_mainService.getCheckAliveType()) {
-            final List<String> jobs = QueryUtils.getListeningJobsByPort(m_mainService.getCheckAliveCriteria(), m_logger);
-            stopViaEndJob(jobs, _waitTime);
-        } else if (CheckAliveType.JOBNAME == m_mainService.getCheckAliveType()) {
-            m_logger.println("Stopping via endjob");
-            final List<String> jobs = QueryUtils.getJobs(m_mainService.getCheckAliveCriteria(), m_logger);
-            if (jobs.isEmpty()) {
-                return;
-            } else if (15 >= jobs.size()) {
-                stopViaEndJob(jobs, _waitTime);
-            } else {
-                m_logger.println_err("ERROR: Multiple jobs found matching job name criteria!! Those jobs were: ");
-                for (final String job : jobs) {
-                    m_logger.println_err("    " + job);
-                }
-                return;
+        final List<String> jobs = getActiveJobsForService();
+        if (jobs.isEmpty()) {
+            return;
+        }
+        if (15 <= jobs.size()) {
+            m_logger.println_err("ERROR: Too many jobs found!! Those jobs were: ");
+            for (final String job : jobs) {
+                m_logger.println_err("    " + job);
             }
+            throw new SCException(m_logger, FailureType.GENERAL_ERROR, "Too many jobs found");
+        }
+        m_logger.println("Stopping via endjob");
+        for (final String job : getActiveJobsForService()) {
+            stopViaEndJob(jobs, _waitTime);
         }
     }
 

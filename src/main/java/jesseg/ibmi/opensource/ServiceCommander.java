@@ -75,7 +75,7 @@ public class ServiceCommander {
         final CheckAliveType caType = _desc.toLowerCase().trim().startsWith("port:") ? CheckAliveType.PORT : CheckAliveType.JOBNAME;
         final String caCriteria = _desc.toLowerCase().trim().replaceFirst(".*:", "").trim();
         for (final ServiceDefinition svc : serviceDefs.getServices()) {
-            if (caType == svc.getCheckAliveType() && caCriteria.equalsIgnoreCase(svc.getCheckAliveCriteria().trim())) {
+            if (svc.getCheckAlives().contains(new ServiceDefinition.SimpleCheckAlive(caType, caCriteria))) {
                 _logger.printfln_verbose("Found pre-existing service for ad hoc specs: %s", svc.getFriendlyName());
                 return svc;
             }
@@ -85,8 +85,7 @@ public class ServiceCommander {
         _logger.printfln_verbose("Creating ad hoc service for %s", _desc);
         final String shortName = "ad_hoc_"+_desc.replace(':', '_').replace('/', '_');
         return new ServiceDefinition() {
-            @Override public String getCheckAliveCriteria()     { return caCriteria;   }
-            @Override public CheckAliveType getCheckAliveType() { return caType;       }
+            @Override public List<CheckAlive> getCheckAlives()  {return Collections.singletonList(new SimpleCheckAlive(caType, caCriteria)); }
             @Override public String getFriendlyName()           { return friendlyName; }
             @Override public String getName()                   { return shortName;    }
             @Override public String getSource()                 { return "<ad hoc>";   }
@@ -95,6 +94,32 @@ public class ServiceCommander {
         };
 //@formatter:on
 
+    }
+
+    public static void listOpenPorts(final AppLogger _logger, final LinkedList<String> _args) throws SCException {
+        try {
+            final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(_logger);
+            serviceDefs.checkForCheckaliveConflicts(_logger);
+            final List<String> addrs = QueryUtils.getListeningAddrs(_logger, _args.contains("--mine"));
+            _logger.println("Address          Port    'sc' service name (and friendly name)");
+            _logger.println("---------------  ------  --------------------------------------------");
+            for (final String addr : addrs) {
+                final Integer port = Integer.valueOf(addr.replaceAll(".*:", ""));
+                final String ip = addr.replaceAll(":[^:]+", "");
+                final ServiceDefinition svcDef = getAdHocServiceDef("port:" + port, serviceDefs, _logger);
+                String line = StringUtils.spacePad(ip, 17);
+                line += StringUtils.spacePad("" + port, 8);
+                if (svcDef.isAdHoc()) {
+                    line += StringUtils.colorizeForTerminal("port:" + port, TerminalColor.CYAN);
+                } else {
+                    line += StringUtils.colorizeForTerminal(svcDef.getName(), TerminalColor.CYAN);
+                    line += " (" + svcDef.getFriendlyName() + ")";
+                }
+                _logger.println(line);
+            }
+        } catch (final Exception e) {
+            throw SCException.fromException(e, _logger);
+        }
     }
 
     private static boolean looksLikeFilename(final String _svc) {
@@ -256,32 +281,6 @@ public class ServiceCommander {
 		// @formatter:on
         System.err.println(usage);
         System.exit(-1);
-    }
-
-    public static void listOpenPorts(final AppLogger _logger, final LinkedList<String> _args) throws SCException {
-        try {
-            final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(_logger);
-            serviceDefs.checkForCheckaliveConflicts(_logger);
-            final List<String> addrs = QueryUtils.getListeningAddrs(_logger, _args.contains("--mine"));
-            _logger.println("Address          Port    'sc' service name (and friendly name)");
-            _logger.println("---------------  ------  --------------------------------------------");
-            for (final String addr : addrs) {
-                Integer port = Integer.valueOf(addr.replaceAll(".*:", ""));
-                String ip = addr.replaceAll(":[^:]+", "");
-                final ServiceDefinition svcDef = getAdHocServiceDef("port:" + port, serviceDefs, _logger);
-                String line = StringUtils.spacePad(ip, 17);
-                line += StringUtils.spacePad(""+port, 8);
-                if (svcDef.isAdHoc()) {
-                    line += StringUtils.colorizeForTerminal("port:" + port, TerminalColor.CYAN);
-                } else {
-                    line += StringUtils.colorizeForTerminal(svcDef.getName(), TerminalColor.CYAN);
-                    line += " (" + svcDef.getFriendlyName() + ")";
-                }
-                _logger.println(line);
-            }
-        } catch (final Exception e) {
-            throw SCException.fromException(e, _logger);
-        }
     }
 
 }

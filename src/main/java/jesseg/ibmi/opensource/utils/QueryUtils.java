@@ -165,6 +165,19 @@ public class QueryUtils {
         return firstLine;
     }
 
+    public static List<String> getListeningAddrs(final AppLogger _logger, final boolean _mineOnly) throws UnsupportedEncodingException, IOException {
+        final String query = _mineOnly ? "SELECT CONCAT(CONCAT(LOCAL_ADDRESS,':'),LOCAL_PORT) FROM QSYS2.NETSTAT_INFO WHERE BIND_USER = CURRENT_USER and TCP_STATE = 'LISTEN' order by LOCAL_PORT ASC"
+                : "SELECT CONCAT(CONCAT(LOCAL_ADDRESS,':'),LOCAL_PORT) FROM QSYS2.NETSTAT_INFO WHERE TCP_STATE = 'LISTEN' order by LOCAL_PORT ASC";
+
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", query });
+        final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
+        final List<String> ret = new ArrayList<String>(queryResults.size());
+        for (final String queryResult : queryResults) {
+            ret.add(queryResult.replace("\"", ""));
+        }
+        return ret;
+    }
+
     private static List<String> getListeningJobsByPort(final int _port, final AppLogger _logger) throws IOException, SCException {
         final List<String> ret = new LinkedList<String>();
 
@@ -175,31 +188,19 @@ public class QueryUtils {
             final String job = jobAndTask[0];
             final String task = jobAndTask[1];
             if (StringUtils.isEmpty(job) || job.equalsIgnoreCase("null")) {
-                _logger.printfln_warn("Service at port %d is running in SLIC task %s", _port, task);
+                _logger.printfln_warn_verbose("Service at port %d is running in SLIC task %s", _port, task);
             } else {
                 ret.add(job);
             }
         }
-        if (ret.isEmpty()) {
-            throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Unable to determine job running on port %d", _port);
-        }
+        // if (ret.isEmpty()) {
+        // throw new SCException(_logger, FailureType.ERROR_CHECKING_STATUS, "Unable to determine job running on port %d", _port);
+        // }
         return deduplicate(ret);
     }
 
     public static List<String> getListeningJobsByPort(final String _port, final AppLogger _logger) throws NumberFormatException, IOException, SCException {
         return getListeningJobsByPort(Integer.valueOf(_port), _logger);
-    }
-
-    public static List<String> getListeningAddrs(final AppLogger _logger, final boolean _mineOnly) throws UnsupportedEncodingException, IOException {
-        final String query = _mineOnly ? "SELECT CONCAT(CONCAT(LOCAL_ADDRESS,':'),LOCAL_PORT) FROM QSYS2.NETSTAT_INFO WHERE BIND_USER = CURRENT_USER and TCP_STATE = 'LISTEN' order by LOCAL_PORT ASC" : "SELECT CONCAT(CONCAT(LOCAL_ADDRESS,':'),LOCAL_PORT) FROM QSYS2.NETSTAT_INFO WHERE TCP_STATE = 'LISTEN' order by LOCAL_PORT ASC";
-
-        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", query });
-        final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
-        final List<String> ret = new ArrayList<String>(queryResults.size());
-        for (final String queryResult : queryResults) {
-            ret.add(queryResult.replace("\"", ""));
-        }
-        return ret;
     }
 
     public static List<String> getSplfsForJob(final String _job, final AppLogger _logger) throws IOException {
