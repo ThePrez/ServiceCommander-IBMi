@@ -536,7 +536,7 @@ public class OperationExecutor {
         if (ServiceStatusInfo.Status.PARTIALLY_RUNNING == currentStatus.getStatus()) {
             m_logger.printf_warn("Service '%s' is already partially running. You may need to restart if this operation fails.\n", m_mainService.getFriendlyName());
         }
-        final String command = m_mainService.getStartCommand();
+        String command = m_mainService.getStartCommand();
         if (StringUtils.isEmpty(command)) {
             throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "No start command specified for service '%s'", m_mainService.getFriendlyName());
         }
@@ -562,6 +562,9 @@ public class OperationExecutor {
             // If we're not submitting to batch, it's a simple nohup and redirect to our log file.
             bashCommand = command + " >> " + _logFile.getAbsolutePath() + " 2>&1";
         } else {
+            // Submitting to batch, which means we will go to the SBMJOB command, which means....
+            command = command.replace("'", "''");
+
             // If we're submitting to batch, we stuff special values into the SBMJOB_JOBNAME and SBMJOB_OPTS environment
             // variables that are ultimately used by our helper script (see the SbmJobScript class)
             final String batchJobName = m_mainService.getBatchJobName();
