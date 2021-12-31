@@ -39,7 +39,11 @@ public class YamlServiceDefLoader {
         if (null == _dir) {
             return ret;
         }
-        for (final File f : _dir.listFiles()) {
+        File[] files = _dir.listFiles();
+        if(null == files) {
+            _logger.printfln_warn_verbose("Unable to read from directory '%s'", ""+_dir);
+        }
+        for (final File f : files) {
             final String fileName = f.getName();
             final Matcher m = s_filePattern.matcher(fileName);
             if (!m.find()) {
@@ -61,7 +65,10 @@ public class YamlServiceDefLoader {
         if (_ignoreGlobals) {
             _logger.println_verbose("Ignoring globally configured services");
         } else {
-            ret.putAll(loadFromDirectory(AppDirectories.conf.getGlobalServicesDirOrNull(), _logger));
+            File globalDir = AppDirectories.conf.getGlobalServicesDirOrNull();
+            ret.putAll(loadFromDirectory(globalDir, _logger));
+            ret.putAll(loadFromDirectory(new File(globalDir, "system"), _logger));
+            
         }
         ret.putAll(loadFromDirectory(AppDirectories.conf.getUserServicesDirOrNull(), _logger));
         ret.putAll(loadFromDirectory(AppDirectories.conf.getCustomServicesDirOrNull(), _logger));

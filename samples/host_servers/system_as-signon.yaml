@@ -2,8 +2,7 @@ name: System *SIGNON Host Server
 start_cmd: system 'strhostsvr *SIGNON'
 stop_cmd: system 'endhostsvr *SIGNON'
 
-check_alive: port
-check_alive_criteria: 8476
+check_alive: 9476,8476
 
 groups:
   - "host_servers"

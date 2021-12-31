@@ -124,9 +124,12 @@ public class ServiceDefinitionCollection {
         m_data.putAll(_c.m_data);
     }
 
-    public void removeServicesInGroup(final String... _groups) {
+    public void removeServicesInGroup(final String _retain, final String... _groups) {
         final List<String> toRemove = new LinkedList<String>();
         for (final Entry<String, ServiceDefinition> entry : m_data.entrySet()) {
+            if(entry.getValue().getName().equalsIgnoreCase(_retain)) {
+                continue;
+            }
             for (final String group : _groups) {
                 if (entry.getValue().isInGroup(group)) {
                     toRemove.add(entry.getKey());

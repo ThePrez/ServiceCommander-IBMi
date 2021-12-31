@@ -9,20 +9,14 @@ function install_if_executable {
         echo "not installing $2..."
     fi
 }
-function install {
-    echo "installing $1..."
-    cp "$1" $TARGET_DIR
-}
 function print_usage {
     echo "usage: sc_install_defaults [options]"
     echo ""
     echo "    valid options include:"
     echo "        -h            : display help"
     echo "        --apache      : autocreate from apache instances (default)"
-    echo "        --system      : install common system TCP servers (default)"
     echo "        --cleanupv0   : clean up files created by v0 (default)"
     echo "        --noapache    : don't autocreate from apache instances"
-    echo "        --nosystem    : don't install common system TCP servers"
     echo "        --nocleanupv0 : don't clean up files created by v0"
     echo "        --global      : install for all users"
     echo "        --user        : install for current user (default)"
@@ -59,7 +53,6 @@ function install_apache {
 }
 
 DO_CLEANUP="1"
-DO_SYSCOMMON="1"
 DO_APACHE="0"
 for i in "$@"; do
     case $i in
@@ -69,17 +62,11 @@ for i in "$@"; do
     --apache)
         DO_APACHE="1"
         ;;
-    --system)
-        DO_SYSCOMMON="1"
-        ;;
     --cleanupv0)
         DO_CLEANUP="1"
         ;;
     --noapache)
         DO_APACHE="0"
-        ;;
-    --nosystem)
-        DO_SYSCOMMON="0"
         ;;
     --nocleanupv0)
         DO_CLEANUP="0"
@@ -103,20 +90,7 @@ if [ "1" == "$DO_CLEANUP" ]; then
 fi
 
 cd /QOpenSys/pkgs/lib/sc/samples
-if [ "1" == "$DO_SYSCOMMON" ]; then
-    for HOSTSVR in $(find host_servers -name \*.yaml)
-    do
-        install $HOSTSVR
-    done
-    for TCPSVR in $(find system_tcpsvr -name \*.yaml)
-    do
-        install $TCPSVR
-    done
-    for SYSCOMMON in $(find system_common -name \*.yaml)
-    do
-        install $SYSCOMMON
-    done
-fi
+
 install_if_executable /QOpenSys/pkgs/bin/mysqld mariadb.yaml
 install_if_executable /usr/local/mariadb/bin/mysqld zenddbi.yaml
 install_if_executable /QOpenSys/pkgs/bin/crond crond.yaml

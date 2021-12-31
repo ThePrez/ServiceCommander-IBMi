@@ -192,7 +192,7 @@ public class ServiceCommander {
                     }
                 }
             }
-            serviceDefs.removeServicesInGroup(ignoreGroups);
+            serviceDefs.removeServicesInGroup(service, ignoreGroups);
             serviceDefs.checkForCheckaliveConflicts(logger);
             final Operation op;
             try {

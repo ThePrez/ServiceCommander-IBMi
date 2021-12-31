@@ -2,7 +2,7 @@ name: HTTP Administration UI
 start_cmd: system 'strtcpsvr  *ias  instance(admin5)'
 stop_cmd: system 'endtcpsvr  *ias  instance(admin5)'
 
-check_alive: QHTTPSVR/ADMIN5, 2011, 2012, 2019
+check_alive: QHTTPSVR/ADMIN5, 2011, 2019
 
 groups:
   - "system"

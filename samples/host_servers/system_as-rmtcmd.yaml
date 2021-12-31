@@ -2,8 +2,7 @@ name: System *RMTCMD Host Server
 start_cmd: system 'strhostsvr *RMTCMD'
 stop_cmd: system 'endhostsvr *RMTCMD'
 
-check_alive: port
-check_alive_criteria: 8475
+check_alive: 9475,8475
 
 groups:
   - "host_servers"

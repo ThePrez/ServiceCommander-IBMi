@@ -2,7 +2,7 @@ name: System *NETPRT Host Server
 start_cmd: system 'strhostsvr *NETPRT'
 stop_cmd: system 'endhostsvr *NETPRT'
 
-check_alive: QNPSERVD,8474,8479
+check_alive: QNPSERVD,9474,8474,8479
 
 
 groups:

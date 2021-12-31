@@ -2,7 +2,7 @@ name: System *DTAQ Host Server
 start_cmd: system 'strhostsvr *DTAQ'
 stop_cmd: system 'endhostsvr *DTAQ'
 
-check_alive: 8472
+check_alive: 8472,9472
 
 groups:
   - "host_servers"
