@@ -97,9 +97,9 @@ public class OperationExecutor {
 
         }
 
-        private List<CheckAlive> m_notRunningList = new LinkedList<CheckAlive>();
-        private List<CheckAlive> m_runningList = new LinkedList<CheckAlive>();
-        private List<CheckAlive> m_allList = new LinkedList<CheckAlive>();
+        private final List<CheckAlive> m_allList = new LinkedList<CheckAlive>();
+        private final List<CheckAlive> m_notRunningList = new LinkedList<CheckAlive>();
+        private final List<CheckAlive> m_runningList = new LinkedList<CheckAlive>();
 
         public Status getStatus() {
             if (0 == m_runningList.size()) {
@@ -304,9 +304,9 @@ public class OperationExecutor {
                 } else {
                     throw new SCException(m_logger, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation has been requested");
                 }
-                if(isRunning) {
+                if (isRunning) {
                     ret.m_runningList.add(checkalive);
-                }else {
+                } else {
                     ret.m_notRunningList.add(checkalive);
                 }
             }
@@ -494,8 +494,8 @@ public class OperationExecutor {
 
         }
         String partialInfo = "";
-        if(status.isPartial()) {
-            partialInfo +="[not running at -->"+ListUtils.toString(status.m_notRunningList, ", ")+"]";
+        if (status.isPartial()) {
+            partialInfo += "[not running at -->" + ListUtils.toString(status.m_notRunningList, ", ") + "]";
         }
         m_logger.printfln("  %s | %s (%s) %s", paddedStatusString, m_mainService.getName(), m_mainService.getFriendlyName(), partialInfo);
     }
@@ -614,7 +614,7 @@ public class OperationExecutor {
             final long currentTime = new Date().getTime();
             if ((currentTime - startTime) > (1000 * secondsToWait)) {
                 if (status.isPartial()) {
-                    String partialInfo ="[not running at -->"+ListUtils.toString(status.m_notRunningList, ", ")+"]";
+                    final String partialInfo = "[not running at -->" + ListUtils.toString(status.m_notRunningList, ", ") + "]";
                     m_logger.printf_warn("WARNING: Service '%s' only %d/%d started [failed to start --> %s]\n", m_mainService.getFriendlyName(), status.m_runningList.size(), status.m_allList.size(), partialInfo);
                 }
                 throw new SCException(m_logger, FailureType.TIMEOUT_ON_SERVICE_STARTUP, "ERROR: Timed out waiting for service '%s' to start\n", m_mainService.getFriendlyName());

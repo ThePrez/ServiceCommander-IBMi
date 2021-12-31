@@ -18,7 +18,6 @@ import com.github.theprez.jcmdutils.StringUtils.TerminalColor;
 
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
-import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
 import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
 
 public class ServiceInit {
@@ -45,10 +44,10 @@ public class ServiceInit {
         final String startCmd = (1 == _args.length) ? _args[0] : StringUtils.arrayToSpaceSeparatedString(_args);
         String checkAliveCriteria = "";
         while (true) {
-            String userEnteredCriteria = console.askStringQuestion(logger, "", "If your application runs under a unique job name, what is it? Leave blank for none:");
+            final String userEnteredCriteria = console.askStringQuestion(logger, "", "If your application runs under a unique job name, what is it? Leave blank for none:");
             if (StringUtils.isNonEmpty(userEnteredCriteria)) {
-                String[] components = userEnteredCriteria.split("\\s*,\\s*");
-                for (String component : components) {
+                final String[] components = userEnteredCriteria.split("\\s*,\\s*");
+                for (final String component : components) {
                     if (!component.matches("(?i)^[a-z0-9#]+(\\/[a-z0-9#]+){0,1}$")) {
                         logger.println_warn("Response not valid. Enter a comma-separated list of job names in JOBNAME or SUBSYSTEM/JOBNAME format, or leave blank");
                         continue;
@@ -60,10 +59,10 @@ public class ServiceInit {
         }
 
         while (true) {
-            String userEnteredCriteria = console.askStringQuestion(logger, "", "Which ports does your application run on? Separate with commas, or leave blank for none: ");
+            final String userEnteredCriteria = console.askStringQuestion(logger, "", "Which ports does your application run on? Separate with commas, or leave blank for none: ");
             if (StringUtils.isNonEmpty(userEnteredCriteria)) {
-                String[] components = userEnteredCriteria.split("\\s*,\\s*");
-                for (String component : components) {
+                final String[] components = userEnteredCriteria.split("\\s*,\\s*");
+                for (final String component : components) {
                     if (!component.matches("(?i)^[0-9]+$")) {
                         logger.println_warn("Response not valid. Enter a comma-separated list of port numbers, or leave blank");
                         continue;
@@ -72,10 +71,10 @@ public class ServiceInit {
             }
             if (StringUtils.isEmpty(checkAliveCriteria)) {
                 checkAliveCriteria = userEnteredCriteria;
-            } else if(StringUtils.isNonEmpty(userEnteredCriteria)){
+            } else if (StringUtils.isNonEmpty(userEnteredCriteria)) {
                 checkAliveCriteria += ",";
                 checkAliveCriteria += userEnteredCriteria.trim();
-            } 
+            }
             break;
         }
 

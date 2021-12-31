@@ -257,19 +257,20 @@ public abstract class ServiceDefinition {
         return false;
     }
 
+    public boolean isInGroup(final String _group) {
+        final List<String> groups = getGroups();
+        for (final String group : groups) {
+            if (group.equalsIgnoreCase(_group)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Whether or not the service is to inherit environment variables from the launching process (the service launcher tool's process itself)
      */
     public boolean isInheritingEnvironmentVars() {
         return true;
-    }
-
-    public boolean isInGroup(String _group) {
-        List<String> groups = getGroups();
-        for (String group : groups) {
-            if (group.equalsIgnoreCase(_group))
-                return true;
-        }
-        return false;
     }
 }

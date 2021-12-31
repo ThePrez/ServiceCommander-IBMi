@@ -124,6 +124,20 @@ public class ServiceDefinitionCollection {
         m_data.putAll(_c.m_data);
     }
 
+    public void removeServicesInGroup(final String... _groups) {
+        final List<String> toRemove = new LinkedList<String>();
+        for (final Entry<String, ServiceDefinition> entry : m_data.entrySet()) {
+            for (final String group : _groups) {
+                if (entry.getValue().isInGroup(group)) {
+                    toRemove.add(entry.getKey());
+                }
+            }
+        }
+        for (final String removal : toRemove) {
+            m_data.remove(removal);
+        }
+    }
+
     public void validateNoCircularDependencies(final AppLogger _logger) throws SCException {
         for (final ServiceDefinition def : getServices()) {
             validateNoCircularDependencies(_logger, def, new Stack<String>());
@@ -145,20 +159,6 @@ public class ServiceDefinitionCollection {
         _dependencyStack.push(_def.getName());
         for (final String dependency : _def.getDependencies()) {
             validateNoCircularDependencies(_logger, getService(dependency), _dependencyStack);
-        }
-    }
-
-    public void removeServicesInGroup(String... _groups) {
-        List<String> toRemove = new LinkedList<String>();
-        for (Entry<String, ServiceDefinition> entry : m_data.entrySet()) {
-            for (String group : _groups) {
-                if (entry.getValue().isInGroup(group)) {
-                    toRemove.add(entry.getKey());
-                }
-            }
-        }
-        for (String removal : toRemove) {
-            m_data.remove(removal);
         }
     }
 }
