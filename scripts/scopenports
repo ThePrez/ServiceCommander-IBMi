@@ -1,3 +1,3 @@
 #!/QOpenSys/pkgs/bin/bash
 export LC_ALL=EN_US.UTF-8
-exec /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java -cp $(dirname $0)/../lib/sc/sc.jar jesseg.ibmi.opensource.OpenPorts $*
+exec /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java -cp $(dirname $(/QOpenSys/pkgs/bin/readlink -f $0))/../lib/sc/sc.jar jesseg.ibmi.opensource.OpenPorts $*
