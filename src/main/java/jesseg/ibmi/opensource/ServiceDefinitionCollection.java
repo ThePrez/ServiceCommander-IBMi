@@ -2,13 +2,13 @@ package jesseg.ibmi.opensource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeMap;
 
 import com.github.theprez.jcmdutils.AppLogger;
 
@@ -17,7 +17,7 @@ import jesseg.ibmi.opensource.ServiceDefinition.CheckAlive;
 import jesseg.ibmi.opensource.utils.ListUtils;
 
 public class ServiceDefinitionCollection {
-    private final Hashtable<String, ServiceDefinition> m_data = new Hashtable<String, ServiceDefinition>();
+    private final TreeMap<String, ServiceDefinition> m_data = new TreeMap<String, ServiceDefinition>();
 
     public ServiceDefinitionCollection() {
     }

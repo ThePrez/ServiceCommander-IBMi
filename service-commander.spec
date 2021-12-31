@@ -71,6 +71,7 @@ fi
 - feature: New '--ignore-groups' option for 'sc'
 - feature: Allow service path names to be relative
 - enhancement: more system services for 'sc_install_defaults'
+- enhancement: sort services alphabetically on 'sc check'
 - bugfix: handling single quotes for batch jobs
 - bugfix: startup when originated from symlink
 - deps: bump jcmdutils to v0.0.6
