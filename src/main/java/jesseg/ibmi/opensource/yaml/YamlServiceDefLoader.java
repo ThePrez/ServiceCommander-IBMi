@@ -44,6 +44,9 @@ public class YamlServiceDefLoader {
             _logger.printfln_warn_verbose("Unable to read from directory '%s'", ""+_dir);
         }
         for (final File f : files) {
+            if(f.isDirectory()) {
+                continue;
+            }
             final String fileName = f.getName();
             final Matcher m = s_filePattern.matcher(fileName);
             if (!m.find()) {
