@@ -85,16 +85,33 @@ public class ServiceDefinitionCollection {
                 ret.add(svcDef.getName());
                 continue;
             }
-            for (final String svcGroup : svcDef.getGroups()) {
-                if (svcGroup.trim().equalsIgnoreCase(_group)) {
-                    ret.add(svcDef.getName());
-                }
+            if (svcDef.isInGroup(_group)) {
+                ret.add(svcDef.getName());
             }
         }
         if (ret.isEmpty()) {
             _logger.printfln_warn("WARNING: No services are found in group '%s'", _group);
         } else {
             _logger.printfln_verbose("Services in group '%s' are: %s", _group, ret);
+        }
+        return ret;
+    }
+
+    public Set<String> getServicesNotInGroup(final String _group, final AppLogger _logger) {
+        _logger.printfln_verbose("Looking for services not in group '%s'", _group);
+        final LinkedHashSet<String> ret = new LinkedHashSet<String>();
+        for (final ServiceDefinition svcDef : m_data.values()) {
+            if ("all".equalsIgnoreCase(_group)) {
+                continue;
+            }
+            if (!svcDef.isInGroup(_group)) {
+                ret.add(svcDef.getName());
+            }
+        }
+        if (ret.isEmpty()) {
+            _logger.printfln_warn("WARNING: No services are found not in group '%s'", _group);
+        } else {
+            _logger.printfln_verbose("Services not in group '%s' are: %s", _group, ret);
         }
         return ret;
     }
@@ -128,6 +145,20 @@ public class ServiceDefinitionCollection {
         _dependencyStack.push(_def.getName());
         for (final String dependency : _def.getDependencies()) {
             validateNoCircularDependencies(_logger, getService(dependency), _dependencyStack);
+        }
+    }
+
+    public void removeServicesInGroup(String... _groups) {
+        List<String> toRemove = new LinkedList<String>();
+        for (Entry<String, ServiceDefinition> entry : m_data.entrySet()) {
+            for (String group : _groups) {
+                if (entry.getValue().isInGroup(group)) {
+                    toRemove.add(entry.getKey());
+                }
+            }
+        }
+        for (String removal : toRemove) {
+            m_data.remove(removal);
         }
     }
 }

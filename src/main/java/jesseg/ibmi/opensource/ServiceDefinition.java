@@ -263,4 +263,13 @@ public abstract class ServiceDefinition {
     public boolean isInheritingEnvironmentVars() {
         return true;
     }
+
+    public boolean isInGroup(String _group) {
+        List<String> groups = getGroups();
+        for (String group : groups) {
+            if (group.equalsIgnoreCase(_group))
+                return true;
+        }
+        return false;
+    }
 }

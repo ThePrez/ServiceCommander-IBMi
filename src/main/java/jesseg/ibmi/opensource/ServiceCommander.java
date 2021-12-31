@@ -151,12 +151,19 @@ public class ServiceCommander {
             printUsageAndExit();
         }
         final AppLogger logger = new AppLogger.DefaultLogger(args.remove("-v"));
-
+        String[] ignoreGroups = new String[0];
         for (final String remainingArg : args) {
             if (remainingArg.startsWith("--sampletime=")) {
                 try {
                     final float value = Float.parseFloat(remainingArg.replaceAll(".*=", ""));
                     System.setProperty(OperationExecutor.PROP_SAMPLE_TIME, String.format("%.2f", value));
+                } catch (final Exception e) {
+                    logger.printfln_warn("WARNING: Value specified for sample time argument is not valid: %s", remainingArg);
+                }
+            }
+            if (remainingArg.startsWith("--ignore-groups=")) {
+                try {
+                    ignoreGroups = remainingArg.replaceAll(".*=", "").split("\\s*,\\s*");
                 } catch (final Exception e) {
                     logger.printfln_warn("WARNING: Value specified for sample time argument is not valid: %s", remainingArg);
                 }
@@ -172,6 +179,7 @@ public class ServiceCommander {
 
         try {
             final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger);
+            serviceDefs.removeServicesInGroup(ignoreGroups);
             serviceDefs.checkForCheckaliveConflicts(logger);
             final Operation op;
             try {
@@ -257,6 +265,7 @@ public class ServiceCommander {
                                 + "        --splf: send output to *SPLF when submitting jobs to batch (instead of log)\n"
                                 + "        --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)\n"
                                 + "        --ignore-globals: ignore globally-configured services\n"
+                                + "        --ignore-groups=x,y,z: ignore services in the specified groups (comma-separated list)\n"
                                 + "\n"
 		                        + "    Valid operations include:\n"
                 				+ "        start: start the service (and any dependencies)\n"
