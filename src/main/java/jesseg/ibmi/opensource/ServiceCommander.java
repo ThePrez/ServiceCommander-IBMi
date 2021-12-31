@@ -98,7 +98,7 @@ public class ServiceCommander {
 
     public static void listOpenPorts(final AppLogger _logger, final LinkedList<String> _args) throws SCException {
         try {
-            final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(_logger);
+            final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(_logger, false);
             serviceDefs.checkForCheckaliveConflicts(_logger);
             final List<String> addrs = QueryUtils.getListeningAddrs(_logger, _args.contains("--mine"));
             _logger.println("Address          Port    'sc' service name (and friendly name)");
@@ -146,12 +146,13 @@ public class ServiceCommander {
         // Process all bool-type arguments, including "-v" to initialize our logger
         System.setProperty(StringUtils.PROP_DISABLE_COLORS, "" + Boolean.valueOf(args.remove("--disable-colors")));
         System.setProperty(OperationExecutor.PROP_BATCHOUTPUT_SPLF, "" + Boolean.valueOf(args.remove("--splf")));
-        System.setProperty(YamlServiceDefLoader.PROP_IGNORE_GLOBALS, "" + Boolean.valueOf(args.remove("--ignore-globals")));
+        boolean isIgnoreGlobals = false;
+        String[] ignoreGroups = new String[] { "system" };
+
         if (args.remove("-h") || args.remove("--help")) {
             printUsageAndExit();
         }
         final AppLogger logger = new AppLogger.DefaultLogger(args.remove("-v"));
-        String[] ignoreGroups = new String[0];
         for (final String remainingArg : args) {
             if (remainingArg.startsWith("--sampletime=")) {
                 try {
@@ -160,8 +161,12 @@ public class ServiceCommander {
                 } catch (final Exception e) {
                     logger.printfln_warn("WARNING: Value specified for sample time argument is not valid: %s", remainingArg);
                 }
-            }
-            if (remainingArg.startsWith("--ignore-groups=")) {
+            } else if (remainingArg.equalsIgnoreCase("--ignore-globals")) {
+                isIgnoreGlobals = true;
+            } else if (remainingArg.equalsIgnoreCase("--all") || remainingArg.equalsIgnoreCase("-a")) {
+                isIgnoreGlobals = false;
+                ignoreGroups = new String[0];
+            } else if (remainingArg.startsWith("--ignore-groups=")) {
                 try {
                     ignoreGroups = remainingArg.replaceAll(".*=", "").split("\\s*,\\s*");
                 } catch (final Exception e) {
@@ -178,7 +183,7 @@ public class ServiceCommander {
         checkApplicationDependencies(logger);
 
         try {
-            final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger);
+            final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger, isIgnoreGlobals);
             serviceDefs.removeServicesInGroup(ignoreGroups);
             serviceDefs.checkForCheckaliveConflicts(logger);
             final Operation op;
@@ -265,7 +270,8 @@ public class ServiceCommander {
                                 + "        --splf: send output to *SPLF when submitting jobs to batch (instead of log)\n"
                                 + "        --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)\n"
                                 + "        --ignore-globals: ignore globally-configured services\n"
-                                + "        --ignore-groups=x,y,z: ignore services in the specified groups (comma-separated list)\n"
+                                + "        --ignore-groups=x,y,z: ignore services in the specified groups (default is 'system')\n"
+                                + "        --all/-a: don't ignore any services. Overrides --ignore-globals and --ignore-groups\n"
                                 + "\n"
 		                        + "    Valid operations include:\n"
                 				+ "        start: start the service (and any dependencies)\n"

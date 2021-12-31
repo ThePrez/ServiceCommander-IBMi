@@ -109,7 +109,7 @@ public class ServiceInit {
             si.addDeps(console.askListOfStringsQuestion(logger, "What service(s) does this application rely on?"));
 
             si.writeToFile(logger);
-            final ServiceDefinitionCollection defs = new YamlServiceDefLoader().loadFromYamlFiles(new AppLogger.DeferredLogger(logger));
+            final ServiceDefinitionCollection defs = new YamlServiceDefLoader().loadFromYamlFiles(new AppLogger.DeferredLogger(logger), false);
             logger.println(StringUtils.colorizeForTerminal("\n\nPrinting information about the newly-defined service", TerminalColor.GREEN));
             new OperationExecutor(Operation.INFO, si.m_shortName, defs, logger).execute();
             defs.checkForCheckaliveConflicts(logger);

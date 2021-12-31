@@ -56,9 +56,9 @@ public class YamlServiceDefLoader {
         return ret;
     }
 
-    public ServiceDefinitionCollection loadFromYamlFiles(final AppLogger _logger) throws SCException {
+    public ServiceDefinitionCollection loadFromYamlFiles(final AppLogger _logger, final boolean _ignoreGlobals) throws SCException {
         final ServiceDefinitionCollection ret = new ServiceDefinitionCollection();
-        if (Boolean.getBoolean(PROP_IGNORE_GLOBALS)) {
+        if (_ignoreGlobals) {
             _logger.println_verbose("Ignoring globally configured services");
         } else {
             ret.putAll(loadFromDirectory(AppDirectories.conf.getGlobalServicesDirOrNull(), _logger));
