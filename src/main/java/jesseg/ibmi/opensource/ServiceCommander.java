@@ -184,6 +184,14 @@ public class ServiceCommander {
 
         try {
             final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger, isIgnoreGlobals);
+            if (service.toLowerCase().startsWith("group:")) {
+                String groupName = service.substring("group:".length()).trim();
+                for (int i = 0; i < ignoreGroups.length; ++i) {
+                    if (ignoreGroups[i].equalsIgnoreCase(groupName)) {
+                        ignoreGroups[i] = "<redacted>";
+                    }
+                }
+            }
             serviceDefs.removeServicesInGroup(ignoreGroups);
             serviceDefs.checkForCheckaliveConflicts(logger);
             final Operation op;
@@ -196,7 +204,8 @@ public class ServiceCommander {
                 service = "group:all";
             }
             if (service.toLowerCase().startsWith("group:")) {
-                performOperationsOnServices(op, serviceDefs.getServicesInGroup(service.substring("group:".length()).trim(), logger), serviceDefs, logger);
+                String groupName = service.substring("group:".length()).trim();
+                performOperationsOnServices(op, serviceDefs.getServicesInGroup(groupName, logger), serviceDefs, logger);
             } else if (service.toLowerCase().startsWith("port:") || service.toLowerCase().startsWith("job:")) {
                 final ServiceDefinition adHoc = getAdHocServiceDef(service, serviceDefs, logger);
                 serviceDefs.put(adHoc);
