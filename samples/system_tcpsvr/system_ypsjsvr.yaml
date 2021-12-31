@@ -1,0 +1,8 @@
+name: IBM Management Central Server
+start_cmd: system "STRTCPSVR *MGTC"
+stop_cmd: system "STRTCPSVR *MGTC"
+check_alive: QYPSJSVR,5544,5555
+
+groups:
+  - "tcp_servers"
+  - "system"

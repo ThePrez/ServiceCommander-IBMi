@@ -1,0 +1,8 @@
+name: Resource Monitoring and Control [RMC]
+start_cmd: system "SBMJOB CMD(CALL PGM(QSYS/QCSTCTSRCD)) JOBD(QSYS/QCSTSRCD) PRTDEV(*JOBD) OUTQ(*JOBD) USER(*JOBD) PRTTXT(*JOBD) RTGDTA(RUNPTY50)"
+stop_cmd: system "ENDJOB JOB(QRMCSRCD) OPTION(*IMMED) DUPJOBOPT(*SELECT)"
+
+check_alive: QRMCCTRMCD, 657
+
+groups:
+  - "system"

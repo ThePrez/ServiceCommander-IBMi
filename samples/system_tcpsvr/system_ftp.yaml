@@ -4,3 +4,7 @@ stop_cmd: system 'endtcpsvr *FTP'
 
 check_alive: port
 check_alive_criteria: 21
+
+groups:
+  - "tcp_servers"
+  - "system"

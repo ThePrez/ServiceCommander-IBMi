@@ -1,0 +1,8 @@
+name: HTTP Administration UI
+start_cmd: system 'strtcpsvr  *ias  instance(admin4)'
+stop_cmd: system 'endtcpsvr  *ias  instance(admin4)'
+
+check_alive: QHTTPSVR/ADMIN4, 2008, 2018
+
+groups:
+  - "system"

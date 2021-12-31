@@ -1,0 +1,6 @@
+name: Service Tools Server
+start_cmd: echo "Managed through DST"
+check_alive: 3000
+
+groups:
+  - "system"

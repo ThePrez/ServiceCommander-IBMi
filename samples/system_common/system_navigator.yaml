@@ -2,5 +2,7 @@ name: IBM Navigator for i
 start_cmd: system 'strtcpsvr  *ias  instance(admin2)'
 stop_cmd: system 'endtcpsvr  *ias  instance(admin2)'
 
-check_alive: jobname
-check_alive_criteria: QHTTPSVR/ADMIN2
+check_alive: QHTTPSVR/ADMIN2, 2005, 2004, 2016, 16324, 5471
+
+groups:
+  - "system"

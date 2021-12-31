@@ -7,3 +7,4 @@ check_alive_criteria: 449
 
 groups:
   - "host_servers"
+  - "system"

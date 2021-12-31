@@ -4,3 +4,7 @@ stop_cmd: system 'ENDTCPSVR SERVER(*DDM)'
 
 check_alive: port
 check_alive_criteria: 448
+
+groups:
+  - "tcp_servers"
+  - "system"

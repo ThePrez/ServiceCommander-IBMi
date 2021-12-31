@@ -1,0 +1,9 @@
+name: System POP3 server
+start_cmd: system 'STRTCPSVR SERVER(*POP)'
+stop_cmd: system 'ENDTCPSVR SERVER(*POP)'
+
+check_alive: 110
+
+groups:
+  - "tcp_servers"
+  - "system"

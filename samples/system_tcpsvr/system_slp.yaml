@@ -1,0 +1,9 @@
+name: System SLP server
+start_cmd: system 'STRTCPSVR SERVER(*SLP)'
+stop_cmd: system 'ENDTCPSVR SERVER(*SLP)'
+
+check_alive: 427, 4800
+
+groups:
+  - "tcp_servers"
+  - "system"

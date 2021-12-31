@@ -1,6 +1,10 @@
-name: System Secure Telnet server
+name: System Telnet server
 start_cmd: system 'STRTCPSVR SERVER(*TELNET)'
 stop_cmd: system 'ENDTCPSVR SERVER(*TELNET)'
 
 check_alive: port
-check_alive_criteria: 992
+check_alive_criteria: 23
+
+groups:
+  - "tcp_servers"
+  - "system"

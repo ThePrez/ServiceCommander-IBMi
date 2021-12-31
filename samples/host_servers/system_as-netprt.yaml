@@ -2,8 +2,9 @@ name: System *NETPRT Host Server
 start_cmd: system 'strhostsvr *NETPRT'
 stop_cmd: system 'endhostsvr *NETPRT'
 
-check_alive: port
-check_alive_criteria: 8474
+check_alive: QNPSERVD,8474,8479
+
 
 groups:
   - "host_servers"
+  - "system"

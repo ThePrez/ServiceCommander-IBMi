@@ -1,0 +1,9 @@
+name: IBM Support Communication Service
+start_cmd: system 'STRTCPSVR SERVER(*SRVSPTPRX)'
+stop_cmd: system 'ENDTCPSVR SERVER(*SRVSPTPRX)'
+
+check_alive: 5026
+
+groups:
+  - "tcp_servers"
+  - "system"

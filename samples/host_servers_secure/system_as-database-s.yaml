@@ -1,9 +1,10 @@
-name: System *DATABASE Host Server
+name: System Secure *DATABASE Host Server
 start_cmd: system 'strhostsvr *DATABASE'
 stop_cmd: system 'endhostsvr *DATABASE'
 
 check_alive: port
-check_alive_criteria: 8471
+check_alive_criteria: 9471
 
 groups:
   - "host_servers"
+  - "system"

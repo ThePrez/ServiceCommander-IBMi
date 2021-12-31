@@ -4,5 +4,8 @@ stop_cmd: system 'ENDTCPSVR SERVER(*NETSVR)'
 
 # Note: Until ServiceCommander support multiple ports
 # we are just checking the CIFS port 445.
-check_alive: port
-check_alive_criteria: 445
+check_alive: 445,137,139
+
+groups:
+  - "tcp_servers"
+  - "system"

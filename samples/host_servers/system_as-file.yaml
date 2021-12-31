@@ -1,9 +1,9 @@
-name: System Secure *FILE Host Server
+name: System *FILE Host Server
 start_cmd: system 'strhostsvr *FILE'
 stop_cmd: system 'endhostsvr *FILE'
 
-check_alive: port
-check_alive_criteria: 9473
+check_alive: QPWFSERVSD,8473,8477
 
 groups:
   - "host_servers"
+  - "system"
