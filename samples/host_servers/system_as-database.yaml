@@ -2,7 +2,7 @@ name: System *DATABASE Host Server
 start_cmd: system 'strhostsvr *DATABASE'
 stop_cmd: system 'endhostsvr *DATABASE'
 
-check_alive: 8471,9471
+check_alive: 8471,9471,8478
 
 groups:
   - "host_servers"

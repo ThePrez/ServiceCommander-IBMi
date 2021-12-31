@@ -1,0 +1,8 @@
+name: System Debug Server
+start_cmd: system "STRDBGSVR"
+stop_cmd: system "ENDDBGSVR"
+
+check_alive: QB5ROUTER,3825
+
+groups:
+  - "system"

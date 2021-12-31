@@ -2,7 +2,7 @@ name: System CIM Server
 start_cmd: system 'STRTCPSVR SERVER(*CIMOM)'
 stop_cmd: system 'ENDTCPSVR SERVER(*CIMOM)'
 
-check_alive: QUMECIMOM,5989
+check_alive: QUMECIMOM,5989,5990
 
 groups:
   - "tcp_servers"
