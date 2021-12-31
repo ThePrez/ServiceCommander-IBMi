@@ -1,4 +1,10 @@
+
+# In all steps, replace "<utility>" with the executable name (for instance, "sc" or "scopenports")
+
 # to build a new man page:
-# - Update MAN.md with new man page info
-# - install pandoc and run the following command from this dir:
-pandoc MAN.md -f markdown_github -t man --old-dashes --no-wrap  > man.mansrc
+# - Update <utility>.md with new man page info
+# - Update <utility>.header as needed
+# - install pandoc and run the following command from this dir (needs to be run somewhere with pandoc, like Linux):
+pandoc <utility>.md -f markdown_github -t man --old-dashes --no-wrap  > <utility>.mansrc
+# - Update the resulting <utility>.mansrc in git
+# The parent Makefile will combine the <utility>.header and generated <utility>.mansrc files

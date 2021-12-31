@@ -13,7 +13,7 @@ uninstall: clean
 	rm -r ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/pkgs/bin/sc
 
 clean:
-	rm -r target man/man.1
+	rm -rf target man/*.1
 
 /QOpenSys/pkgs/bin/mvn:
 	yum install maven
@@ -31,11 +31,10 @@ install_runtime_dependencies: /QOpenSys/pkgs/bin/db2util /QOpenSys/pkgs/lib/jvm/
 
 install_with_runtime_dependencies: install install_runtime_dependencies
 
-man/man.1: man/man.header man/man.mansrc
-	rm -f man/man.1
-	cat man/man.header man/man.mansrc > man/man.1
+man/%.1: man/%.header man/%.mansrc
+	cat $^ > $@
 
-install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man/man.1
+install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man/sc.1
 	install -m 755 -o qsys -D -d ${INSTALL_ROOT}/QOpenSys/pkgs/bin ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services
 	chmod 755 ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services
 	chown -R qsys ${INSTALL_ROOT}/QOpenSys/etc/sc
@@ -47,7 +46,7 @@ install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man
 	install -m 444 -o qsys target/sc.jar ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/sc.jar
 	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/etc/sc/services/ -type f -print -exec chmod 644 {} \;
 	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/etc/sc/services/ -type l -print -exec chmod 644 {} \;
-	install -m 444 -o qsys -D man/man.1 ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/sc.1
+	install -m 444 -o qsys -D man/sc.1 ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/sc.1
 	install -m 555 -o qsys -D strtcpsvr/install_sc_tcpsvr ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
 	install -m 555 -o qsys -D strtcpsvr/remove_sc_tcpsvr ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/tcpsvr/remove_sc_tcpsvr
 	install -m 444 -o qsys -D strtcpsvr/sc_tcpsvr.c ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/tcpsvr/sc_tcpsvr.c
