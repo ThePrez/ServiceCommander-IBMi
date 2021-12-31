@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 0.7.2
+Version: 1.0.0
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -65,6 +65,17 @@ fi
 %{_mandir}/man1/sc.*
 
 %changelog
+* Fri Dec 31 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.0.0
+- feature(major): allow multiple ports/jobs for a service
+- feature: Several new options for 'sc_install_defaults'
+- feature: New '--ignore-groups' option for 'sc'
+- feature: Allow service path names to be relative
+- enhancement: more system services for 'sc_install_defaults'
+- bugfix: handling single quotes for batch jobs
+- bugfix: startup when originated from symlink
+- deps: bump jcmdutils to v0.0.6
+- deps: bump snakeyaml to v1.30
+
 * Wed Dec 29 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 0.7.2
 - bugfix: scopenports not handling ipv6 properly
 
