@@ -190,7 +190,18 @@ public class YamlServiceDef extends ServiceDefinition {
 
     @Override
     public String getEffectiveWorkingDirectory() {
-        return null == m_workingDir ? super.getEffectiveWorkingDirectory() : m_workingDir;
+        // If unspecified, defer to superclass
+        if (null == m_workingDir) {
+            return super.getEffectiveWorkingDirectory();
+        }
+
+        // If absolute path, use it. Otherwise, resolve relative to the location of the source .yaml file
+        final File workingDirFile = new File(m_workingDir);
+        if (workingDirFile.isAbsolute()) {
+            return workingDirFile.getAbsolutePath();
+        } else {
+            return m_source.getParentFile().getAbsolutePath() + "/" + m_workingDir;
+        }
     }
 
     @Override
