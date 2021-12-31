@@ -38,8 +38,8 @@ public class ServiceInit {
         final ConsoleQuestionAsker console = new ConsoleQuestionAsker();
         final String currentDir = getCurrentDir();
         final boolean isGlobal = console.askBooleanQuestion(logger, "n", "Would you like this service to be available to all users?");
-        final String shortName = console.askStringMatchingRegexQuestion(logger, null, "^([a-z\\\\-_0-9]+)$", "lowercase letters, numbers, hyphens, or underscores", "Short name:");
-        final String friendlyName = console.askStringMatchingRegexQuestion(logger, null, "^[^\\:]+$", "a string not containing a colon", "Friendly name:");
+        final String shortName = console.askNonEmpyStringMatchingRegexQuestion(logger, null, "^([a-z\\\\-_0-9]+)$", "lowercase letters, numbers, hyphens, or underscores", "Short name:");
+        final String friendlyName = console.askNonEmpyStringMatchingRegexQuestion(logger, null, "^[^\\:]+$", "a string not containing a colon", "Friendly name:");
         final boolean isCurrentDir = console.askBooleanQuestion(logger, "y", "Must the application be started in the current directory (%s)?", currentDir);
         final String startCmd = (1 == _args.length) ? _args[0] : StringUtils.arrayToSpaceSeparatedString(_args);
         String checkAliveCriteria = "";
