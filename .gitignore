@@ -3,5 +3,3 @@
 .project
 .classpath
 /bin/
-/man/
-*.1

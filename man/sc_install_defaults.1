@@ -1,0 +1,48 @@
+.ti 0
+\l'\n(.lu'
+.SH nav_exclude: true
+.TH sc\fIinstall\fPdefaults 1 "January 2022" IBMi "Install Default configs for Service Commander"
+.SH NAME
+.PP
+\fBsc\fIinstall\fPdefaults\fP \- a tool for installing common configurations for use
+with the \fB\fCsc\fR tool.
+.SH SYNOPSIS
+.PP
+\fB\fCsc_install_default  [options]\fR
+.SH DESCRIPTION
+.PP
+The \fB\fCsc_install_defaults\fR command can install pre\-made configurations for 
+common services. Once installed, these services can be managed with Service
+Commander's main \fB\fCsc\fR command. 
+.PP
+This utility can be used to install service definitions for:
+\- The Cron daemon (if you have cron installed)
+\- MariaDB (if you have mariadb installed)
+.SH \- IBM i HTTP Server (DG1) instances (unless you specify \fB\fC\-\-noapache\fR)
+.SH OPTIONS
+.PP
+Usage of the command is summarized as:
+.PP
+.RS
+.nf
+usage: sc_install_defaults [options]
+
+    valid options include:
+        \-h            : display help
+        \-\-apache      : autocreate from apache instances (default)
+        \-\-cleanupv0   : clean up files created by v0 (default)
+        \-\-noapache    : don't autocreate from apache instances
+        \-\-nocleanupv0 : don't clean up files created by v0
+        \-\-global      : install for all users
+        \-\-user        : install for current user (default)
+.fi
+.RE
+.PP
+** Important Note**
+If you ran this tool with v0.x, you will want to clean up the old configurations by running:
+.PP
+.RS
+.nf
+sc_install_defaults \-\-cleanupv0
+.fi
+.RE

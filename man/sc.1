@@ -1,0 +1,414 @@
+.ti 0
+\l'\n(.lu'
+.SH nav_exclude: true
+.TH sc 1 "January 2022" IBMi "Service Commander for IBM i"
+.SH NAME
+.PP
+sc \- a tool for managing configured services and applications
+.SH SYNOPSIS
+.PP
+\fB\fCsc  [options] <operation> <service(s)>\fR
+.SH DESCRIPTION
+.PP
+A utility for unifying the daunting task of managing various services and applications running on IBM i. Its objective is to provide an intuitive, easy\-to\-use command line interface for managing services or jobs. It also provides integration with \fB\fCSTRTCPSVR\fR\&.
+.PP
+This tool can be used to manage a number of services, for instance:
+.RS
+.IP \(bu 2
+IBM i host server jobs
+.IP \(bu 2
+IBM i standard TCP servers (*TCP, *SSHD, etc.)
+.IP \(bu 2
+Programs you wrote using open source technology (Node.js, Python, PHP, etc.)
+.IP \(bu 2
+Apache Tomcat instances
+.IP \(bu 2
+Apache Camel routes
+.IP \(bu 2
+Kafka, Zookeeper, ActiveMQ servers, etc
+.IP \(bu 2
+Jenkins
+.IP \(bu 2
+The Cron daemon
+.IP \(bu 2
+OSS Database servers (PostgreSQL, MariaDB)
+.RE
+.SH Current features
+.PP
+Some of the features of the tool include:
+.RS
+.IP \(bu 2
+The ability to specify dependencies (for instance, if one application or service dependds on another), and it will start any dependencies as needed
+.IP \(bu 2
+The ability to submit jobs to batch easily, even with custom batch settings (use your own job description or submit as another user, for instance)
+.IP \(bu 2
+The ability to check the "liveliness" of your service by either port status or job name
+.IP \(bu 2
+Customize the runtime environment variables of your job
+.IP \(bu 2
+Define custom groups for your services, and perform operations on those groups (by default, a group of "all" is defined)
+.IP \(bu 2
+Query basic performance attributes of the services
+.IP \(bu 2
+Assistance in providing/managing log files. This is a best\-guess only and naively assumes the service uses stdout/stderr as its logging mechanism. Service Commander has its own primitive logging system that works well only for certain types of services
+.IP \(bu 2
+Ability to define manage ad hoc services specified on the command line
+.IP \(bu 2
+Ability to see what ports are currently opening (have a job listening)
+.RE
+.SH Important differences from other service management tools
+.PP
+Service Commander's design is fundamentally different from other tools that accomplish similar tasks, like init.d, supervisord, and so on. Namely, the functions within Service Commander are intended to work regardless of:
+.RS
+.IP \(bu 2
+Who else may start or stop the service
+.IP \(bu 2
+What other tools may be used to start or stop the service. For instance, Service Commander may start/stop an IBM i host server, but so could the \fB\fCSTRHOSTSVR\fR/\fB\fCENDHOSTSVR\fR CL commands.
+.IP \(bu 2
+Whether the service runs in the initially spawned job or a secondary job
+.RE
+.PP
+Also, this tool doesn't have the privilege of being the unified, integrated solution with the operating system that other tools may have. Therefore, Service Commander cannot take the liberty of assuming that it can keep track of the resources tied to the services that it manages. So, for example, this tool does not keep track of process IDs of launched processes. Similarly, it doesn't have special access to kernel data structures, etc. 
+.PP
+Instead, this tool makes strong assumptions based on checks for a particular job name or port usage (see \fB\fCcheck_alive_criteria\fR in the file format documentation). A known limitation, therefore, is that Service Commander may mistake another job for a configured service based on one of these attributes. For example, if you configure a service that is supposed to be listening on port 80, Service Commander will assume that any job listening on port 80 is indeed that service.
+.PP
+Service Commander's unique design is intended to offer a great deal of flexibility and ease of management through the use of simple \fB\fC\&.yaml\fR files.
+.SH Configuring Services
+.SH Initializing your configuration with defaults
+.PP
+If you'd like to start with pre\-made configurations for common services, simply run the
+\fB\fCsc_install_defaults\fR command. Its usage is as follows:
+.PP
+.RS
+.nf
+usage: sc_install_defaults [options]
+
+    valid options include:
+        \-h            : display help
+        \-\-apache      : autocreate from apache instances (default)
+        \-\-cleanupv0   : clean up files created by v0 (default)
+        \-\-noapache    : don't autocreate from apache instances
+        \-\-nocleanupv0 : don't clean up files created by v0
+        \-\-global      : install for all users
+        \-\-user        : install for current user (default)
+.fi
+.RE
+.PP
+This utility can be used to install This will install service definitions for:
+\- The Cron daemon (if you have cron installed)
+\- MariaDB (if you have mariadb installed)
+\- IBM i HTTP Server (DG1) instances (unless you specify \fB\fC\-\-noapache\fR)
+.PP
+** Important Note**
+If you ran this tool with v0.x, you will want to clean up the old configurations by running:
+.PP
+.RS
+.nf
+sc_install_defaults \-\-cleanupv0
+.fi
+.RE
+.SH Using the 'scinit' tool
+.PP
+You can use the \fB\fCscinit\fR tool can be used to create the YAML configuration files for you. Basic usage of the tool is simply:
+.PP
+.RS
+.nf
+scinit <program start command>
+.fi
+.RE
+.PP
+The idea is that you would simply:
+.nr step0 0 1
+.RS
+.IP \n+[step0]
+\fB\fCcd\fR to the directory where you'd normally start the service
+.IP \n+[step0]
+Run the command you'd normally use to start the service, prefixed by \fB\fCscinit\fR
+.IP \n+[step0]
+Answer a series of questions about how you would like the service deployed
+In doing so, the \fB\fCscinit\fR will create the YAML configuration file for you and also show you information about the newly\-configured service.
+.RE
+.PP
+For instance, if you would normally launch a Node.js application from \fB\fC/home/MYUSR/mydir\fR by running \fB\fCnode app.js\fR, you would run:
+.PP
+.RS
+.nf
+cd /home/MYUSR/mydir
+scinit <program start command>
+.fi
+.RE
+.PP
+The \fB\fCscinit\fR tool will ask you for a "short name" among other things. When done, a service configuration will be saved under that short
+name. So, for instance, if your short name is "my\fInode\fPapp", you can run \fB\fCsc start my_node_app\fR\&.
+.SH Ad hoc service definition
+.PP
+Ad hoc services can be specified on the sc command line in the format \fB\fCjob:jobname\fR or \fB\fCport:portname\fR\&. 
+In these instances, the operations will be performed on the specified jobs. This is determined by looking for
+jobs matching the given job name or listening on the given port. The job name can be specified either in
+\fB\fCjobname\fR or \fB\fCsubsystem/jobname\fR format.
+.PP
+If an existing service definition is found (configured via YAML, as in the preceding section) that matches the
+job name or port criteria, that service will be used. For instance, if you have a service configured to run on
+port 80, then specifying \fB\fCsc info port:80\fR will show information about the service configured to run on port 80.
+.PP
+Ad hoc service definition is useful for quick checks without the need to create a YAML definition. It's also
+useful if you do not recall the service name, but remember the job name or port. 
+.PP
+It is also useful for cases where you just want to find out who (if anyone) is using a certain port. For instance,
+\fB\fCsc jobinfo port:8080\fR will show you which job is listening on port 8080. Similarly, \fB\fCsc stop port:8080\fR will kill
+whatever job is running on port 8080.
+.SH Directly creating/editing YAML configuration files
+.PP
+This tool allows you to define any services of interest in \fB\fC\&.yaml\fR files. These files can be stored in any of the following locations:
+.RS
+.IP \(bu 2
+A global directory (/QOpenSys/etc/sc/services). This, of coures, requires you to have admin access (\fB\fC*ALLOBJ\fR special authority).
+.IP \(bu 2
+A user\-specific directory($HOME/.sc/services)
+.IP \(bu 2
+If defined, whatever the value of the \fB\fCservices.dir\fR system property is. 
+The file name must be in the format of \fB\fCservice_name.yaml\fR (or \fB\fCservice_name.yml\fR), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
+.RE
+.PP
+The file can also be located in any arbitrary directory, but it must be explicitly passed along to the \fB\fCsc\fR command, for instance
+.PP
+.RS
+.nf
+sc start myservice.yml
+.fi
+.RE
+.SS YAML File Format
+.PP
+See the samples \[la]https://github.com/ThePrez/ServiceCommander-IBMi/tree/main/samples\[ra] directory for some sample service definitions. 
+The following attributes may be specified in the service definition (\fB\fC\&.yaml\fR) file:
+.PP
+\fBRequired fields\fP
+.RS
+.IP \(bu 2
+\fB\fCstart_cmd\fR: the command used to start the service
+.IP \(bu 2
+\fB\fCcheck_alive\fR: How to check whether the service is alove or not. This can be a port number, or a job name in either the the format "jobname" or "subsystem/jobname". To specify multiple criteria, just use a comma\-separated list or a YAML String array. 
+.RE
+.PP
+\fBOptional fields that are often needed/wanted\fP
+.RS
+.IP \(bu 2
+\fB\fCname\fR: A "friendly" name of the service
+.IP \(bu 2
+\fB\fCdir\fR: The working directory in which to run the startup/shutdown commands
+.RE
+.PP
+\fBOther optional fields\fP
+.RS
+.IP \(bu 2
+\fB\fCstop_cmd\fR: The service shutdown command. If unspecified, the service will be located by port number or job name.
+.IP \(bu 2
+\fB\fCstartup_wait_time\fR: The wait time, in seconds, to wait for the service to start up (the default is 60 seconds if unspecified)
+.IP \(bu 2
+\fB\fCstop_wait_time\fR: The wait time, in seconds, to wait for the service to stop (the default is 45 seconds if unspecified)
+.IP \(bu 2
+\fB\fCbatch_mode\fR: Whether or not to submit the service to batch
+.IP \(bu 2
+\fB\fCsbmjob_jobname\fR: If submitting to batch, the custom job name to be used for the batch job
+.IP \(bu 2
+\fB\fCsbmjob_opts\fR: If submitting to batch, custom options for the SBMJOB command (for instance, a custom JOBD) 
+.IP \(bu 2
+\fB\fCenvironment_is_inheriting_vars\fR: Whether the service inherits environment variables from the current environment (default is true)
+.IP \(bu 2
+\fB\fCenvironment_vars\fR: Custom environment variables to be set when launching the service. Specify as an array of strings in \fB\fC"KEY=VALUE"\fR format
+.IP \(bu 2
+\fB\fCservice_dependencies\fR: An array of services that this service depends on. This is the simple name of the service (for instance, if the dependency is defined as "myservice", then it is expected to be defined in a file named \fB\fCmyservice.yaml\fR), not the "friendly" name of the service.
+.IP \(bu 2
+\fB\fCgroups\fR: Custom groups that this service belongs to. Groups can be used to start and stop sets of services in a single operation. Specify as an array of strings.
+.RE
+.PP
+\fBDeprecated fields\fP
+\- \fB\fCcheck_alive_criteria\fR: (Deprecated)The criteria used when checking whether the service is alive or not. If \fB\fCcheck_alive\fR is set to "port", this is expected to be a port number. If \fB\fCcheck_alive\fR is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname". This field is deprecated. As of v1.0.0, the \fB\fCcheck_alive\fR field handles both port numbers and job names (or a list containing both).
+.SS YAML file example
+.PP
+The following is an example of a simple configuration for a Node.js application that runs on port 80:
+.PP
+.RS
+.nf
+name: My Node.js application
+dir: /home/MYUSER/myapp
+start_cmd: node index.js
+check_alive: '80'
+batch_mode: 'false'
+environment_vars:
+\- PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/ccs/bin:/QOpenSys/usr/bin/X11:/usr/sbin:.:/usr/bin
+.fi
+.RE
+.SH Testimonials
+.PP
+\fI"I use this a lot for my own personal use. Might be useless for the rest of the world. I don't know, though."\fP
+.PP
+ \~ \-\-@ThePrez \[la]https://github.com/ThePrez/\[ra], creator of Service Commander
+.SH OPTIONS
+.PP
+Usage of the command is summarized as:
+.PP
+.RS
+.nf
+Usage: sc  [options] <operation> <service>
+
+    Valid options include:
+        \-v: verbose mode
+        \-\-disable\-colors: disable colored output
+        \-\-splf: send output to *SPLF when submitting jobs to batch (instead of log)
+        \-\-sampletime=x.x: sampling time(s) when gathering performance info (default is 1)
+        \-\-ignore\-globals: ignore globally\-configured services
+        \-\-ignore\-groups=x,y,z: ignore services in the specified groups (default is 'system')
+        \-\-all/\-a: don't ignore any services. Overrides \-\-ignore\-globals and \-\-ignore\-groups
+
+    Valid operations include:
+        start: start the service (and any dependencies)
+        stop: stop the service (and dependent services)
+        restart: restart the service
+        check: check status of the service
+        info: print configuration info about the service
+        jobinfo: print basic performance info about the service
+        perfinfo: print basic performance info about the service
+        loginfo: get log file info for the service (best guess only)
+        list: print service short name and friendly name
+
+    Valid formats of the <service(s)> specifier include:
+        \- the short name of a configured service
+        \- A special value of "all" to represent all configured services (same as "group:all")
+        \- A group identifier (e.g. "group:groupname")
+        \- the path to a YAML file with a service configuration
+        \- An ad hoc service specification by port (for instance, "port:8080")
+        \- An ad hoc service specification by job name (for instance, "job:ZOOKEEPER")
+        \- An ad hoc service specification by subsystem and job name (for instance, "job:QHTTPSVR/ADMIN2")
+.fi
+.RE
+.SH Automatically restarting a service if it fails
+.PP
+Currently, this tool doees not have built\-in monitoring and restart capabilities. This may be a future enhancement. In the meantime, one can use simple scripting to accomplish a similar task. For instance, to check every 40 seconds and ensure that the \fB\fCnavigator\fR service is running, you could submit a job like this (replace the sleep time, service name, and submitted job name to match your use case):
+.PP
+.RS
+.nf
+SBMJOB CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '\-c' 'while :; do sleep 40 && /QOpenSys/pkgs/bin/sc start navigator >/dev/null 2>&1 ; done')) JOB(NAVMON) JOBD(*USRPRF) JOBQ(QUSRNOMAX)                         
+.fi
+.RE
+.PP
+This will result in several jobs that continuously check on the service and attempt to start it if the service is dead. If you wish to stop this behavior, simply kill the jobs. In the above example, the job name is \fB\fCNAVMON\fR, so the WRKACTJOB command to do this interactively looks like:
+.PP
+.RS
+.nf
+ WRKACTJOB JOB(NAVMON) 
+.fi
+.RE
+.SH EXAMPLES
+.PP
+Start the service named \fB\fCkafka\fR:
+.PP
+.RS
+.nf
+sc start kafka
+.fi
+.RE
+.PP
+Stop the service named \fB\fCzookeeper\fR:
+.PP
+.RS
+.nf
+sc stop zookeeper
+.fi
+.RE
+.PP
+Check status of all configured services (all services belong to a special group named "all")
+.PP
+.RS
+.nf
+sc check group:all
+.fi
+.RE
+.PP
+Try to start all configured services
+.PP
+.RS
+.nf
+sc start group:all
+.fi
+.RE
+.PP
+Print information about all configured services
+.PP
+.RS
+.nf
+sc info group:all
+.fi
+.RE
+.PP
+Try to start all services in "host_servers" group
+.PP
+.RS
+.nf
+sc start group:host_servers
+.fi
+.RE
+.PP
+List all services
+.PP
+.RS
+.nf
+sc list group:all
+.fi
+.RE
+.PP
+List all services in the special "system" group
+.PP
+.RS
+.nf
+sc list group:system
+.fi
+.RE
+.PP
+List all services including those in the special "system" group
+.PP
+.RS
+.nf
+sc \-a list group:all
+.fi
+.RE
+.PP
+List jobs running on port 8080
+.PP
+.RS
+.nf
+sc jobinfo port:8080
+.fi
+.RE
+.PP
+Stop jobs running on port 8080
+.PP
+.RS
+.nf
+sc stop port:8080
+.fi
+.RE
+.PP
+Check if anything is running on port 8080
+.PP
+.RS
+.nf
+sc check port:8080
+.fi
+.RE
+.PP
+Start the service defined in a local file, \fB\fCmyservice.yml\fR
+.PP
+.RS
+.nf
+sc start myservice.yml
+.fi
+.RE
+.PP
+See what ports are currently listening
+.PP
+.RS
+.nf
+scopenports
+.fi
+.RE

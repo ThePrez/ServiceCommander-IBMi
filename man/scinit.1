@@ -1,0 +1,36 @@
+.ti 0
+\l'\n(.lu'
+.SH nav_exclude: true
+.TH scinit 1 "January 2022" IBMi "Initialize configs for Service Commander"
+.SH NAME
+.PP
+\fBscinit\fP \- a tool for creating service definitions for Service Commander.
+.SH SYNOPSIS
+.PP
+\fB\fCusage: scinit <startup_command>\fR
+.SH DESCRIPTION
+.PP
+The \fB\fCscinit\fR command will create a service definition (for use with the
+\fB\fCsc\fR utility) from the given startup command. 
+.PP
+For instance, to create a service definition for a Node.js application,
+one could run:
+.PP
+.RS
+.nf
+scinit node app.js
+.fi
+.RE
+.PP
+The \fB\fCscinit\fR command will then interactively ask a series of questions.
+When complete, the command will display information about the service
+definition that has been created.
+.SH OPTIONS
+.PP
+Usage of the command is summarized as:
+.PP
+.RS
+.nf
+usage: scinit <startup_command>
+.fi
+.RE
