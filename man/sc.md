@@ -11,9 +11,10 @@ sc - a tool for managing configured services and applications
 
 # DESCRIPTION
 
-Service Commander, a utility for unifying the daunting task of managing various services and applications running on IBM i. Its objective is to provide an intuitive, easy-to-use command line interface for managing services or jobs.
+A utility for unifying the daunting task of managing various services and applications running on IBM i. Its objective is to provide an intuitive, easy-to-use command line interface for managing services or jobs. It also provides integration with `STRTCPSVR`.
 
 This tool can be used to manage a number of services, for instance:
+
 - IBM i host server jobs
 - IBM i standard TCP servers (*TCP, *SSHD, etc.)
 - Programs you wrote using open source technology (Node.js, Python, PHP, etc.)
@@ -21,9 +22,12 @@ This tool can be used to manage a number of services, for instance:
 - Apache Camel routes
 - Kafka, Zookeeper, ActiveMQ servers, etc
 - Jenkins
+- The Cron daemon
+- OSS Database servers (PostgreSQL, MariaDB)
 
-## Current features
+# Current features
 Some of the features of the tool include:
+
 - The ability to specify dependencies (for instance, if one application or service dependds on another), and it will start any dependencies as needed
 - The ability to submit jobs to batch easily, even with custom batch settings (use your own job description or submit as another user, for instance)
 - The ability to check the "liveliness" of your service by either port status or job name
@@ -32,9 +36,11 @@ Some of the features of the tool include:
 - Query basic performance attributes of the services
 - Assistance in providing/managing log files. This is a best-guess only and naively assumes the service uses stdout/stderr as its logging mechanism. Service Commander has its own primitive logging system that works well only for certain types of services
 - Ability to define manage ad hoc services specified on the command line
+- Ability to see what ports are currently opening (have a job listening)
 
-## Important differences from other service management tools
+# Important differences from other service management tools
 Service Commander's design is fundamentally different from other tools that accomplish similar tasks, like init.d, supervisord, and so on. Namely, the functions within Service Commander are intended to work regardless of:
+
 - Who else may start or stop the service
 - What other tools may be used to start or stop the service. For instance, Service Commander may start/stop an IBM i host server, but so could the `STRHOSTSVR`/`ENDHOSTSVR` CL commands.
 - Whether the service runs in the initially spawned job or a secondary job
@@ -45,12 +51,62 @@ Instead, this tool makes strong assumptions based on checks for a particular job
 
 Service Commander's unique design is intended to offer a great deal of flexibility and ease of management through the use of simple `.yaml` files.
 
-## Configuring services through YAML configuration files
-This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
-- A global directory (/QOpenSys/etc/sc/services)
-- A user-specific directory($HOME/.sc/services)
-- If defined, whatever the value of the `services.dir` system property is. 
-The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
+# Configuring Services
+
+## Initializing your configuration with defaults
+
+If you'd like to start with pre-made configurations for common services, simply run the
+`sc_install_defaults` command. Its usage is as follows:
+
+```
+usage: sc_install_defaults [options]
+
+    valid options include:
+        -h            : display help
+        --apache      : autocreate from apache instances (default)
+        --cleanupv0   : clean up files created by v0 (default)
+        --noapache    : don't autocreate from apache instances
+        --nocleanupv0 : don't clean up files created by v0
+        --global      : install for all users
+        --user        : install for current user (default)
+```
+
+This utility can be used to install This will install service definitions for:
+- The Cron daemon (if you have cron installed)
+- MariaDB (if you have mariadb installed)
+- IBM i HTTP Server (DG1) instances (unless you specify `--noapache`)
+
+** Important Note**
+If you ran this tool with v0.x, you will want to clean up the old configurations by running:
+
+```
+sc_install_defaults --cleanupv0
+```
+
+
+## Using the 'scinit' tool
+You can use the `scinit` tool can be used to create the YAML configuration files for you. Basic usage of the tool is simply:
+
+```
+scinit <program start command>
+```
+
+The idea is that you would simply:
+
+1. `cd` to the directory where you'd normally start the service
+2. Run the command you'd normally use to start the service, prefixed by `scinit`
+3. Answer a series of questions about how you would like the service deployed
+In doing so, the `scinit` will create the YAML configuration file for you and also show you information about the newly-configured service.
+
+For instance, if you would normally launch a Node.js application from `/home/MYUSR/mydir` by running `node app.js`, you would run:
+
+```
+cd /home/MYUSR/mydir
+scinit <program start command>
+```
+
+The `scinit` tool will ask you for a "short name" among other things. When done, a service configuration will be saved under that short
+name. So, for instance, if your short name is "my_node_app", you can run `sc start my_node_app`.
 
 ## Ad hoc service definition
 Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`. 
@@ -69,22 +125,36 @@ It is also useful for cases where you just want to find out who (if anyone) is u
 `sc jobinfo port:8080` will show you which job is listening on port 8080. Similarly, `sc stop port:8080` will kill
 whatever job is running on port 8080.
 
-## Sample .yaml configuration files
-See the [samples](samples) directory for some sample service definitions. 
+## Directly creating/editing YAML configuration files
+This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
 
-## YAML File Format
+- A global directory (/QOpenSys/etc/sc/services). This, of coures, requires you to have admin access (`*ALLOBJ` special authority).
+- A user-specific directory($HOME/.sc/services)
+- If defined, whatever the value of the `services.dir` system property is. 
+The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
 
+The file can also be located in any arbitrary directory, but it must be explicitly passed along to the `sc` command, for instance
+
+```
+sc start myservice.yml
+```
+
+### YAML File Format
+See the [samples](https://github.com/ThePrez/ServiceCommander-IBMi/tree/main/samples) directory for some sample service definitions. 
 The following attributes may be specified in the service definition (`.yaml`) file:
-### Required:
-- `start_cmd`: the command used to start the service
-- `check_alive`: the technique used to check whether the service is alive or not. This is either "jobname" or "port".
-- `check_alive_criteria`: The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname".
 
-### Optional but often needed/wanted:
+**Required fields**
+
+- `start_cmd`: the command used to start the service
+- `check_alive`: How to check whether the service is alove or not. This can be a port number, or a job name in either the the format "jobname" or "subsystem/jobname". To specify multiple criteria, just use a comma-separated list or a YAML String array. 
+
+**Optional fields that are often needed/wanted**
+
 - `name`: A "friendly" name of the service
 - `dir`: The working directory in which to run the startup/shutdown commands
 
-### Optional:
+**Other optional fields**
+
 - `stop_cmd`: The service shutdown command. If unspecified, the service will be located by port number or job name.
 - `startup_wait_time`: The wait time, in seconds, to wait for the service to start up (the default is 60 seconds if unspecified)
 - `stop_wait_time`: The wait time, in seconds, to wait for the service to stop (the default is 45 seconds if unspecified)
@@ -96,21 +166,22 @@ The following attributes may be specified in the service definition (`.yaml`) fi
 - `service_dependencies`: An array of services that this service depends on. This is the simple name of the service (for instance, if the dependency is defined as "myservice", then it is expected to be defined in a file named `myservice.yaml`), not the "friendly" name of the service.
 - `groups`: Custom groups that this service belongs to. Groups can be used to start and stop sets of services in a single operation. Specify as an array of strings.
 
+**Deprecated fields**
+- `check_alive_criteria`: (Deprecated)The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname". This field is deprecated. As of v1.0.0, the `check_alive` field handles both port numbers and job names (or a list containing both).
 
-## System Requirements
-For most of the features of this tool, the following is required to be installed (the `make install` of the installation steps should handle these for you):
-- db2util (`yum install db2util`)
-- OpenJDK (`yum install openjdk-11`)
-- bash (`yum install bash`)
-- GNU coreutils (`yum install coreutils-gnu`)
+### YAML file example
+The following is an example of a simple configuration for a Node.js application that runs on port 80:
 
-The performance information support (`perfinfo`) has additional requirements, including:
-- Python 3 with the ibm_db database connector (`yum install python3-ibm_db`)
-- Required operating system support, which depends on your IBM i operating system level, as follows:
-    - IBM i 7.4: included with base OS
-    - IBM i 7.3: Group PTF SF99703 Level 11
-    - IBM i 7.2: Group PTF SF99702 Level 23
-    - IBM i 7.1 (and earlier): not supported
+```yaml
+name: My Node.js application
+dir: /home/MYUSER/myapp
+start_cmd: node index.js
+check_alive: '80'
+batch_mode: 'false'
+environment_vars:
+- PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/ccs/bin:/QOpenSys/usr/bin/X11:/usr/sbin:.:/usr/bin
+
+```
 
 ## Testimonials
 *"I use this a lot for my own personal use. Might be useless for the rest of the world. I don't know, though."*
@@ -120,8 +191,9 @@ The performance information support (`perfinfo`) has additional requirements, in
 # OPTIONS
 
 Usage of the command is summarized as:
-```
-Usage: sc  [options] <operation> <service(s)>
+
+```text
+Usage: sc  [options] <operation> <service>
 
     Valid options include:
         -v: verbose mode
@@ -129,6 +201,8 @@ Usage: sc  [options] <operation> <service(s)>
         --splf: send output to *SPLF when submitting jobs to batch (instead of log)
         --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)
         --ignore-globals: ignore globally-configured services
+        --ignore-groups=x,y,z: ignore services in the specified groups (default is 'system')
+        --all/-a: don't ignore any services. Overrides --ignore-globals and --ignore-groups
 
     Valid operations include:
         start: start the service (and any dependencies)
@@ -136,17 +210,20 @@ Usage: sc  [options] <operation> <service(s)>
         restart: restart the service
         check: check status of the service
         info: print configuration info about the service
-        jobinfo: print which jobs the service is running in
+        jobinfo: print basic performance info about the service
         perfinfo: print basic performance info about the service
         loginfo: get log file info for the service (best guess only)
         list: print service short name and friendly name
-        
+
     Valid formats of the <service(s)> specifier include:
         - the short name of a configured service
+        - A special value of "all" to represent all configured services (same as "group:all")
         - A group identifier (e.g. "group:groupname")
+        - the path to a YAML file with a service configuration
         - An ad hoc service specification by port (for instance, "port:8080")
         - An ad hoc service specification by job name (for instance, "job:ZOOKEEPER")
         - An ad hoc service specification by subsystem and job name (for instance, "job:QHTTPSVR/ADMIN2")
+
 ```
 
 # Automatically restarting a service if it fails
@@ -161,38 +238,85 @@ This will result in several jobs that continuously check on the service and atte
 
 # EXAMPLES
 Start the service named `kafka`:
+
 ```
 sc start kafka
 ```
+
 Stop the service named `zookeeper`:
+
 ```
 sc stop zookeeper
 ```
+
 Check status of all configured services (all services belong to a special group named "all")
+
 ```
 sc check group:all
 ```
+
 Try to start all configured services
+
 ```
 sc start group:all
 ```
+
 Print information about all configured services
+
 ```
 sc info group:all
 ```
+
 Try to start all services in "host_servers" group
+
 ```
 sc start group:host_servers
 ```
+
 List all services
+
 ```
 sc list group:all
 ```
+
+List all services in the special "system" group
+
+```
+sc list group:system
+```
+
+List all services including those in the special "system" group
+
+```
+sc -a list group:all
+```
+
 List jobs running on port 8080
+
 ```
 sc jobinfo port:8080
 ```
+
 Stop jobs running on port 8080
+
 ```
 sc stop port:8080
+```
+
+Check if anything is running on port 8080
+
+```
+sc check port:8080
+```
+
+Start the service defined in a local file, `myservice.yml`
+
+```
+sc start myservice.yml
+```
+
+See what ports are currently listening
+
+```
+scopenports
 ```
