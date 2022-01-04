@@ -274,6 +274,7 @@ been configured for `sc`'s use. To populate some common defaults, run `sc_instal
 # Configuring Services
 
 ## Initializing your configuration with defaults
+
 If you'd like to start with pre-made configurations for common services, simply run the
 `sc_install_defaults` command. Its usage is as follows:
 
