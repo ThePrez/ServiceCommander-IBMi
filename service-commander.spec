@@ -72,7 +72,8 @@ fi
 - feature: Several new options for 'sc_install_defaults'
 - feature: New '--ignore-groups' option for 'sc'
 - feature: Allow service path names to be relative
-- enhancement: more system services for 'sc_install_defaults'
+- feature: preinstall common system services
+- enhancement: hide system services by default
 - enhancement: sort services alphabetically on 'sc check'
 - bugfix: handling single quotes for batch jobs
 - bugfix: startup when originated from symlink
