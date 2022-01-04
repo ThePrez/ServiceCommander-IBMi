@@ -32,7 +32,7 @@ to batch, and more
 %setup -n ServiceCommander-IBMi-%{version}
 
 %build
-touch man/*.1
+rm -f man/*.md
 %make_build all
 
 
