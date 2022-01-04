@@ -1,4 +1,4 @@
-name: Integrated Application Server
+name: management (Digital Certificate Manager, Db2 Mirror)
 start_cmd: system 'strtcpsvr  *ias  instance(admin3)'
 stop_cmd: system 'endtcpsvr  *ias  instance(admin3)'
 

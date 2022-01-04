@@ -1,4 +1,4 @@
-name: HTTP Administration UI
+name: HTTP Administration for i
 start_cmd: system 'strtcpsvr  *ias  instance(admin4)'
 stop_cmd: system 'endtcpsvr  *ias  instance(admin4)'
 
