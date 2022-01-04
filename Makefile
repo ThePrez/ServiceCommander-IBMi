@@ -36,7 +36,7 @@ cc/QOpenSys/pkgs/bin/nohup:
 /QOpenSys/pkgs/bin/ruby:
 	wget https://raw.githubusercontent.com/AndreaRibuoli/RIBY/main/andrearibuoli.repo -O ruby.temporary.repo
 	cp ruby.temporary.repo /QOpenSys/etc/yum/repos.d
-	yum install ruby-devel
+	yum -y install ruby-devel
 	rm /QOpenSys/etc/yum/repos.d/ruby.temporary.repo
 
 /QOpenSys/pkgs/bin/md2man-roff: /QOpenSys/pkgs/bin/ruby /QOpenSys/pkgs/bin/cc /QOpenSys/pkgs/lib/libutil.so 
