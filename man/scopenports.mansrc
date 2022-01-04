@@ -16,8 +16,8 @@ The \f[B]scopenports\f[R] tool is used for showing which TCP/IP ports
 are open on an IBM i server.
 This tool is part of the \f[B]Service Commander\f[R] for IBM i package.
 .PP
-\f[B]scopenports\f[R] will display the ports, in a table, that are open
-on the server as in the following example:
+\f[B]scopenports\f[R] will display the ports that are open on the
+server, in a table, as in the following example:
 .PP
 .TS
 tab(@);
@@ -58,6 +58,6 @@ scopenports options
 \f[C]
 Valid options include:
     \-v: verbose mode
-    \-\-mine: only show ports that you have listening on
+    \-\-mine: only show ports that are running under your user profile
 \f[R]
 .fi

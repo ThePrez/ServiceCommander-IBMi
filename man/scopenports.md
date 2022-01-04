@@ -11,7 +11,7 @@ nav_exclude: true
 The **scopenports** tool is used for showing which TCP/IP ports are open on an IBM i server.
 This tool is part of the **Service Commander** for IBM i package.
 
-**scopenports** will display the ports, in a table, that are open on the server as in the following example:
+**scopenports** will display the ports that are open on the server, in a table, as in the following example:
 
 | IP Address | Port Number | Port Description |
 | ---------- | ----------- | ---------------- |
@@ -28,8 +28,8 @@ Run the `sc_install_defaults` command to initialise common defaults.
 
 Usage of the command is summarized as:
 ```
-Usage: scopenports  [options] 
+Usage: scopenports  [options]
 
     Valid options include:
         -v: verbose mode
-        --mine: only show ports that you have listening on
+        --mine: only show ports that are running under your user profile
