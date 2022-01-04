@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 1.0.0
+Version: 1.0.1
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -69,7 +69,7 @@ fi
 %{_mandir}/man1/sc.*
 
 %changelog
-* Fri Dec 31 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.0.0
+* Fri Dec 31 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.0.1
 - feature(major): allow multiple ports/jobs for a service
 - feature: Several new options for 'sc_install_defaults'
 - feature: New '--ignore-groups' option for 'sc'
