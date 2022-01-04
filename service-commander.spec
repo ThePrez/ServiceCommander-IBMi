@@ -75,6 +75,7 @@ fi
 - feature: preinstall common system services
 - enhancement: hide system services by default
 - enhancement: sort services alphabetically on 'sc check'
+- enhancement: add man pages for all utilities
 - bugfix: handling single quotes for batch jobs
 - bugfix: startup when originated from symlink
 - deps: bump jcmdutils to v0.0.6
