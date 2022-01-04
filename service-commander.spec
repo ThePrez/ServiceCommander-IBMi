@@ -32,12 +32,16 @@ to batch, and more
 %setup -n ServiceCommander-IBMi-%{version}
 
 %build
+# The makefile will try to build the man pages if they don't exist.
+# Forcefully remove source and touch the built versions so that
+# the make rule will not fire
 rm -f man/*.md
 touch man/*.1
 %make_build all
 
 
 %install
+mkdir -p %{buildroot}/%{_mandir}/man1
 %make_install INSTALL_ROOT=%{buildroot}
 
 
@@ -66,7 +70,11 @@ fi
 %dir %{_sysconfdir}/sc/
 %dir %{_sysconfdir}/sc/services/
 %config(noreplace) %{_sysconfdir}/sc/services/system/*
-%{_mandir}/man1/sc.*
+%{_mandir}/man1/sc.1*
+%{_mandir}/man1/scopenports.1*
+%{_mandir}/man1/scinit.*
+%{_mandir}/man1/scedit.*
+%{_mandir}/man1/sc_install_defaults.*
 
 %changelog
 * Fri Dec 31 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.0.1
