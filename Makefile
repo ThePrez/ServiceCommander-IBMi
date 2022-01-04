@@ -53,7 +53,7 @@ man/%.1: man/%.md
 man/%.1.gz: man/%.1
 	gzip $^
 
-install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man/sc.1 man/scopenports.1
+install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man/sc.1 man/scopenports.1 man/scedit.1 man/sc_install_defaults.1 man/scinit.1
 	install -m 755 -o qsys -D -d ${INSTALL_ROOT}/QOpenSys/pkgs/bin ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
 	chmod 755 ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
 	chown -R qsys ${INSTALL_ROOT}/QOpenSys/etc/sc
