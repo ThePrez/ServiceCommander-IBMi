@@ -53,7 +53,7 @@ man/%.1: man/%.md
 man/%.1.gz: man/%.1
 	gzip $^
 
-install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man/sc.1
+install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man/sc.1 man/scopenports.1
 	install -m 755 -o qsys -D -d ${INSTALL_ROOT}/QOpenSys/pkgs/bin ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
 	chmod 755 ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
 	chown -R qsys ${INSTALL_ROOT}/QOpenSys/etc/sc
@@ -68,7 +68,7 @@ install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man
 	install -m 644 -o qsys samples/host_servers/* ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
 	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/etc/sc/services/ -type f -print -exec chmod 644 {} \;
 	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/etc/sc/services/ -type l -print -exec chmod 644 {} \;
-	install -m 444 -o qsys -D man/sc.1 ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/sc.1
+	install -m 444 -o qsys -D man/*.1 ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/
 	install -m 555 -o qsys -D strtcpsvr/install_sc_tcpsvr ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
 	install -m 555 -o qsys -D strtcpsvr/remove_sc_tcpsvr ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/tcpsvr/remove_sc_tcpsvr
 	install -m 444 -o qsys -D strtcpsvr/sc_tcpsvr.c ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/tcpsvr/sc_tcpsvr.c

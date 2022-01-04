@@ -1,6 +1,8 @@
 ---
 nav_exclude: true
 ---
+scppenports 1 "January 2022" IBMi "Open Ports Utility"
+=======================================
 # NAME
 **scopenports** - a tool for showing which TCP/IP ports are open on an IBM i server.
 
@@ -33,3 +35,4 @@ Usage: scopenports  [options]
     Valid options include:
         -v: verbose mode
         --mine: only show ports that are running under your user profile
+```
