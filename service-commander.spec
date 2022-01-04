@@ -63,9 +63,9 @@ fi
 
 %{_bindir}/sc*
 %{_libdir}/sc
+%dir %{_sysconfdir}/sc/
 %dir %{_sysconfdir}/sc/services/
 %config(noreplace) %{_sysconfdir}/sc/services/system/*
-%{_sysconfdir}/sc/
 %{_mandir}/man1/sc.*
 
 %changelog
