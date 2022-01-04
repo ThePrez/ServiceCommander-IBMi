@@ -4,7 +4,8 @@ nav_exclude: true
 sc_install_defaults 1 "January 2022" IBMi "Install Default configs for Service Commander"
 =======================================
 # NAME
-**sc_install_defaults** - a tool for showing which TCP/IP ports are open on an IBM i server.
+**sc_install_defaults** - a tool for installing common configurations for use
+with the `sc` tool.
 
 # SYNOPSIS
 `sc_install_default  [options]`
