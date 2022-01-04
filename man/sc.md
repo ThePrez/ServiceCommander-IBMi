@@ -1,6 +1,8 @@
 ---
 nav_exclude: true
 ---
+sc 1 "January 2022" IBMi "Service Commander for IBM i"
+=======================================
 # NAME
 sc - a tool for managing configured services and applications
 
