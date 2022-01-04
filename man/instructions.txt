@@ -1,0 +1,6 @@
+# To modify or add man pages:
+# 
+# 1. Create or modify the .md file
+# 2. If adding anew, add to the parent directory Makefile
+# 3. Build via "make install" from parent directory
+# 4. Commit the resulting .1 files (and .md files) to git!
