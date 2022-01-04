@@ -1,9 +1,0 @@
-name: System *FILE Host Server
-start_cmd: system 'strhostsvr *FILE'
-stop_cmd: system 'endhostsvr *FILE'
-
-check_alive: port
-check_alive_criteria: 8473
-
-groups:
-  - "host_servers"

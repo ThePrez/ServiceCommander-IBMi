@@ -1,0 +1,9 @@
+name: System DDM server
+start_cmd: system 'STRTCPSVR SERVER(*DDM)'
+stop_cmd: system 'ENDTCPSVR SERVER(*DDM)'
+
+check_alive: 446, 447, 448
+
+groups:
+  - "tcp_servers"
+  - "system"

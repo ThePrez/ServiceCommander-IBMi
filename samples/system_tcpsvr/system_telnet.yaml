@@ -1,0 +1,9 @@
+name: System Telnet server
+start_cmd: system 'STRTCPSVR SERVER(*TELNET)'
+stop_cmd: system 'ENDTCPSVR SERVER(*TELNET)'
+
+check_alive: 992,23
+
+groups:
+  - "tcp_servers"
+  - "system"

@@ -1,0 +1,10 @@
+name: System Secure Shell server
+start_cmd: system 'STRTCPSVR SERVER(*SSHD)'
+stop_cmd: system 'ENDTCPSVR SERVER(*SSHD)'
+
+check_alive: port
+check_alive_criteria: 22
+
+groups:
+  - "tcp_servers"
+  - "system"

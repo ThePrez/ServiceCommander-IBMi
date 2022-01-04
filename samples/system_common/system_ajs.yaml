@@ -1,0 +1,8 @@
+name: Advanced Job Scheduler
+start_cmd: system "STRJS OPTION(*MONITOR)"
+stop_cmd: system "ENDJS   OPTION(*MONITOR)"
+
+check_alive: QIJSSRVZ, 8250
+
+groups:
+  - "system"

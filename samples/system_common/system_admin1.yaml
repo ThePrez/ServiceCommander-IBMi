@@ -1,0 +1,8 @@
+name: Navigator for i (latest generation)
+start_cmd: system 'strtcpsvr  *ias  instance(admin1)'
+stop_cmd: system 'endtcpsvr  *ias  instance(admin1)'
+
+check_alive: QHTTPSVR/ADMIN1, 2002, 2003
+
+groups:
+  - "system"

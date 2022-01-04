@@ -1,4 +1,16 @@
-# Service Commander for IBM i
+---
+nav_exclude: true
+---
+sc 1 "January 2022" IBMi "Service Commander for IBM i"
+=======================================
+# NAME
+sc - a tool for managing configured services and applications
+
+# SYNOPSIS
+`sc  [options] <operation> <service(s)>`
+
+# DESCRIPTION
+
 A utility for unifying the daunting task of managing various services and applications running on IBM i. Its objective is to provide an intuitive, easy-to-use command line interface for managing services or jobs. It also provides integration with `STRTCPSVR`.
 
 This tool can be used to manage a number of services, for instance:
@@ -13,8 +25,6 @@ This tool can be used to manage a number of services, for instance:
 - The Cron daemon
 - OSS Database servers (PostgreSQL, MariaDB)
 
-![logo](sc_logo.jpg)
-
 # Current features
 Some of the features of the tool include:
 
@@ -28,14 +38,6 @@ Some of the features of the tool include:
 - Ability to define manage ad hoc services specified on the command line
 - Ability to see what ports are currently opening (have a job listening)
 
-# Hands-on Exercise
-Want to walk through a quick exercise to get some basic "hands-on" experience with this tool? If so, please see [our very simple hands-on exercise](quickstart/HANDS_ON.md)
-
-# Have feedback or want to contribute?
-Feel free to [open an issue](https://github.com/ThePrez/ServiceCommander-IBMi/issues/new/choose) with any questions, problems, or other comments. If you'd like to contribute to the project, see [CONTRIBUTING.md](https://github.com/ThePrez/ServiceCommander-IBMi/blob/main/CONTRIBUTING.md) for more information on how to get started. 
-
-In any event, we're glad to have you aboard in any capacity, whether as a user, spectator, or contributor!
-
 # Important differences from other service management tools
 Service Commander's design is fundamentally different from other tools that accomplish similar tasks, like init.d, supervisord, and so on. Namely, the functions within Service Commander are intended to work regardless of:
 
@@ -48,230 +50,6 @@ Also, this tool doesn't have the privilege of being the unified, integrated solu
 Instead, this tool makes strong assumptions based on checks for a particular job name or port usage (see `check_alive_criteria` in the file format documentation). A known limitation, therefore, is that Service Commander may mistake another job for a configured service based on one of these attributes. For example, if you configure a service that is supposed to be listening on port 80, Service Commander will assume that any job listening on port 80 is indeed that service.
 
 Service Commander's unique design is intended to offer a great deal of flexibility and ease of management through the use of simple `.yaml` files.
-
-# Installation
-
-## System Requirements
-
-For most of the features of this tool, the following is required to be installed (the installation steps should handle these for you):
-
-- db2util (`yum install db2util`)
-- OpenJDK (`yum install openjdk-11`)
-- bash (`yum install bash`)
-- GNU coreutils (`yum install coreutils-gnu`)
-
-The performance information support (`perfinfo`) has additional requirements that are not automatically installed, including:
-
-- Python 3 with the ibm_db database connector (`yum install python3-ibm_db`)
-- Required operating system support, which depends on your IBM i operating system level, as follows:
-
-    - IBM i 7.4: included with base OS
-    - IBM i 7.3: Group PTF SF99703 Level 11
-    - IBM i 7.2: Group PTF SF99702 Level 23
-    - IBM i 7.1 (and earlier): not supported
-
-
-## Option 1: Binary distribution
-You can install the binary distribution by installing the `service-commander` package:
-
-```
-yum install service-commander
-```
-
-If you are not familiar with IBM i RPMs, see [this documentation](http://ibm.biz/ibmi-rpms) to get started.
-
-## Option 2: Build from source (for development or fix evaluation)
-Feel free to build from the `main` branch to start making code contributions or to evaluate a fix/feature not yet publish. This process assumes your `PATH` environment variable is set up properly, otherwise:
-
-```
-PATH=/QOpenSys/pkgs/bin:$PATH
-export PATH
-```
-
-The build itself can be done with the following steps:
-
-```
-yum install git ca-certificates-mozilla make-gnu
-git clone https://github.com/ThePrez/ServiceCommander-IBMi/
-cd ServiceCommander-IBMi
-make install_with_runtime_dependencies
-```
-
-# Basic usage
-
-Usage of the command is summarized as:
-
-```text
-Usage: sc  [options] <operation> <service>
-
-    Valid options include:
-        -v: verbose mode
-        --disable-colors: disable colored output
-        --splf: send output to *SPLF when submitting jobs to batch (instead of log)
-        --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)
-        --ignore-globals: ignore globally-configured services
-        --ignore-groups=x,y,z: ignore services in the specified groups (default is 'system')
-        --all/-a: don't ignore any services. Overrides --ignore-globals and --ignore-groups
-
-    Valid operations include:
-        start: start the service (and any dependencies)
-        stop: stop the service (and dependent services)
-        restart: restart the service
-        check: check status of the service
-        info: print configuration info about the service
-        jobinfo: print basic performance info about the service
-        perfinfo: print basic performance info about the service
-        loginfo: get log file info for the service (best guess only)
-        list: print service short name and friendly name
-
-    Valid formats of the <service(s)> specifier include:
-        - the short name of a configured service
-        - A special value of "all" to represent all configured services (same as "group:all")
-        - A group identifier (e.g. "group:groupname")
-        - the path to a YAML file with a service configuration
-        - An ad hoc service specification by port (for instance, "port:8080")
-        - An ad hoc service specification by job name (for instance, "job:ZOOKEEPER")
-        - An ad hoc service specification by subsystem and job name (for instance, "job:QHTTPSVR/ADMIN2")
-
-```
-
-The above usage assumes the program is installed with the above installation steps and is therefore
-launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn compile`), 
-you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
-
-
-**Specifying options in environment variables**
-If you would like to set some of the tool's options via environment variable, you may do so with one of the following:
-
-- `SC_TCPSVR_OPTIONS`, which will be processed when invoked via the `STRTCPSVR`/`ENDTCPSVR` commands
-- `SC_OPTIONS`, which will be processed on all invocations
-For example, to gather verbose output when using `STRTCPSVR`, run the following before your `STRTCPSVR` command:
-
-```
-ADDENVVAR ENVVAR(SC_OPTIONS) VALUE('-v') REPLACE(*YES)
-```
-
-## Special `system` group (hidden by default)
-Service Commander ships a handful of pre-made configurations for common system services. These include things like:
-
-- IBM i host servers
-- common system services (like ftp, ssh, etc)
-- Administration interfaces (like Navigator for i)
-
-By default, the `sc` command ignores these system services. So, for instance, if you run `sc check all`, it will omit
-these preconfigured system services. In order to include them, use the `-a` option, for instance `sc -a check all`.
-
-## Usage examples
-
-Start the service named `kafka`:
-
-```
-sc start kafka
-```
-
-Stop the service named `zookeeper`:
-
-```
-sc stop zookeeper
-```
-
-Check status of all configured services (all services belong to a special group named "all")
-
-```
-sc check group:all
-```
-
-Try to start all configured services
-
-```
-sc start group:all
-```
-
-Print information about all configured services
-
-```
-sc info group:all
-```
-
-Try to start all services in "host_servers" group
-
-```
-sc start group:host_servers
-```
-
-List all services
-
-```
-sc list group:all
-```
-
-List all services in the special "system" group
-
-```
-sc list group:system
-```
-
-List all services including those in the special "system" group
-
-```
-sc -a list group:all
-```
-
-List jobs running on port 8080
-
-```
-sc jobinfo port:8080
-```
-
-Stop jobs running on port 8080
-
-```
-sc stop port:8080
-```
-
-Check if anything is running on port 8080
-
-```
-sc check port:8080
-```
-
-Start the service defined in a local file, `myservice.yml`
-
-```
-sc start myservice.yml
-```
-
-See what ports are currently listening
-
-```
-scopenports
-```
-
-## Checking which ports are currently open
-As of version 0.7.x, Service Commander also comes with a utility, `scopenports` that allow you to see which ports are open.
-Usage is as follows:
-
-```fortran
-Usage: scopenports  [options]
-
-    Valid options include:
-        -v: verbose mode
-        --mine: only show ports that you have listening
-```
-
-Example output when invoked with the `--mine` option:
-
-![image](https://user-images.githubusercontent.com/17914061/146984207-826a1f5e-5021-494e-820d-a3b44d2be20a.png)
-
-The value in the service name column can be used with the `sc` command. For instance, with
-the above example, if I wanted to see which job was running on port 62006, I could run
-
-```bash
-sc jobinfo port:62006
-```
-
-**Important Note:** Currently, the `scopenports` utility can only show human-readable descriptions for services that have
-been configured for `sc`'s use. To populate some common defaults, run `sc_install_defaults`.
 
 # Configuring Services
 
@@ -304,6 +82,7 @@ If you ran this tool with v0.x, you will want to clean up the old configurations
 ```
 sc_install_defaults --cleanupv0
 ```
+
 
 ## Using the 'scinit' tool
 You can use the `scinit` tool can be used to create the YAML configuration files for you. Basic usage of the tool is simply:
@@ -404,11 +183,51 @@ environment_vars:
 
 ```
 
-# Demo (video)
-[![asciicast](https://asciinema.org/a/459898.svg)](https://asciinema.org/a/459898)
+## Testimonials
+*"I use this a lot for my own personal use. Might be useless for the rest of the world. I don't know, though."*
+
+ &nbsp; --[@ThePrez](https://github.com/ThePrez/), creator of Service Commander
+ 
+# OPTIONS
+
+Usage of the command is summarized as:
+
+```text
+Usage: sc  [options] <operation> <service>
+
+    Valid options include:
+        -v: verbose mode
+        --disable-colors: disable colored output
+        --splf: send output to *SPLF when submitting jobs to batch (instead of log)
+        --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)
+        --ignore-globals: ignore globally-configured services
+        --ignore-groups=x,y,z: ignore services in the specified groups (default is 'system')
+        --all/-a: don't ignore any services. Overrides --ignore-globals and --ignore-groups
+
+    Valid operations include:
+        start: start the service (and any dependencies)
+        stop: stop the service (and dependent services)
+        restart: restart the service
+        check: check status of the service
+        info: print configuration info about the service
+        jobinfo: print basic performance info about the service
+        perfinfo: print basic performance info about the service
+        loginfo: get log file info for the service (best guess only)
+        list: print service short name and friendly name
+
+    Valid formats of the <service(s)> specifier include:
+        - the short name of a configured service
+        - A special value of "all" to represent all configured services (same as "group:all")
+        - A group identifier (e.g. "group:groupname")
+        - the path to a YAML file with a service configuration
+        - An ad hoc service specification by port (for instance, "port:8080")
+        - An ad hoc service specification by job name (for instance, "job:ZOOKEEPER")
+        - An ad hoc service specification by subsystem and job name (for instance, "job:QHTTPSVR/ADMIN2")
+
+```
 
 # Automatically restarting a service if it fails
-Currently, this tool does not have built-in monitoring and restart capabilities. This may be a future enhancement. In the meantime, one can use simple scripting to accomplish a similar task. For instance, to check every 40 seconds and ensure that the `navigator` service is running, you could submit a job like this (replace the sleep time, service name, and submitted job name to match your use case):
+Currently, this tool doees not have built-in monitoring and restart capabilities. This may be a future enhancement. In the meantime, one can use simple scripting to accomplish a similar task. For instance, to check every 40 seconds and ensure that the `navigator` service is running, you could submit a job like this (replace the sleep time, service name, and submitted job name to match your use case):
 
 ```
 SBMJOB CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '-c' 'while :; do sleep 40 && /QOpenSys/pkgs/bin/sc start navigator >/dev/null 2>&1 ; done')) JOB(NAVMON) JOBD(*USRPRF) JOBQ(QUSRNOMAX)                         
@@ -420,59 +239,87 @@ This will result in several jobs that continuously check on the service and atte
  WRKACTJOB JOB(NAVMON) 
 ```
 
-# Testimonials
-> "I use this a lot for my own personal use. Might be useless for the rest of the world. I don't know, though."
->
-> &nbsp; --[@ThePrez](https://github.com/ThePrez/), creator of Service Commander
-
-# STRTCPSVR Integration
-
-Service Commander now has integration with system STRTCPSVR and ENDTCPSVR commands. This feature is experimental and may be removed
-if too problematic.
-
-To integrate with the STRTCPSVR and ENDTCPSVR commands, you can run the following command as an admin user:
+# EXAMPLES
+Start the service named `kafka`:
 
 ```
-/QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
+sc start kafka
 ```
 
-This will install create the `SCOMMANDER` library and compile/install the TCP program into that library. To use a different
-library, just set the `SCTARGET` variable. For instance:
+Stop the service named `zookeeper`:
 
 ```
-SCTARGET=mylib /QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
+sc stop zookeeper
 ```
 
-If you need to compile to a previous release of IBM i, set the `SCTGTRLS` variable to the required value of CRTCMOD parameter TGTRLS. Example for IBM i 7.1:
+Check status of all configured services (all services belong to a special group named "all")
 
 ```
-SCTGTRLS=V7R1M0 /QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
+sc check group:all
 ```
 
-After doing so, you can run the `*SC` TCP server commands, specifying the simple name of the sc-managed service as the instance name. For example:
+Try to start all configured services
 
 ```
-STRTCPSVR SERVER(*SC) INSTANCE('kafka')
+sc start group:all
 ```
 
-# Using with ADDJOBSCDE
-
-It may be desired to start, stop, or ensure the liveliness of services on a particular schedule. This is most easily accomplished once the `STRTCPSVR`
-integration is leveraged. This makes it easier to create job scheduler entries. For instance, to ensure that the `myapp` service is
-running, every day at 01:00:
+Print information about all configured services
 
 ```
-ADDJOBSCDE JOB(SC) CMD(STRTCPSVR SERVER(*SC) INSTANCE('myapp')) FRQ(*WEEKLY) SCDDATE(*NONE) SCDDAY(*ALL) SCDTIME(010000)
+sc info group:all
 ```
 
-**Important Notes about AUTOSTART(*YES)**
+Try to start all services in "host_servers" group
 
-You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user. Be are that adding QTCP to new group profiles or granting special authorities may represent a security exposure. Also, due to the highly-flexible nature of this tool, it is not good practice to run this command as an elevated user in an unattended fashion. 
-In summary, it is likely not a good idea to use `AUTOSTART(*YES)`.
+```
+sc start group:host_servers
+```
 
+List all services
 
-**Special groups used by STRTCPSVR/ENDTCPSVR**
-There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
+```
+sc list group:all
+```
 
-- `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
-- `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
+List all services in the special "system" group
+
+```
+sc list group:system
+```
+
+List all services including those in the special "system" group
+
+```
+sc -a list group:all
+```
+
+List jobs running on port 8080
+
+```
+sc jobinfo port:8080
+```
+
+Stop jobs running on port 8080
+
+```
+sc stop port:8080
+```
+
+Check if anything is running on port 8080
+
+```
+sc check port:8080
+```
+
+Start the service defined in a local file, `myservice.yml`
+
+```
+sc start myservice.yml
+```
+
+See what ports are currently listening
+
+```
+scopenports
+```

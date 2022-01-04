@@ -1,0 +1,8 @@
+name: HTTP Admin Server
+start_cmd: system 'STRTCPSVR SERVER(*HTTP) HTTPSVR(*ADMIN) '
+stop_cmd: system 'ENDTCPSVR SERVER(*HTTP) HTTPSVR(*ADMIN) '
+
+check_alive: QHTTPSVR/ADMIN, 2001, 2010
+
+groups:
+  - "system"

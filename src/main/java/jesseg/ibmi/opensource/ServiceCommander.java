@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
@@ -12,11 +13,15 @@ import java.util.Stack;
 import com.github.theprez.jcmdutils.AppLogger;
 import com.github.theprez.jcmdutils.AppLogger.DeferredLogger;
 import com.github.theprez.jcmdutils.StringUtils;
+import com.github.theprez.jcmdutils.StringUtils.TerminalColor;
 
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
+import jesseg.ibmi.opensource.utils.QueryUtils;
+import jesseg.ibmi.opensource.yaml.YamlServiceDef;
 import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
+
 /**
  * Main entry point for the application
  *
@@ -30,7 +35,7 @@ public class ServiceCommander {
      *
      * @param _logger
      */
-    private static void checkApplicationDependencies(final AppLogger _logger) {
+    static void checkApplicationDependencies(final AppLogger _logger) {
         // Why does this program require OSS Java distributions?
         // Why can't it just work with JV1?
         //
@@ -70,7 +75,7 @@ public class ServiceCommander {
         final CheckAliveType caType = _desc.toLowerCase().trim().startsWith("port:") ? CheckAliveType.PORT : CheckAliveType.JOBNAME;
         final String caCriteria = _desc.toLowerCase().trim().replaceFirst(".*:", "").trim();
         for (final ServiceDefinition svc : serviceDefs.getServices()) {
-            if (caType == svc.getCheckAliveType() && caCriteria.equalsIgnoreCase(svc.getCheckAliveCriteria().trim())) {
+            if (svc.getCheckAlives().contains(new ServiceDefinition.SimpleCheckAlive(caType, caCriteria))) {
                 _logger.printfln_verbose("Found pre-existing service for ad hoc specs: %s", svc.getFriendlyName());
                 return svc;
             }
@@ -80,15 +85,48 @@ public class ServiceCommander {
         _logger.printfln_verbose("Creating ad hoc service for %s", _desc);
         final String shortName = "ad_hoc_"+_desc.replace(':', '_').replace('/', '_');
         return new ServiceDefinition() {
-            @Override public String getCheckAliveCriteria()     { return caCriteria;   }
-            @Override public CheckAliveType getCheckAliveType() { return caType;       }
+            @Override public List<CheckAlive> getCheckAlives()  {return Collections.singletonList(new SimpleCheckAlive(caType, caCriteria)); }
             @Override public String getFriendlyName()           { return friendlyName; }
             @Override public String getName()                   { return shortName;    }
             @Override public String getSource()                 { return "<ad hoc>";   }
             @Override public String getStartCommand()           { return "";           }
+            @Override public boolean isAdHoc()                  { return true;         }
         };
 //@formatter:on
 
+    }
+
+    public static void listOpenPorts(final AppLogger _logger, final LinkedList<String> _args) throws SCException {
+        try {
+            final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(_logger, false);
+            serviceDefs.checkForCheckaliveConflicts(_logger);
+            final List<String> addrs = QueryUtils.getListeningAddrs(_logger, _args.contains("--mine"));
+            _logger.println("Address          Port    'sc' service name (and friendly name)");
+            _logger.println("---------------  ------  --------------------------------------------");
+            for (final String addr : addrs) {
+                final Integer port = Integer.valueOf(addr.replaceAll(".*:", ""));
+                final String ip = addr.replaceAll(":[^:]+", "");
+                final ServiceDefinition svcDef = getAdHocServiceDef("port:" + port, serviceDefs, _logger);
+                String line = StringUtils.spacePad(ip, 17);
+                line += StringUtils.spacePad("" + port, 8);
+                if (svcDef.isAdHoc()) {
+                    line += StringUtils.colorizeForTerminal("port:" + port, TerminalColor.CYAN);
+                } else {
+                    line += StringUtils.colorizeForTerminal(svcDef.getName(), TerminalColor.CYAN);
+                    line += " (" + svcDef.getFriendlyName() + ")";
+                }
+                _logger.println(line);
+            }
+        } catch (final Exception e) {
+            throw SCException.fromException(e, _logger);
+        }
+    }
+
+    private static boolean looksLikeFilename(final String _svc) {
+        if (_svc.startsWith("/") || _svc.contains(".")) {
+            return true;
+        }
+        return new File(_svc).canRead();
     }
 
     public static void main(final String... _args) {
@@ -108,17 +146,29 @@ public class ServiceCommander {
         // Process all bool-type arguments, including "-v" to initialize our logger
         System.setProperty(StringUtils.PROP_DISABLE_COLORS, "" + Boolean.valueOf(args.remove("--disable-colors")));
         System.setProperty(OperationExecutor.PROP_BATCHOUTPUT_SPLF, "" + Boolean.valueOf(args.remove("--splf")));
-        System.setProperty(YamlServiceDefLoader.PROP_IGNORE_GLOBALS, "" + Boolean.valueOf(args.remove("--ignore-globals")));
+        boolean isIgnoreGlobals = false;
+        String[] ignoreGroups = new String[] { "system" };
+
         if (args.remove("-h") || args.remove("--help")) {
             printUsageAndExit();
         }
         final AppLogger logger = new AppLogger.DefaultLogger(args.remove("-v"));
-
         for (final String remainingArg : args) {
             if (remainingArg.startsWith("--sampletime=")) {
                 try {
                     final float value = Float.parseFloat(remainingArg.replaceAll(".*=", ""));
                     System.setProperty(OperationExecutor.PROP_SAMPLE_TIME, String.format("%.2f", value));
+                } catch (final Exception e) {
+                    logger.printfln_warn("WARNING: Value specified for sample time argument is not valid: %s", remainingArg);
+                }
+            } else if (remainingArg.equalsIgnoreCase("--ignore-globals")) {
+                isIgnoreGlobals = true;
+            } else if (remainingArg.equalsIgnoreCase("--all") || remainingArg.equalsIgnoreCase("-a")) {
+                isIgnoreGlobals = false;
+                ignoreGroups = new String[0];
+            } else if (remainingArg.startsWith("--ignore-groups=")) {
+                try {
+                    ignoreGroups = remainingArg.replaceAll(".*=", "").split("\\s*,\\s*");
                 } catch (final Exception e) {
                     logger.printfln_warn("WARNING: Value specified for sample time argument is not valid: %s", remainingArg);
                 }
@@ -133,7 +183,16 @@ public class ServiceCommander {
         checkApplicationDependencies(logger);
 
         try {
-            final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger);
+            final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger, isIgnoreGlobals);
+            if (service.toLowerCase().startsWith("group:")) {
+                String groupName = service.substring("group:".length()).trim();
+                for (int i = 0; i < ignoreGroups.length; ++i) {
+                    if (ignoreGroups[i].equalsIgnoreCase(groupName)) {
+                        ignoreGroups[i] = "<redacted>";
+                    }
+                }
+            }
+            serviceDefs.removeServicesInGroup(service, ignoreGroups);
             serviceDefs.checkForCheckaliveConflicts(logger);
             final Operation op;
             try {
@@ -145,11 +204,16 @@ public class ServiceCommander {
                 service = "group:all";
             }
             if (service.toLowerCase().startsWith("group:")) {
-                performOperationsOnServices(op, serviceDefs.getServicesInGroup(service.substring("group:".length()).trim(), logger), serviceDefs, logger);
+                String groupName = service.substring("group:".length()).trim();
+                performOperationsOnServices(op, serviceDefs.getServicesInGroup(groupName, logger), serviceDefs, logger);
             } else if (service.toLowerCase().startsWith("port:") || service.toLowerCase().startsWith("job:")) {
                 final ServiceDefinition adHoc = getAdHocServiceDef(service, serviceDefs, logger);
                 serviceDefs.put(adHoc);
                 performOperationsOnServices(op, Collections.singleton(adHoc.getName()), serviceDefs, logger);
+            } else if (looksLikeFilename(service)) {
+                final YamlServiceDef def = new YamlServiceDef(null, new File(service), logger);
+                serviceDefs.put(def);
+                performOperationsOnServices(op, Collections.singleton(def.getName()), serviceDefs, logger);
             } else {
                 performOperationsOnServices(op, Collections.singleton(service), serviceDefs, logger);
             }
@@ -215,6 +279,8 @@ public class ServiceCommander {
                                 + "        --splf: send output to *SPLF when submitting jobs to batch (instead of log)\n"
                                 + "        --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)\n"
                                 + "        --ignore-globals: ignore globally-configured services\n"
+                                + "        --ignore-groups=x,y,z: ignore services in the specified groups (default is 'system')\n"
+                                + "        --all/-a: don't ignore any services. Overrides --ignore-globals and --ignore-groups\n"
                                 + "\n"
 		                        + "    Valid operations include:\n"
                 				+ "        start: start the service (and any dependencies)\n"
@@ -231,6 +297,7 @@ public class ServiceCommander {
                                 + "        - the short name of a configured service\n"
                                 + "        - A special value of \"all\" to represent all configured services (same as \"group:all\")\n"
                                 + "        - A group identifier (e.g. \"group:groupname\")\n"
+                                + "        - the path to a YAML file with a service configuration\n"
                                 + "        - An ad hoc service specification by port (for instance, \"port:8080\")\n"
                                 + "        - An ad hoc service specification by job name (for instance, \"job:ZOOKEEPER\")\n"
                                 + "        - An ad hoc service specification by subsystem and job name (for instance, \"job:QHTTPSVR/ADMIN2\")\n"

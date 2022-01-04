@@ -20,14 +20,33 @@ import jesseg.ibmi.opensource.ServiceDefinitionCollection;
 public class YamlServiceDefLoader {
 
     public static final String PROP_IGNORE_GLOBALS = "sc.ignoreglobalconfigs";
-    private final Pattern s_filePattern = Pattern.compile("^([a-z\\-_0-9]+)\\.y[a]{0,1}ml$");
+    private static final Pattern s_filePattern = Pattern.compile("^([a-z\\-_0-9]+)\\.y[a]{0,1}ml$");
+
+    public static Pattern getFilePattern() {
+        return s_filePattern;
+    }
+
+    public static String getServiceNameFromFile(final File _f) {
+        final Matcher m = s_filePattern.matcher(_f.getName());
+        if (!m.find()) {
+            return null;
+        }
+        return m.group(1);
+    }
 
     ServiceDefinitionCollection loadFromDirectory(final File _dir, final AppLogger _logger) throws SCException {
         final ServiceDefinitionCollection ret = new ServiceDefinitionCollection();
         if (null == _dir) {
             return ret;
         }
-        for (final File f : _dir.listFiles()) {
+        File[] files = _dir.listFiles();
+        if(null == files) {
+            _logger.printfln_warn_verbose("Unable to read from directory '%s'", ""+_dir);
+        }
+        for (final File f : files) {
+            if(f.isDirectory()) {
+                continue;
+            }
             final String fileName = f.getName();
             final Matcher m = s_filePattern.matcher(fileName);
             if (!m.find()) {
@@ -35,17 +54,24 @@ public class YamlServiceDefLoader {
                 continue;
             }
             final String serviceName = m.group(1);
-            ret.put(new YamlServiceDef(serviceName, f, _logger));
+            try {
+                ret.put(new YamlServiceDef(serviceName, f, _logger));
+            } catch (final SCException e) {
+                _logger.println_warn("WARNING: Ignoring file due to load errors: " + f.getAbsolutePath());
+            }
         }
         return ret;
     }
 
-    public ServiceDefinitionCollection loadFromYamlFiles(final AppLogger _logger) throws SCException {
+    public ServiceDefinitionCollection loadFromYamlFiles(final AppLogger _logger, final boolean _ignoreGlobals) throws SCException {
         final ServiceDefinitionCollection ret = new ServiceDefinitionCollection();
-        if (Boolean.getBoolean(PROP_IGNORE_GLOBALS)) {
+        if (_ignoreGlobals) {
             _logger.println_verbose("Ignoring globally configured services");
         } else {
-            ret.putAll(loadFromDirectory(AppDirectories.conf.getGlobalServicesDirOrNull(), _logger));
+            File globalDir = AppDirectories.conf.getGlobalServicesDirOrNull();
+            ret.putAll(loadFromDirectory(globalDir, _logger));
+            ret.putAll(loadFromDirectory(new File(globalDir, "system"), _logger));
+            
         }
         ret.putAll(loadFromDirectory(AppDirectories.conf.getUserServicesDirOrNull(), _logger));
         ret.putAll(loadFromDirectory(AppDirectories.conf.getCustomServicesDirOrNull(), _logger));

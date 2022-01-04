@@ -1,0 +1,9 @@
+name: System Line Printer Daemon Server
+start_cmd: system 'STRTCPSVR SERVER(*LPD)'
+stop_cmd: system 'ENDTCPSVR SERVER(*LPD)'
+
+check_alive: 515
+
+groups:
+  - "tcp_servers"
+  - "system"

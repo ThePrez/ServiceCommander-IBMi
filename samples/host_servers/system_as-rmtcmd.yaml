@@ -1,0 +1,9 @@
+name: System *RMTCMD Host Server
+start_cmd: system 'strhostsvr *RMTCMD'
+stop_cmd: system 'endhostsvr *RMTCMD'
+
+check_alive: 9475,8475
+
+groups:
+  - "host_servers"
+  - "system"

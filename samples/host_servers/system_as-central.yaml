@@ -1,0 +1,9 @@
+name: System *CENTRAL Host Server
+start_cmd: system 'strhostsvr *CENTRAL'
+stop_cmd: system 'endhostsvr *CENTRAL'
+
+check_alive: 8470,9470
+
+groups:
+  - "host_servers"
+  - "system"

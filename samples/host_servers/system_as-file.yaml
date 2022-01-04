@@ -1,0 +1,9 @@
+name: System *FILE Host Server
+start_cmd: system 'strhostsvr *FILE'
+stop_cmd: system 'endhostsvr *FILE'
+
+check_alive: QPWFSERVSD,8473,8477, 9473
+
+groups:
+  - "host_servers"
+  - "system"

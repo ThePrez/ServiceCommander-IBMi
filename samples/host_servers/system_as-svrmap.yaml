@@ -1,0 +1,10 @@
+name: System *SVRMAP Host Server
+start_cmd: system 'strhostsvr *SVRMAP'
+stop_cmd: system 'endhostsvr *SVRMAP'
+
+check_alive: port
+check_alive_criteria: 449
+
+groups:
+  - "host_servers"
+  - "system"

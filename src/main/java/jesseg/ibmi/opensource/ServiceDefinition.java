@@ -3,6 +3,7 @@ package jesseg.ibmi.opensource;
 import java.util.LinkedList;
 import java.util.List;
 
+import jesseg.ibmi.opensource.utils.ListUtils;
 import jesseg.ibmi.opensource.yaml.YamlServiceDef;
 
 /**
@@ -55,6 +56,12 @@ public abstract class ServiceDefinition {
         }
     }
 
+    public interface CheckAlive {
+        public CheckAliveType getType();
+
+        public String getValue();
+    }
+
     /**
      * The technique used to check whether the service is alive or not
      */
@@ -67,6 +74,47 @@ public abstract class ServiceDefinition {
          * Check whether the job is alive by checking whether a job is listening on the given port
          */
         PORT
+    }
+
+    public static class SimpleCheckAlive implements CheckAlive {
+
+        private final CheckAliveType m_type;
+
+        private final String m_value;
+
+        public SimpleCheckAlive(final CheckAliveType _type, final String _value) {
+            super();
+            this.m_type = _type;
+            this.m_value = _value;
+        }
+
+        @Override
+        public boolean equals(final Object _o) {
+            if (!(_o instanceof SimpleCheckAlive)) {
+                return false;
+            }
+            return toString().equals(_o.toString());
+        }
+
+        @Override
+        public CheckAliveType getType() {
+            return m_type;
+        }
+
+        @Override
+        public String getValue() {
+            return m_value;
+        }
+
+        @Override
+        public int hashCode() {
+            return toString().hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "" + m_type.name() + ":" + m_value;
+        }
     }
 
     /**
@@ -86,17 +134,20 @@ public abstract class ServiceDefinition {
         return BatchMode.NO_BATCH;
     }
 
-    /**
-     * The criteria for checking whether the job is alive or not (either a job name or port number)
-     *
-     * @return the job name or port number, depending on the return value of {@link #getCheckAliveType()}
-     */
-    public abstract String getCheckAliveCriteria();
+    public abstract List<CheckAlive> getCheckAlives();
+
+    public String getCheckAlivesHumanReadable() {
+        return ListUtils.toString(getCheckAlives(), ", ");
+    }
 
     /**
-     * @see CheckAliveType
+     * Get the working directory that is configured to be used for starting and stopping the service, or <tt>null</tt> if unset
+     *
+     * @return the working directory (this method will return <tt>null</tt> if there is no directory configured
      */
-    public abstract CheckAliveType getCheckAliveType();
+    public String getConfiguredWorkingDirectory() {
+        return null;
+    }
 
     /**
      * A list of other services that are dependencies of this one, if any.
@@ -105,6 +156,15 @@ public abstract class ServiceDefinition {
      */
     public List<String> getDependencies() {
         return new LinkedList<String>();
+    }
+
+    /**
+     * Get the working directory to be used for starting and stopping the service
+     *
+     * @return the working directory (this method will not return <tt>null</tt>)
+     */
+    public String getEffectiveWorkingDirectory() {
+        return System.getProperty("user.dir");
     }
 
     /**
@@ -193,22 +253,18 @@ public abstract class ServiceDefinition {
         return null;
     }
 
-    /**
-     * Get the working directory to be used for starting and stopping the service
-     *
-     * @return the working directory (this method will not return <tt>null</tt>)
-     */
-    public String getEffectiveWorkingDirectory() {
-        return System.getProperty("user.dir");
+    public boolean isAdHoc() {
+        return false;
     }
 
-    /**
-     * Get the working directory that is configured to be used for starting and stopping the service, or <tt>null</tt> if unset
-     *
-     * @return the working directory (this method will return <tt>null</tt> if there is no directory configured
-     */
-    public String getConfiguredWorkingDirectory() {
-        return null;
+    public boolean isInGroup(final String _group) {
+        final List<String> groups = getGroups();
+        for (final String group : groups) {
+            if (group.equalsIgnoreCase(_group)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

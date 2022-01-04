@@ -3,6 +3,7 @@ package jesseg.ibmi.opensource;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,7 +18,6 @@ import com.github.theprez.jcmdutils.StringUtils.TerminalColor;
 
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
-import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
 import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
 
 public class ServiceInit {
@@ -30,46 +30,86 @@ public class ServiceInit {
         }
     }
 
-    public static void main(final String[] _args) {
+    public static void main(final String[] _args) throws SCException {
         if (0 == _args.length) {
             printUsageAndExit();
         }
         final AppLogger logger = new AppLogger.DefaultLogger(false);
         final ConsoleQuestionAsker console = new ConsoleQuestionAsker();
         final String currentDir = getCurrentDir();
-        final boolean isGlobal = console.askBooleanQuestion(logger, "y", "Would you like this service to be available to all users?");
-        final String shortName = console.askStringMatchingRegexQuestion(logger, null, "^([a-z\\\\-_0-9]+)$", "lowercase letters, numbers, hyphens, or underscores", "Short name:");
-        final String friendlyName = console.askStringMatchingRegexQuestion(logger, null, "^[^\\:]+$", "a string not containing a colon", "Friendly name:");
+        final boolean isGlobal = console.askBooleanQuestion(logger, "n", "Would you like this service to be available to all users?");
+        final String shortName = console.askNonEmpyStringMatchingRegexQuestion(logger, null, "^([a-z\\\\-_0-9]+)$", "lowercase letters, numbers, hyphens, or underscores", "Short name:");
+        final String friendlyName = console.askNonEmpyStringMatchingRegexQuestion(logger, null, "^[^\\:]+$", "a string not containing a colon", "Friendly name:");
         final boolean isCurrentDir = console.askBooleanQuestion(logger, "y", "Must the application be started in the current directory (%s)?", currentDir);
         final String startCmd = (1 == _args.length) ? _args[0] : StringUtils.arrayToSpaceSeparatedString(_args);
-        final CheckAliveType checkAliveType = console.askEnumQuestion(logger, "How can the application be checked for liveliness?", CheckAliveType.class);
-        String checkAliveCriteria;
-        if (CheckAliveType.PORT == checkAliveType) {
-            checkAliveCriteria = "" + console.askIntQuestion(logger, null, "Which port does your application run on?");
-        } else {
-            checkAliveCriteria = console.askStringMatchingRegexQuestion(logger, null, "(?i)^[a-z0-9#]+(\\/[a-z0-9#]+){0,1}$", "JOBNAME or SUBSYSTEM/JOBNAME", "What job does your application run in?");
-        }
-        final ServiceInit si = new ServiceInit(isGlobal, shortName, friendlyName, isCurrentDir ? getCurrentDir() : null, startCmd, checkAliveType, checkAliveCriteria);
-
-        final boolean isBatch = console.askBooleanQuestion(logger, "n", "Will your application need to be submitted to batch?");
-        si.setBatch(isBatch);
-        if (isBatch) {
-            final String jobName = console.askStringQuestion(logger, "", "What job name should be used? (leave blank for default)");
-            if (!StringUtils.isEmpty(jobName)) {
-                si.setBatchJobName(jobName);
+        String checkAliveCriteria = "";
+        while (true) {
+            final String userEnteredCriteria = console.askStringQuestion(logger, "", "If your application runs under a unique job name, what is it? Leave blank for none:");
+            if (StringUtils.isNonEmpty(userEnteredCriteria)) {
+                final String[] components = userEnteredCriteria.split("\\s*,\\s*");
+                for (final String component : components) {
+                    if (!component.matches("(?i)^[a-z0-9#]+(\\/[a-z0-9#]+){0,1}$")) {
+                        logger.println_warn("Response not valid. Enter a comma-separated list of job names in JOBNAME or SUBSYSTEM/JOBNAME format, or leave blank");
+                        continue;
+                    }
+                }
             }
-            final String sbmJobOpts = console.askStringQuestion(logger, "", "What custom SBMJOB options should be used? (leave blank for none)");
-            if (!StringUtils.isEmpty(sbmJobOpts)) {
-                si.setBatchSbmjobOpts(sbmJobOpts);
-            }
+            checkAliveCriteria = userEnteredCriteria;
+            break;
         }
 
-        si.addGroups(console.askListOfStringsQuestion(logger, "What group(s) would this application be a part of?"));
-        si.addDeps(console.askListOfStringsQuestion(logger, "What service(s) does this application rely on?"));
+        while (true) {
+            final String userEnteredCriteria = console.askStringQuestion(logger, "", "Which ports does your application run on? Separate with commas, or leave blank for none: ");
+            if (StringUtils.isNonEmpty(userEnteredCriteria)) {
+                final String[] components = userEnteredCriteria.split("\\s*,\\s*");
+                for (final String component : components) {
+                    if (!component.matches("(?i)^[0-9]+$")) {
+                        logger.println_warn("Response not valid. Enter a comma-separated list of port numbers, or leave blank");
+                        continue;
+                    }
+                }
+            }
+            if (StringUtils.isEmpty(checkAliveCriteria)) {
+                checkAliveCriteria = userEnteredCriteria;
+            } else if (StringUtils.isNonEmpty(userEnteredCriteria)) {
+                checkAliveCriteria += ",";
+                checkAliveCriteria += userEnteredCriteria.trim();
+            }
+            break;
+        }
 
         try {
+            if (StringUtils.isEmpty(checkAliveCriteria)) {
+                throw new SCException(logger, FailureType.INVALID_SERVICE_CONFIG, "Criteria for checking liveliness unspecified. Need ports and/or job names!");
+            }
+            final ServiceInit si = new ServiceInit(isGlobal, shortName, friendlyName, isCurrentDir ? getCurrentDir() : null, startCmd, checkAliveCriteria);
+
+            final boolean isBatch = console.askBooleanQuestion(logger, "n", "Will your application need to be submitted to batch?");
+            si.setBatch(isBatch);
+
+            final boolean isCapturingEnvVars = console.askBooleanQuestion(logger, "y", "(Recommended) Will your application need to run with the PATH and JAVA_HOME values of the current process?");
+            if (isCapturingEnvVars) {
+                si.addCapturedEnvVars("PATH", "JAVA_HOME");
+            }
+
+            si.addCapturedEnvVars(console.askListOfStringsQuestion(logger, "What other environment variables from this current process should be used?"));
+
+            if (isBatch) {
+                final String jobName = console.askStringQuestion(logger, "", "What job name should be used? (leave blank for default)");
+                if (!StringUtils.isEmpty(jobName)) {
+                    si.setBatchJobName(jobName);
+                }
+                final String sbmJobOpts = console.askStringQuestion(logger, "", "What custom SBMJOB options should be used? (leave blank for none)");
+                if (!StringUtils.isEmpty(sbmJobOpts)) {
+                    si.setBatchSbmjobOpts(sbmJobOpts);
+                }
+            }
+
+            si.addGroups(console.askListOfStringsQuestion(logger, "What group(s) would this application be a part of?"));
+            si.addDeps(console.askListOfStringsQuestion(logger, "What service(s) does this application rely on?"));
+
             si.writeToFile(logger);
-            final ServiceDefinitionCollection defs = new YamlServiceDefLoader().loadFromYamlFiles(new AppLogger.DeferredLogger(logger));
+            final ServiceDefinitionCollection defs = new YamlServiceDefLoader().loadFromYamlFiles(new AppLogger.DeferredLogger(logger), false);
             logger.println(StringUtils.colorizeForTerminal("\n\nPrinting information about the newly-defined service", TerminalColor.GREEN));
             new OperationExecutor(Operation.INFO, si.m_shortName, defs, logger).execute();
             defs.checkForCheckaliveConflicts(logger);
@@ -85,8 +125,10 @@ public class ServiceInit {
     }
 
     private String m_batchJobName = null;
+
+    private final List<String> m_capturedEnvVars = new LinkedList<String>();
+
     private final String m_checkAliveCriteria;
-    private final CheckAliveType m_checkAliveType;
     private final List<String> m_dependencies = new LinkedList<String>();
     private final String m_dir;
     private final String m_friendlyName;
@@ -98,14 +140,21 @@ public class ServiceInit {
     private final String m_startCmd;
     private final String m_stopCmd = null;
 
-    private ServiceInit(final boolean _isGlobal, final String _shortName, final String _friendlyName, final String _dir, final String _startCmd, final CheckAliveType _checkAliveType, final String _checkAliveCriteria) {
+    private ServiceInit(final boolean _isGlobal, final String _shortName, final String _friendlyName, final String _dir, final String _startCmd, final String _checkAliveCriteria) {
         m_isGlobal = _isGlobal;
         m_shortName = _shortName;
         m_dir = _dir;
         m_startCmd = _startCmd;
-        m_checkAliveType = _checkAliveType;
         m_checkAliveCriteria = _checkAliveCriteria;
         m_friendlyName = _friendlyName;
+    }
+
+    private void addCapturedEnvVars(final List<String> _vars) {
+        m_capturedEnvVars.addAll(_vars);
+    }
+
+    private void addCapturedEnvVars(final String... _vars) {
+        addCapturedEnvVars(Arrays.asList(_vars));
     }
 
     private void addDeps(final List<String> _deps) {
@@ -136,7 +185,9 @@ public class ServiceInit {
     }
 
     public void writeToFile(final AppLogger _logger) throws SCException {
-
+        if (StringUtils.isEmpty(m_checkAliveCriteria)) {
+            throw new SCException(_logger, FailureType.INVALID_SERVICE_CONFIG, "Criteria for checking liveliness unspecified. Need either a port or job name!");
+        }
         final LinkedHashMap<String, Object> data = new LinkedHashMap<String, Object>();
         data.put("name", m_friendlyName);
         if (!StringUtils.isEmpty(m_dir)) {
@@ -146,8 +197,7 @@ public class ServiceInit {
         if (!StringUtils.isEmpty(m_stopCmd)) {
             data.put("stop_cmd", m_stopCmd);
         }
-        data.put("check_alive", m_checkAliveType.name().toLowerCase());
-        data.put("check_alive_criteria", m_checkAliveCriteria);
+        data.put("check_alive", m_checkAliveCriteria);
 
         data.put("batch_mode", "" + m_isBatch);
         if (m_isBatch) {
@@ -156,6 +206,19 @@ public class ServiceInit {
             }
             if (!StringUtils.isEmpty(m_sbmjobOpts)) {
                 data.put("sbmjob_opts", m_sbmjobOpts);
+            }
+        }
+
+        if (!m_capturedEnvVars.isEmpty()) {
+            final List<String> copiedEnvVars = new LinkedList<String>();
+            for (final String envvar : m_capturedEnvVars) {
+                final String value = System.getenv(envvar);
+                if (StringUtils.isNonEmpty(value)) {
+                    copiedEnvVars.add(envvar + "=" + value);
+                }
+            }
+            if (!copiedEnvVars.isEmpty()) {
+                data.put("environment_vars", copiedEnvVars.toArray(new String[0]));
             }
         }
 

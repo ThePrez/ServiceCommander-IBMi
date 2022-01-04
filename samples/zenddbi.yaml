@@ -1,0 +1,5 @@
+name: Zend DBi Server
+start_cmd: system "STRSBS SBSD(ZMYSQL/ZENDDBI)"
+stop_cmd: system "ENDSBS SBS(ZENDDBI)"
+
+check_alive: ZENDDBID,3306
