@@ -2,6 +2,7 @@
 A utility for unifying the daunting task of managing various services and applications running on IBM i. Its objective is to provide an intuitive, easy-to-use command line interface for managing services or jobs. It also provides integration with `STRTCPSVR`.
 
 This tool can be used to manage a number of services, for instance:
+
 - IBM i host server jobs
 - IBM i standard TCP servers (*TCP, *SSHD, etc.)
 - Programs you wrote using open source technology (Node.js, Python, PHP, etc.)
@@ -14,6 +15,7 @@ This tool can be used to manage a number of services, for instance:
 
 # Current features
 Some of the features of the tool include:
+
 - The ability to specify dependencies (for instance, if one application or service dependds on another), and it will start any dependencies as needed
 - The ability to submit jobs to batch easily, even with custom batch settings (use your own job description or submit as another user, for instance)
 - The ability to check the "liveliness" of your service by either port status or job name
@@ -34,6 +36,7 @@ In any event, we're glad to have you aboard in any capacity, whether as a user, 
 
 # Important differences from other service management tools
 Service Commander's design is fundamentally different from other tools that accomplish similar tasks, like init.d, supervisord, and so on. Namely, the functions within Service Commander are intended to work regardless of:
+
 - Who else may start or stop the service
 - What other tools may be used to start or stop the service. For instance, Service Commander may start/stop an IBM i host server, but so could the `STRHOSTSVR`/`ENDHOSTSVR` CL commands.
 - Whether the service runs in the initially spawned job or a secondary job
@@ -49,14 +52,17 @@ Service Commander's unique design is intended to offer a great deal of flexibili
 ## System Requirements
 
 For most of the features of this tool, the following is required to be installed (the installation steps should handle these for you):
+
 - db2util (`yum install db2util`)
 - OpenJDK (`yum install openjdk-11`)
 - bash (`yum install bash`)
 - GNU coreutils (`yum install coreutils-gnu`)
 
 The performance information support (`perfinfo`) has additional requirements that are not automatically installed, including:
+
 - Python 3 with the ibm_db database connector (`yum install python3-ibm_db`)
 - Required operating system support, which depends on your IBM i operating system level, as follows:
+
     - IBM i 7.4: included with base OS
     - IBM i 7.3: Group PTF SF99703 Level 11
     - IBM i 7.2: Group PTF SF99702 Level 23
@@ -65,18 +71,23 @@ The performance information support (`perfinfo`) has additional requirements tha
 
 ## Option 1: Binary distribution
 You can install the binary distribution by installing the `service-commander` package:
+
 ```
 yum install service-commander
 ```
+
 If you are not familiar with IBM i RPMs, see [this documentation](http://ibm.biz/ibmi-rpms) to get started.
 
 ## Option 2: Build from source (for development or fix evaluation)
 Feel free to build from the `main` branch to start making code contributions or to evaluate a fix/feature not yet publish. This process assumes your `PATH` environment variable is set up properly, otherwise:
+
 ```
 PATH=/QOpenSys/pkgs/bin:$PATH
 export PATH
 ```
+
 The build itself can be done with the following steps:
+
 ```
 yum install git ca-certificates-mozilla make-gnu
 git clone https://github.com/ThePrez/ServiceCommander-IBMi/
@@ -87,6 +98,7 @@ make install_with_runtime_dependencies
 # Basic usage
 
 Usage of the command is summarized as:
+
 ```text
 Usage: sc  [options] <operation> <service>
 
@@ -120,6 +132,7 @@ Usage: sc  [options] <operation> <service>
         - An ad hoc service specification by subsystem and job name (for instance, "job:QHTTPSVR/ADMIN2")
 
 ```
+
 The above usage assumes the program is installed with the above installation steps and is therefore
 launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn compile`), 
 you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
@@ -127,75 +140,107 @@ you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.ar
 
 **Specifying options in environment variables**
 If you would like to set some of the tool's options via environment variable, you may do so with one of the following:
+
 - `SC_TCPSVR_OPTIONS`, which will be processed when invoked via the `STRTCPSVR`/`ENDTCPSVR` commands
 - `SC_OPTIONS`, which will be processed on all invocations
 For example, to gather verbose output when using `STRTCPSVR`, run the following before your `STRTCPSVR` command:
+
 ```
 ADDENVVAR ENVVAR(SC_OPTIONS) VALUE('-v') REPLACE(*YES)
 ```
 
 ## Special `system` group (hidden by default)
 Service Commander ships a handful of pre-made configurations for common system services. These include things like:
+
 - IBM i host servers
 - common system services (like ftp, ssh, etc)
 - Administration interfaces (like Navigator for i)
+
 By default, the `sc` command ignores these system services. So, for instance, if you run `sc check all`, it will omit
 these preconfigured system services. In order to include them, use the `-a` option, for instance `sc -a check all`.
 
 ## Usage examples
+
 Start the service named `kafka`:
+
 ```
 sc start kafka
 ```
+
 Stop the service named `zookeeper`:
+
 ```
 sc stop zookeeper
 ```
+
 Check status of all configured services (all services belong to a special group named "all")
+
 ```
 sc check group:all
 ```
+
 Try to start all configured services
+
 ```
 sc start group:all
 ```
+
 Print information about all configured services
+
 ```
 sc info group:all
 ```
+
 Try to start all services in "host_servers" group
+
 ```
 sc start group:host_servers
 ```
+
 List all services
+
 ```
 sc list group:all
 ```
+
 List all services in the special "system" group
+
 ```
 sc list group:system
 ```
+
 List all services including those in the special "system" group
+
 ```
 sc -a list group:all
 ```
+
 List jobs running on port 8080
+
 ```
 sc jobinfo port:8080
 ```
+
 Stop jobs running on port 8080
+
 ```
 sc stop port:8080
 ```
+
 Check if anything is running on port 8080
+
 ```
 sc check port:8080
 ```
+
 Start the service defined in a local file, `myservice.yml`
+
 ```
 sc start myservice.yml
 ```
+
 See what ports are currently listening
+
 ```
 scopenports
 ```
@@ -203,6 +248,7 @@ scopenports
 ## Checking which ports are currently open
 As of version 0.7.x, Service Commander also comes with a utility, `scopenports` that allow you to see which ports are open.
 Usage is as follows:
+
 ```fortran
 Usage: scopenports  [options]
 
@@ -210,12 +256,14 @@ Usage: scopenports  [options]
         -v: verbose mode
         --mine: only show ports that you have listening
 ```
+
 Example output when invoked with the `--mine` option:
 
 ![image](https://user-images.githubusercontent.com/17914061/146984207-826a1f5e-5021-494e-820d-a3b44d2be20a.png)
 
 The value in the service name column can be used with the `sc` command. For instance, with
 the above example, if I wanted to see which job was running on port 62006, I could run
+
 ```bash
 sc jobinfo port:62006
 ```
@@ -249,6 +297,7 @@ This utility can be used to install This will install service definitions for:
 
 ** Important Note**
 If you ran this tool with v0.x, you will want to clean up the old configurations by running:
+
 ```
 sc_install_defaults --cleanupv0
 ```
@@ -256,12 +305,14 @@ sc_install_defaults --cleanupv0
 
 ## Through YAML configuration files
 This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
+
 - A global directory (/QOpenSys/etc/sc/services). This, of coures, requires you to have admin access (`*ALLOBJ` special authority).
 - A user-specific directory($HOME/.sc/services)
 - If defined, whatever the value of the `services.dir` system property is. 
 The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
 
 The file can also be located in any arbitrary directory, but it must be explicitly passed along to the `sc` command, for instance
+
 ```
 sc start myservice.yml
 ```
@@ -298,6 +349,7 @@ The following attributes may be specified in the service definition (`.yaml`) fi
 
 #### YAML file example
 The following is an example of a simple configuration for a Node.js application that runs on port 80:
+
 ```yaml
 name: My Node.js application
 dir: /home/MYUSER/myapp
@@ -311,20 +363,25 @@ environment_vars:
 
 ## Using the 'scinit' tool
 You can use the `scinit` tool can be used to create the YAML configuration files for you. Basic usage of the tool is simply:
+
 ```
 scinit <program start command>
 ```
+
 The idea is that you would simply:
+
 1. `cd` to the directory where you'd normally start the service
 2. Run the command you'd normally use to start the service, prefixed by `scinit`
 3. Answer a series of questions about how you would like the service deployed
 In doing so, the `scinit` will create the YAML configuration file for you and also show you information about the newly-configured service.
 
 For instance, if you would normally launch a Node.js application from `/home/MYUSR/mydir` by running `node app.js`, you would run:
+
 ```
 cd /home/MYUSR/mydir
 scinit <program start command>
 ```
+
 The `scinit` tool will ask you for a "short name" among other things. When done, a service configuration will be saved under that short
 name. So, for instance, if your short name is "my_node_app", you can run `sc start my_node_app`.
 
@@ -350,10 +407,13 @@ whatever job is running on port 8080.
 
 # Automatically restarting a service if it fails
 Currently, this tool does not have built-in monitoring and restart capabilities. This may be a future enhancement. In the meantime, one can use simple scripting to accomplish a similar task. For instance, to check every 40 seconds and ensure that the `navigator` service is running, you could submit a job like this (replace the sleep time, service name, and submitted job name to match your use case):
+
 ```
 SBMJOB CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '-c' 'while :; do sleep 40 && /QOpenSys/pkgs/bin/sc start navigator >/dev/null 2>&1 ; done')) JOB(NAVMON) JOBD(*USRPRF) JOBQ(QUSRNOMAX)                         
 ```
+
 This will result in several jobs that continuously check on the service and attempt to start it if the service is dead. If you wish to stop this behavior, simply kill the jobs. In the above example, the job name is `NAVMON`, so the WRKACTJOB command to do this interactively looks like:
+
 ```
  WRKACTJOB JOB(NAVMON) 
 ```
@@ -369,22 +429,30 @@ Service Commander now has integration with system STRTCPSVR and ENDTCPSVR comman
 if too problematic.
 
 To integrate with the STRTCPSVR and ENDTCPSVR commands, you can run the following command as an admin user:
+
 ```
 /QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
 ```
+
 This will install create the `SCOMMANDER` library and compile/install the TCP program into that library. To use a different
 library, just set the `SCTARGET` variable. For instance:
+
 ```
 SCTARGET=mylib /QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
 ```
+
 If you need to compile to a previous release of IBM i, set the `SCTGTRLS` variable to the required value of CRTCMOD parameter TGTRLS. Example for IBM i 7.1:
+
 ```
 SCTGTRLS=V7R1M0 /QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
 ```
+
 After doing so, you can run the `*SC` TCP server commands, specifying the simple name of the sc-managed service as the instance name. For example:
+
 ```
 STRTCPSVR SERVER(*SC) INSTANCE('kafka')
 ```
+
 **Important Notes about AUTOSTART(*YES)**
 
 You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user. Be are that adding QTCP to new group profiles or granting special authorities may represent a security exposure. Also, due to the highly-flexible nature of this tool, it is not good practice to run this command as an elevated user in an unattended fashion. 
@@ -393,5 +461,6 @@ In summary, it is likely not a good idea to use `AUTOSTART(*YES)`.
 
 **Special groups used by STRTCPSVR/ENDTCPSVR**
 There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
+
 - `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
 - `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
