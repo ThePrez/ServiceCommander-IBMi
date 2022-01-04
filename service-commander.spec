@@ -33,6 +33,10 @@ to batch, and more
 
 %build
 rm -f man/*.md
+<<<<<<< HEAD
+=======
+touch man/*.1
+>>>>>>> baacc06... more RPM build fixup
 %make_build all
 
 

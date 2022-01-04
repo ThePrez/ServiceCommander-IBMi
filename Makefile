@@ -50,6 +50,8 @@ man/%.1: man/%.md
 	make /QOpenSys/pkgs/bin/md2man-roff
 	/QOpenSys/pkgs/bin/md2man-roff $^ > $@
 
+man/%.1: man/%.1
+
 man/%.1.gz: man/%.1
 	gzip $^
 
