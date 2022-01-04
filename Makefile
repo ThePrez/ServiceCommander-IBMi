@@ -24,15 +24,34 @@ clean:
 /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java:
 	yum install openjdk-11
 
-/QOpenSys/pkgs/bin/nohup:
+cc/QOpenSys/pkgs/bin/nohup:
 	yum install coreutils-gnu
+
+/QOpenSys/pkgs/bin/cc:
+	yum install /QOpenSys/pkgs/bin/cc libutil-devel
+
+/QOpenSys/pkgs/lib/libutil.so:
+	yum install libutil-devel
+
+/QOpenSys/pkgs/bin/ruby:
+	wget https://raw.githubusercontent.com/AndreaRibuoli/RIBY/main/andrearibuoli.repo -O ruby.temporary.repo
+	cp ruby.temporary.repo /QOpenSys/etc/yum/repos.d
+	yum install ruby-devel
+	rm /QOpenSys/etc/yum/repos.d/ruby.temporary.repo
+
+/QOpenSys/pkgs/bin/md2man-roff: /QOpenSys/pkgs/bin/ruby /QOpenSys/pkgs/bin/cc /QOpenSys/pkgs/lib/libutil.so 
+	CC=gcc gem install md2man
 
 install_runtime_dependencies: /QOpenSys/pkgs/bin/db2util /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/bin/nohup
 
 install_with_runtime_dependencies: install install_runtime_dependencies
 
-man/%.1: man/%.header man/%.mansrc
-	cat $^ > $@
+man/%.1: man/%.md
+	make /QOpenSys/pkgs/bin/md2man-roff
+	/QOpenSys/pkgs/bin/md2man-roff $^ > $@
+
+man/%.1.gz: man/%.1
+	gzip $^
 
 install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man/sc.1
 	install -m 755 -o qsys -D -d ${INSTALL_ROOT}/QOpenSys/pkgs/bin ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
