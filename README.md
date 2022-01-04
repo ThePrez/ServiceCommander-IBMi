@@ -13,6 +13,8 @@ This tool can be used to manage a number of services, for instance:
 - The Cron daemon
 - OSS Database servers (PostgreSQL, MariaDB)
 
+![logo](sc_logo.jpg)
+
 # Current features
 Some of the features of the tool include:
 
