@@ -303,8 +303,48 @@ If you ran this tool with v0.x, you will want to clean up the old configurations
 sc_install_defaults --cleanupv0
 ```
 
+## Using the 'scinit' tool
+You can use the `scinit` tool can be used to create the YAML configuration files for you. Basic usage of the tool is simply:
 
-## Through YAML configuration files
+```
+scinit <program start command>
+```
+
+The idea is that you would simply:
+
+1. `cd` to the directory where you'd normally start the service
+2. Run the command you'd normally use to start the service, prefixed by `scinit`
+3. Answer a series of questions about how you would like the service deployed
+In doing so, the `scinit` will create the YAML configuration file for you and also show you information about the newly-configured service.
+
+For instance, if you would normally launch a Node.js application from `/home/MYUSR/mydir` by running `node app.js`, you would run:
+
+```
+cd /home/MYUSR/mydir
+scinit <program start command>
+```
+
+The `scinit` tool will ask you for a "short name" among other things. When done, a service configuration will be saved under that short
+name. So, for instance, if your short name is "my_node_app", you can run `sc start my_node_app`.
+
+## Ad hoc service definition
+Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`. 
+In these instances, the operations will be performed on the specified jobs. This is determined by looking for
+jobs matching the given job name or listening on the given port. The job name can be specified either in
+`jobname` or `subsystem/jobname` format.
+
+If an existing service definition is found (configured via YAML, as in the preceding section) that matches the
+job name or port criteria, that service will be used. For instance, if you have a service configured to run on
+port 80, then specifying `sc info port:80` will show information about the service configured to run on port 80.
+
+Ad hoc service definition is useful for quick checks without the need to create a YAML definition. It's also
+useful if you do not recall the service name, but remember the job name or port. 
+
+It is also useful for cases where you just want to find out who (if anyone) is using a certain port. For instance,
+`sc jobinfo port:8080` will show you which job is listening on port 8080. Similarly, `sc stop port:8080` will kill
+whatever job is running on port 8080.
+
+## Directly creating/editing YAML configuration files
 This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
 
 - A global directory (/QOpenSys/etc/sc/services). This, of coures, requires you to have admin access (`*ALLOBJ` special authority).
@@ -348,7 +388,7 @@ The following attributes may be specified in the service definition (`.yaml`) fi
 **Deprecated fields**
 - `check_alive_criteria`: (Deprecated)The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname". This field is deprecated. As of v1.0.0, the `check_alive` field handles both port numbers and job names (or a list containing both).
 
-#### YAML file example
+### YAML file example
 The following is an example of a simple configuration for a Node.js application that runs on port 80:
 
 ```yaml
@@ -361,47 +401,6 @@ environment_vars:
 - PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/ccs/bin:/QOpenSys/usr/bin/X11:/usr/sbin:.:/usr/bin
 
 ```
-
-## Using the 'scinit' tool
-You can use the `scinit` tool can be used to create the YAML configuration files for you. Basic usage of the tool is simply:
-
-```
-scinit <program start command>
-```
-
-The idea is that you would simply:
-
-1. `cd` to the directory where you'd normally start the service
-2. Run the command you'd normally use to start the service, prefixed by `scinit`
-3. Answer a series of questions about how you would like the service deployed
-In doing so, the `scinit` will create the YAML configuration file for you and also show you information about the newly-configured service.
-
-For instance, if you would normally launch a Node.js application from `/home/MYUSR/mydir` by running `node app.js`, you would run:
-
-```
-cd /home/MYUSR/mydir
-scinit <program start command>
-```
-
-The `scinit` tool will ask you for a "short name" among other things. When done, a service configuration will be saved under that short
-name. So, for instance, if your short name is "my_node_app", you can run `sc start my_node_app`.
-
-## Ad hoc service definition
-Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`. 
-In these instances, the operations will be performed on the specified jobs. This is determined by looking for
-jobs matching the given job name or listening on the given port. The job name can be specified either in
-`jobname` or `subsystem/jobname` format.
-
-If an existing service definition is found (configured via YAML, as in the preceding section) that matches the
-job name or port criteria, that service will be used. For instance, if you have a service configured to run on
-port 80, then specifying `sc info port:80` will show information about the service configured to run on port 80.
-
-Ad hoc service definition is useful for quick checks without the need to create a YAML definition. It's also
-useful if you do not recall the service name, but remember the job name or port. 
-
-It is also useful for cases where you just want to find out who (if anyone) is using a certain port. For instance,
-`sc jobinfo port:8080` will show you which job is listening on port 8080. Similarly, `sc stop port:8080` will kill
-whatever job is running on port 8080.
 
 # Demo (video)
 [![asciicast](https://asciinema.org/a/459898.svg)](https://asciinema.org/a/459898)
