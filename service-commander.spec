@@ -8,12 +8,9 @@ Url: https://github.com/ThePrez/ServiceCommander-IBMi
 
 Obsoletes: sc
 
-BuildRequires: gcc
-BuildRequires: libutil-devel
 BuildRequires: make-gnu
 BuildRequires: maven
 BuildRequires: openjdk-11
-BuildRequires: wget
 
 Requires: bash
 Requires: coreutils-gnu
@@ -35,6 +32,7 @@ to batch, and more
 %setup -n ServiceCommander-IBMi-%{version}
 
 %build
+touch man/*.1
 %make_build all
 
 
