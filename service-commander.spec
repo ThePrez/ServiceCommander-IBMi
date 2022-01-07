@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 1.0.2
+Version: 1.1.0
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -16,7 +16,7 @@ Requires: bash
 Requires: coreutils-gnu
 Requires: db2util
 Requires: openjdk-11
-Requires: python3-ibm_db
+Requires: python39-ibm_db
 
 Source0: https://github.com/ThePrez/ServiceCommander-IBMi/archive/v%{version}.tar.gz
 
@@ -71,6 +71,10 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
+* Fri Jan 07 2022 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.1.0
+- enhancement: 'scinit' utility automatically adds PORT env var
+- deps: use Python 3.9 for fetching performance metrics
+
 * Fri Jan 07 2022 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.0.2
 - enhancement: allow killing of many jobs
 - deps: bump jcmdutils to v0.1.0

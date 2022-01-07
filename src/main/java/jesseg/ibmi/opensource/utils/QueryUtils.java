@@ -46,11 +46,11 @@ public class QueryUtils {
 
     public static SortedMap<String, String> getJobPerfInfo(final String _job, final AppLogger _logger, final float _sampleTime) throws IOException, SCException {
         _logger.println_verbose("Getting performance info for job " + _job);
-        final File pythonInterpreter = new File("/QOpenSys/pkgs/bin/python3");
+        final File pythonInterpreter = new File("/QOpenSys/pkgs/bin/python3.9");
         if (!pythonInterpreter.canExecute()) {
-            throw new SCException(_logger, FailureType.UNSUPPORTED_OPERATION, "This operation requires Python 3 to be installed");
-        } else if (!new File("/QOpenSys/pkgs/lib/python3.6/site-packages/ibm_db.so").exists()) {
-            throw new SCException(_logger, FailureType.UNSUPPORTED_OPERATION, "This operation requires the python3-ibm_db RPM to be installed");
+            throw new SCException(_logger, FailureType.UNSUPPORTED_OPERATION, "This operation requires Python 3.9 to be installed");
+        } else if (!new File("/QOpenSys/pkgs/lib/python3.9/site-packages/ibm_db.cpython-39.so").exists()) {
+            throw new SCException(_logger, FailureType.UNSUPPORTED_OPERATION, "This operation requires the python39-ibm_db RPM to be installed");
         }
         final String simpleJobName = _job.replaceAll(".*/", "").trim().toUpperCase();
         final String jobName = _job.toUpperCase().trim();
