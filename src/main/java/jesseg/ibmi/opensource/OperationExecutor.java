@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.SortedMap;
 
 import com.github.theprez.jcmdutils.AppLogger;
+import com.github.theprez.jcmdutils.ConsoleQuestionAsker;
 import com.github.theprez.jcmdutils.ProcessLauncher;
 import com.github.theprez.jcmdutils.StringUtils;
 import com.github.theprez.jcmdutils.StringUtils.TerminalColor;
@@ -651,10 +652,13 @@ public class OperationExecutor {
         // Log the start time, because we check against this for the timeout condition
         final long startTime = new Date().getTime();
 
+        // Keep track of jobs (in case there we resort to endjob *IMMED, we don't have to query jobs twice)
+        List<String> knownJobList = new LinkedList<String>();
+
         final String command = m_mainService.getStopCommand();
         if (StringUtils.isEmpty(command)) {
             // If the user doesn't provide a custom stop command, that's OK. We go directly to ENDJOB.
-            stopViaEndJob(m_mainService.getShutdownWaitTime());
+            knownJobList.addAll(stopViaEndJob(m_mainService.getShutdownWaitTime()));
         } else {
             // If the user provided a custom stop command, let's go try to execute it.
             final File directory = new File(m_mainService.getEffectiveWorkingDirectory());
@@ -718,7 +722,11 @@ public class OperationExecutor {
                     // OK, we've timed out, so let's try ENDJOB with OPTION(*IMMED) and give it another 20 seconds (arbitrarily hardcoded by programmer)
                     m_logger.printf_warn("WARNING: Timed out waiting for service '%s' to stop. Will try harder\n", m_mainService.getFriendlyName());
                     hasEndJobImmedBeenTried = true;
-                    stopViaEndJob(0);
+                    if (knownJobList.isEmpty()) {
+                        stopViaEndJob(0);
+                    } else {
+                        stopViaEndJob(knownJobList, 0);
+                    }
                     secondsToWait += 20;
                 }
             }
@@ -730,22 +738,26 @@ public class OperationExecutor {
         }
     }
 
-    private void stopViaEndJob(final int _waitTime) throws IOException, NumberFormatException, SCException {
+    private List<String> stopViaEndJob(final int _waitTime) throws IOException, NumberFormatException, SCException {
         final List<String> jobs = getActiveJobsForService();
         if (jobs.isEmpty()) {
             throw new SCException(m_logger, FailureType.GENERAL_ERROR, "Unable to determine job");
         }
-        if (15 <= jobs.size()) {
-            m_logger.println_err("ERROR: Too many jobs found!! Those jobs were: ");
+        if (8 <= jobs.size() && 0 != _waitTime) {
+            m_logger.printfln_warn("WARNING: %d jobs were found!! Those jobs were: ", jobs.size());
             for (final String job : jobs) {
-                m_logger.println_err("    " + job);
+                m_logger.println_warn("    " + job);
             }
-            throw new SCException(m_logger, FailureType.GENERAL_ERROR, "Too many jobs found");
+            final boolean isEndingAnyway = new ConsoleQuestionAsker().askBooleanQuestion(m_logger, "y", "Are you sure you want to end all of these jobs?");
+            if (isEndingAnyway) {
+                m_logger.printfln_warn("WARNING: ending %d jobs", jobs.size());
+            } else {
+                throw new SCException(m_logger, FailureType.GENERAL_ERROR, "Too many jobs found");
+            }
         }
         m_logger.println("Stopping via endjob");
-        for (final String job : getActiveJobsForService()) {
-            stopViaEndJob(jobs, _waitTime);
-        }
+        stopViaEndJob(jobs, _waitTime);
+        return jobs;
     }
 
     private void stopViaEndJob(final List<String> _jobs, final int _waitTime) throws IOException {
