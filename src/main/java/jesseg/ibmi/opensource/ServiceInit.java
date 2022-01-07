@@ -91,7 +91,11 @@ public class ServiceInit {
             if (isCapturingEnvVars) {
                 si.addCapturedEnvVars("PATH", "JAVA_HOME");
             }
-
+            try {
+                Integer.valueOf(checkAliveCriteria.trim());
+                si.addCapturedEnvVars("PORT=" + checkAliveCriteria.trim());
+            } catch (NumberFormatException _e) {
+            }
             si.addCapturedEnvVars(console.askListOfStringsQuestion(logger, "What other environment variables from this current process should be used?"));
 
             if (isBatch) {
@@ -150,7 +154,10 @@ public class ServiceInit {
     }
 
     private void addCapturedEnvVars(final List<String> _vars) {
-        m_capturedEnvVars.addAll(_vars);
+        List<String> toAdd = new LinkedList<String>();
+        toAdd.addAll(_vars);
+        toAdd.removeAll(m_capturedEnvVars);
+        m_capturedEnvVars.addAll(toAdd);
     }
 
     private void addCapturedEnvVars(final String... _vars) {
