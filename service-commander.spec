@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 1.0.1
+Version: 1.0.2
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -32,16 +32,10 @@ to batch, and more
 %setup -n ServiceCommander-IBMi-%{version}
 
 %build
-# The makefile will try to build the man pages if they don't exist.
-# Forcefully remove source and touch the built versions so that
-# the make rule will not fire
-rm -f man/*.md
-touch man/*.1
 %make_build all
 
 
 %install
-mkdir -p %{buildroot}/%{_mandir}/man1
 %make_install INSTALL_ROOT=%{buildroot}
 
 
@@ -77,6 +71,10 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
+* Fri Jan 07 2022 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.0.2
+- enhancement: allow killing of many jobs
+- deps: bump jcmdutils to v0.1.0
+
 * Fri Dec 31 2021 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.0.1
 - feature(major): allow multiple ports/jobs for a service
 - feature: Several new options for 'sc_install_defaults'
