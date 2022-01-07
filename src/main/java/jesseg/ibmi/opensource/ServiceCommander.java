@@ -130,7 +130,7 @@ public class ServiceCommander {
     }
 
     public static void main(final String... _args) {
-        if (_args.length < 2) {
+        if (_args.length < 1) {
             printUsageAndExit();
         }
 
@@ -140,18 +140,19 @@ public class ServiceCommander {
             args.addAll(Arrays.asList(optsEnvVar.trim().split("\\s+")));
         }
         args.addAll(Arrays.asList(_args));
-        String service = args.removeLast().trim();
-        final String operation = args.removeLast().trim();
 
         // Process all bool-type arguments, including "-v" to initialize our logger
         System.setProperty(StringUtils.PROP_DISABLE_COLORS, "" + Boolean.valueOf(args.remove("--disable-colors")));
         System.setProperty(OperationExecutor.PROP_BATCHOUTPUT_SPLF, "" + Boolean.valueOf(args.remove("--splf")));
+
+        // initialize default behaviors for ignoring global (system-wide) settings and ignored groups
         boolean isIgnoreGlobals = false;
         String[] ignoreGroups = new String[] { "system" };
 
         if (args.remove("-h") || args.remove("--help")) {
             printUsageAndExit();
         }
+        final LinkedList<String> nonDashedArgs = new LinkedList<String>();
         final AppLogger logger = new AppLogger.DefaultLogger(args.remove("-v"));
         for (final String remainingArg : args) {
             if (remainingArg.startsWith("--sampletime=")) {
@@ -172,11 +173,25 @@ public class ServiceCommander {
                 } catch (final Exception e) {
                     logger.printfln_warn("WARNING: Value specified for sample time argument is not valid: %s", remainingArg);
                 }
-            } else {
+            } else if (remainingArg.startsWith("-")) {
                 logger.printfln_warn("WARNING: Argument '%s' unrecognized and will be ignored", remainingArg);
+            } else {
+                nonDashedArgs.add(remainingArg);
             }
         }
 
+        final String operation = nonDashedArgs.removeFirst().trim();
+
+        if (0 == nonDashedArgs.size() && (operation.equalsIgnoreCase("check") || operation.equalsIgnoreCase("list") || operation.equalsIgnoreCase("status"))) {
+            nonDashedArgs.add("group:all");
+        }
+        if (0 == nonDashedArgs.size()) {
+            printUsageAndExit();
+        }
+        String service = nonDashedArgs.removeFirst().trim();
+        for (String extraArg : nonDashedArgs) {
+            logger.printfln_warn("WARNING: Argument '%s' unrecognized and will be ignored", extraArg);
+        }
         logger.println_verbose("Verbose mode enabled");
         logger.println_verbose("--------------------");
 

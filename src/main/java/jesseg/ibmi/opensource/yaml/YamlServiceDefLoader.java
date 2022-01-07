@@ -40,11 +40,11 @@ public class YamlServiceDefLoader {
             return ret;
         }
         File[] files = _dir.listFiles();
-        if(null == files) {
-            _logger.printfln_warn_verbose("Unable to read from directory '%s'", ""+_dir);
+        if (null == files) {
+            _logger.printfln_warn_verbose("Unable to read from directory '%s'", "" + _dir);
         }
         for (final File f : files) {
-            if(f.isDirectory()) {
+            if (f.isDirectory()) {
                 continue;
             }
             final String fileName = f.getName();
@@ -71,7 +71,7 @@ public class YamlServiceDefLoader {
             File globalDir = AppDirectories.conf.getGlobalServicesDirOrNull();
             ret.putAll(loadFromDirectory(globalDir, _logger));
             ret.putAll(loadFromDirectory(new File(globalDir, "system"), _logger));
-            
+
         }
         ret.putAll(loadFromDirectory(AppDirectories.conf.getUserServicesDirOrNull(), _logger));
         ret.putAll(loadFromDirectory(AppDirectories.conf.getCustomServicesDirOrNull(), _logger));

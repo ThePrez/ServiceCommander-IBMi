@@ -127,7 +127,7 @@ public class ServiceDefinitionCollection {
     public void removeServicesInGroup(final String _retain, final String... _groups) {
         final List<String> toRemove = new LinkedList<String>();
         for (final Entry<String, ServiceDefinition> entry : m_data.entrySet()) {
-            if(entry.getValue().getName().equalsIgnoreCase(_retain)) {
+            if (entry.getValue().getName().equalsIgnoreCase(_retain)) {
                 continue;
             }
             for (final String group : _groups) {
