@@ -92,8 +92,8 @@ public class ServiceInit {
                 si.addCapturedEnvVars("PATH", "JAVA_HOME");
             }
             try {
-                Integer.valueOf(checkAliveCriteria.trim());
-                si.addCapturedEnvVars("PORT=" + checkAliveCriteria.trim());
+                int port = Integer.valueOf(checkAliveCriteria.trim());
+                si.addCapturedEnvVars("PORT=" + port);
             } catch (final NumberFormatException _e) {
             }
             si.addCapturedEnvVars(console.askListOfStringsQuestion(logger, "What other environment variables from this current process should be used?"));
@@ -219,9 +219,13 @@ public class ServiceInit {
         if (!m_capturedEnvVars.isEmpty()) {
             final List<String> copiedEnvVars = new LinkedList<String>();
             for (final String envvar : m_capturedEnvVars) {
-                final String value = System.getenv(envvar);
-                if (StringUtils.isNonEmpty(value)) {
-                    copiedEnvVars.add(envvar + "=" + value);
+                if (envvar.contains("=")) {
+                    copiedEnvVars.add(envvar);
+                } else {
+                    final String value = System.getenv(envvar);
+                    if (StringUtils.isNonEmpty(value)) {
+                        copiedEnvVars.add(envvar + "=" + value);
+                    }
                 }
             }
             if (!copiedEnvVars.isEmpty()) {
