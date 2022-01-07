@@ -189,7 +189,7 @@ public class ServiceCommander {
             printUsageAndExit();
         }
         String service = nonDashedArgs.removeFirst().trim();
-        for (String extraArg : nonDashedArgs) {
+        for (final String extraArg : nonDashedArgs) {
             logger.printfln_warn("WARNING: Argument '%s' unrecognized and will be ignored", extraArg);
         }
         logger.println_verbose("Verbose mode enabled");
@@ -200,7 +200,7 @@ public class ServiceCommander {
         try {
             final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(logger, isIgnoreGlobals);
             if (service.toLowerCase().startsWith("group:")) {
-                String groupName = service.substring("group:".length()).trim();
+                final String groupName = service.substring("group:".length()).trim();
                 for (int i = 0; i < ignoreGroups.length; ++i) {
                     if (ignoreGroups[i].equalsIgnoreCase(groupName)) {
                         ignoreGroups[i] = "<redacted>";
@@ -219,7 +219,7 @@ public class ServiceCommander {
                 service = "group:all";
             }
             if (service.toLowerCase().startsWith("group:")) {
-                String groupName = service.substring("group:".length()).trim();
+                final String groupName = service.substring("group:".length()).trim();
                 performOperationsOnServices(op, serviceDefs.getServicesInGroup(groupName, logger), serviceDefs, logger);
             } else if (service.toLowerCase().startsWith("port:") || service.toLowerCase().startsWith("job:")) {
                 final ServiceDefinition adHoc = getAdHocServiceDef(service, serviceDefs, logger);

@@ -94,7 +94,7 @@ public class ServiceInit {
             try {
                 Integer.valueOf(checkAliveCriteria.trim());
                 si.addCapturedEnvVars("PORT=" + checkAliveCriteria.trim());
-            } catch (NumberFormatException _e) {
+            } catch (final NumberFormatException _e) {
             }
             si.addCapturedEnvVars(console.askListOfStringsQuestion(logger, "What other environment variables from this current process should be used?"));
 
@@ -154,7 +154,7 @@ public class ServiceInit {
     }
 
     private void addCapturedEnvVars(final List<String> _vars) {
-        List<String> toAdd = new LinkedList<String>();
+        final List<String> toAdd = new LinkedList<String>();
         toAdd.addAll(_vars);
         toAdd.removeAll(m_capturedEnvVars);
         m_capturedEnvVars.addAll(toAdd);

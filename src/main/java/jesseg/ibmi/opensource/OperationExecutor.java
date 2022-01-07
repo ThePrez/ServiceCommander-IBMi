@@ -653,7 +653,7 @@ public class OperationExecutor {
         final long startTime = new Date().getTime();
 
         // Keep track of jobs (in case there we resort to endjob *IMMED, we don't have to query jobs twice)
-        List<String> knownJobList = new LinkedList<String>();
+        final List<String> knownJobList = new LinkedList<String>();
 
         final String command = m_mainService.getStopCommand();
         if (StringUtils.isEmpty(command)) {
