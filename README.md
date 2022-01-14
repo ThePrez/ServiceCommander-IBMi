@@ -26,7 +26,7 @@ Some of the features of the tool include:
 - Query basic performance attributes of the services
 - Assistance in providing/managing log files. This is a best-guess only and naively assumes the service uses stdout/stderr as its logging mechanism. Service Commander has its own primitive logging system that works well only for certain types of services
 - Ability to define manage ad hoc services specified on the command line
-- Ability to see what ports are currently opening (have a job listening)
+- Ability to see what ports are currently open (have a job listening)
 
 # Hands-on Exercise
 Want to walk through a quick exercise to get some basic "hands-on" experience with this tool? If so, please see [our very simple hands-on exercise](quickstart/HANDS_ON.md)
