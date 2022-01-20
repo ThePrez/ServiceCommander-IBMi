@@ -1,3 +1,17 @@
 #!/QOpenSys/pkgs/bin/bash
 export LC_ALL=EN_US.UTF-8
+
+# check if arguments are valid
+for scope in "$@"; do
+    if [ "$scope" != "-v" ] && [ "$scope" != "--mine" ] ; then
+        echo "Invalid usage: $scope"
+        echo ""
+        echo " Valid options include:"
+        echo "    -v: verbose mode"
+        echo "    --mine: to only show your jobs"
+        echo ""
+        exit 1
+    fi
+done
+
 exec /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java -cp $(dirname $(/QOpenSys/pkgs/bin/readlink -f $0))/../lib/sc/sc.jar jesseg.ibmi.opensource.OpenPorts $*
