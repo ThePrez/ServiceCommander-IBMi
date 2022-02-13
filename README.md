@@ -455,6 +455,18 @@ After doing so, you can run the `*SC` TCP server commands, specifying the simple
 STRTCPSVR SERVER(*SC) INSTANCE('kafka')
 ```
 
+**Running two or more STRTCPSVR commands simultaneously**
+
+Be aware that running two or more STRTCPSVR commands at the same time in different jobs can cause the command to fail with TCP1A11. This is because the system will only run one STRTCPSVR command at a time and uses an internal locking mechanism to control this. The wait time is 30 seconds, and if STRTCPSVR in job A is taking longer to start the service, the STRTCPSVR in job B and C etc. will time out when aquiring the lock.
+
+If you need to run more than one STRTCPSVR *SC command at a time (e.g. after IPL where the system is busy and the service can take longer to start), you can reduce the lock time significantly by setting an environment variable before running the STRTCPSVR command:
+
+```
+ADDENVVAR ENVVAR(SC_TCPSVR_SUBMIT) VALUE('Y') LEVEL(*SYS) REPLACE(*YES)
+```
+
+When STRTCPSVR detects the environment variable having the value 'Y', it will submit a job to start the service instead of starting the service in the job running the STRTCPSVR command, thus shortening the lock time significantly and allow the same command in other jobs to run and not time out.
+
 # Using with ADDJOBSCDE
 
 It may be desired to start, stop, or ensure the liveliness of services on a particular schedule. This is most easily accomplished once the `STRTCPSVR`

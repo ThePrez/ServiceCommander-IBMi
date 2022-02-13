@@ -118,6 +118,9 @@ int main(int argc, char *argv[])
         parm->rc = RC_FAILED;
         return 1;
     }
+
+    // Set flag for submit of SC job.
+
     int is_batch = 1;
 
     struct passwd *pd;
@@ -125,6 +128,17 @@ int main(int argc, char *argv[])
     {
         is_batch = (pd->pw_name[0] == 'Q');
     }
+
+    char* sc_submit = getenv("SC_TCPSVR_SUBMIT");
+    if (NULL == sc_submit)
+    {
+        sc_submit = "";
+    }
+    if (0 == memcmp(sc_submit, "Y", 1))
+    {
+        is_batch = 1;
+    }
+
 #define CMD_MAX 333
     char command[CMD_MAX];
     char command_printf_fmt[CMD_MAX];
