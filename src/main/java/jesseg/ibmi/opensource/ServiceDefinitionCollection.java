@@ -148,6 +148,9 @@ public class ServiceDefinitionCollection {
     }
 
     private void validateNoCircularDependencies(final AppLogger _logger, final ServiceDefinition _def, final Stack<String> _dependencyStack) throws SCException {
+        if (null == _def) {
+            return;
+        }
         final int idx = _dependencyStack.indexOf(_def.getName());
         if (-1 != idx) {
             _dependencyStack.push(_def.getName());
