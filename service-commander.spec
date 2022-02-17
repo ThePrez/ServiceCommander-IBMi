@@ -71,6 +71,9 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
+* Thu Feb 2022 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.1.1
+- bugfix: error when service dependency does not exist
+
 * Fri Jan 07 2022 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.1.0
 - enhancement: 'scinit' utility automatically adds PORT env var
 - deps: use Python 3.9 for fetching performance metrics
