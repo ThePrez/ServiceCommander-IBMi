@@ -788,7 +788,7 @@ public class OperationExecutor {
     }
 
     private String validateJobName(final String _jobName) throws SCException {
-        if (!_jobName.matches("^[0-9A-Z#]{1,10}$")) {
+        if (!_jobName.matches("^[0-9A-Z_#]{1,10}$")) {
             throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid custom job name '%s' specified", _jobName);
         }
         return _jobName;
