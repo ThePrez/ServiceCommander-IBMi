@@ -32,6 +32,7 @@
 #include <iconv.h>
 #include <qtqiconv.h>
 #include <qp0ztrc.h>
+#include <qusrjobi.h>
 #pragma convert(37)
 #define START "*START    "
 #define END "*END      "
@@ -85,6 +86,41 @@ void to_job_ccsid(char *out, size_t out_len, char * in)
     iconv_close(cd);
 }
 
+int is_batch() {
+    char buffer[128];
+    memset(buffer, 0x00, sizeof(buffer));
+    // Run in batch mode if we're in a non-interactive job
+    QUSRJOBI(buffer, sizeof(buffer), "JOBI0100", "*                         ",
+                "                ");
+    int is_batch = ('I' != buffer[60]);
+
+    // Run in batch mode if user profile starts with 'Q'
+    struct passwd *pd;
+    if (NULL != (pd = getpwuid(getuid())))
+    {
+        if (pd->pw_name[0] == 'Q')
+        {
+            is_batch = 1;
+        }
+    }
+
+    // .. or override with SC_TCPSVR_SUBMIT environment variable
+    char* sc_submit = getenv("SC_TCPSVR_SUBMIT");
+    if (NULL == sc_submit)
+    {
+        sc_submit = "";
+    }
+    if (0 == memcmp(sc_submit, "Y", 1))
+    {
+        is_batch = 1;
+    }
+    else if (0 == memcmp(sc_submit, "N", 1))
+    {
+        is_batch = 0;
+    }
+    return is_batch;
+}
+
 int main(int argc, char *argv[])
 {
     int rc;
@@ -119,26 +155,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Set flag for submit of SC job.
-
-    int is_batch = 1;
-
-    struct passwd *pd;
-    if (NULL != (pd = getpwuid(getuid())))
-    {
-        is_batch = (pd->pw_name[0] == 'Q');
-    }
-
-    char* sc_submit = getenv("SC_TCPSVR_SUBMIT");
-    if (NULL == sc_submit)
-    {
-        sc_submit = "";
-    }
-    if (0 == memcmp(sc_submit, "Y", 1))
-    {
-        is_batch = 1;
-    }
-
 #define CMD_MAX 333
     char command[CMD_MAX];
     char command_printf_fmt[CMD_MAX];
@@ -165,7 +181,7 @@ int main(int argc, char *argv[])
     }
     memset(command_printf_fmt, 0x00, sizeof(command));
     to_job_ccsid(command_printf_fmt, sizeof(command_printf_fmt)-1, 
-        (0 == is_batch) ? 
+        (0 == is_batch()) ? 
         "CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' '/QOpenSys/pkgs/bin/sc %s %s %s 2>&1 | cat')" :
         "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' 'exec /QOpenSys/pkgs/bin/sc %s %s %s 2>&1 | cat'))"
     );
