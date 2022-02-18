@@ -164,6 +164,8 @@ public class ServiceCommander {
                 }
             } else if (remainingArg.equalsIgnoreCase("--ignore-globals")) {
                 isIgnoreGlobals = true;
+            } else if (remainingArg.equalsIgnoreCase("-q")) {
+                logger.setWarningSuppression(true);
             } else if (remainingArg.equalsIgnoreCase("--all") || remainingArg.equalsIgnoreCase("-a")) {
                 isIgnoreGlobals = false;
                 ignoreGroups = new String[0];
@@ -292,6 +294,7 @@ public class ServiceCommander {
 		                        + "\n"
 		                        + "    Valid options include:\n"
                                 + "        -v: verbose mode\n"
+                                + "        -q: quiet mode (suppress warnings). Ignored when '-v' is specified\n"
                                 + "        --disable-colors: disable colored output\n"
                                 + "        --splf: send output to *SPLF when submitting jobs to batch (instead of log)\n"
                                 + "        --sampletime=x.x: sampling time(s) when gathering performance info (default is 1)\n"
