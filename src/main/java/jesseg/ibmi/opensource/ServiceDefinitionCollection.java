@@ -164,7 +164,12 @@ public class ServiceDefinitionCollection {
         }
         _dependencyStack.push(_def.getName());
         for (final String dependency : _def.getDependencies()) {
-            validateNoCircularDependencies(_logger, getService(dependency), _dependencyStack);
+            ServiceDefinition svcObj = getService(dependency);
+            if (null == svcObj) {
+                _logger.printfln_warn("WARNING: Service '%s' depends on '%s' but that dependency is not configured!", _def.getFriendlyName(), dependency);
+            } else {
+                validateNoCircularDependencies(_logger, getService(dependency), _dependencyStack);
+            }
         }
     }
 }
