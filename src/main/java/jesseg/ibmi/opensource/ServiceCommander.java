@@ -179,7 +179,9 @@ public class ServiceCommander {
                 nonDashedArgs.add(remainingArg);
             }
         }
-
+        if(nonDashedArgs.isEmpty()) {
+            printUsageAndExit();
+        }
         final String operation = nonDashedArgs.removeFirst().trim();
 
         if (0 == nonDashedArgs.size() && (operation.equalsIgnoreCase("check") || operation.equalsIgnoreCase("list") || operation.equalsIgnoreCase("status"))) {
