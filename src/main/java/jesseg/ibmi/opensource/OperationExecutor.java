@@ -298,9 +298,13 @@ public class OperationExecutor {
     public ServiceStatusInfo getServiceStatus() throws SCException {
         try {
             final ServiceStatusInfo ret = new ServiceStatusInfo();
-            final List<CheckAlive> checkalives = m_mainService.getCheckAlives();
+            final List<CheckAlive> checkalives = new LinkedList<CheckAlive>();
+            checkalives.addAll(m_mainService.getCheckAlives());
             if (checkalives.isEmpty()) {
                 throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAlivesHumanReadable());
+            }
+            for(ServiceDefinition backend:m_mainService.getClusterBackends()) {
+                checkalives.addAll(backend.getCheckAlives());
             }
             for (final CheckAlive checkalive : checkalives) {
                 ret.m_allList.add(checkalive);
