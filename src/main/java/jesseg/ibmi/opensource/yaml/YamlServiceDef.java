@@ -199,7 +199,7 @@ public class YamlServiceDef extends ServiceDefinition {
         final List<ServiceDefinition> ret = new LinkedList<ServiceDefinition>();
 
         for (final CheckAlive backend : m_backendDeclarations) {
-            final String friendlyName = "'"+getFriendlyName()+"': Backend on port " + backend.getValue();
+            final String friendlyName = "" + getFriendlyName() + ": Backend on port " + backend.getValue();
             m_logger.printfln_verbose("Creating backend service for %s", getFriendlyName());
             final String shortName = getName() + "@" + backend.getValue();
             final List<String> envvars = new LinkedList<String>();

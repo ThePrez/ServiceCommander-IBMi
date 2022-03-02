@@ -303,7 +303,7 @@ public class OperationExecutor {
             if (checkalives.isEmpty()) {
                 throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAlivesHumanReadable());
             }
-            for(ServiceDefinition backend:m_mainService.getClusterBackends()) {
+            for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
                 checkalives.addAll(backend.getCheckAlives());
             }
             for (final CheckAlive checkalive : checkalives) {
@@ -593,7 +593,6 @@ public class OperationExecutor {
             for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
                 m_logger.printf("Attempting to start backend job '%s'...\n", backend.getFriendlyName());
                 try {
-                    m_serviceDefs.put(backend);
                     new OperationExecutor(Operation.START, backend.getName(), m_serviceDefs, m_logger).execute();
                 } catch (final Exception e) {
                     throw new SCException(m_logger, e, FailureType.ERROR_STARTING_DEPENDENCY, "ERROR: Could not start backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());

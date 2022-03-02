@@ -75,6 +75,7 @@ public class YamlServiceDefLoader {
         }
         ret.putAll(loadFromDirectory(AppDirectories.conf.getUserServicesDirOrNull(), _logger));
         ret.putAll(loadFromDirectory(AppDirectories.conf.getCustomServicesDirOrNull(), _logger));
+        ret.addClusterBackends();
         return ret;
     }
 }

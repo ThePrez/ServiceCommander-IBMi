@@ -22,6 +22,18 @@ public class ServiceDefinitionCollection {
     public ServiceDefinitionCollection() {
     }
 
+    public void addClusterBackends() {
+        final List<ServiceDefinition> backends = new LinkedList<ServiceDefinition>();
+        for (final Entry<String, ServiceDefinition> e : m_data.entrySet()) {
+            for (final ServiceDefinition backend : e.getValue().getClusterBackends()) {
+                backends.add(backend);
+            }
+        }
+        for (final ServiceDefinition backend : backends) {
+            m_data.put(backend.getName(), backend);
+        }
+    }
+
     public void checkForCheckaliveConflicts(final AppLogger _logger) {
         final LinkedList<ServiceDefinition> unprocessed = new LinkedList<ServiceDefinition>();
         unprocessed.addAll(m_data.values());
