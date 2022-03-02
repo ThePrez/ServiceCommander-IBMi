@@ -15,6 +15,7 @@ BuildRequires: openjdk-11
 Requires: bash
 Requires: coreutils-gnu
 Requires: db2util
+Requires: nginx >= 1.16.1-4
 Requires: openjdk-11
 Requires: python39-ibm_db
 
