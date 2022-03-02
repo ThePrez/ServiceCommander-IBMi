@@ -79,6 +79,12 @@ public class ServiceCommander {
                 _logger.printfln_verbose("Found pre-existing service for ad hoc specs: %s", svc.getFriendlyName());
                 return svc;
             }
+            for(ServiceDefinition backend:svc.getClusterBackends()) {
+                if (backend.getCheckAlives().contains(new ServiceDefinition.SimpleCheckAlive(caType, caCriteria))) {
+                    _logger.printfln_verbose("Found pre-existing service cluster backend for ad hoc specs: %s", backend.getFriendlyName());
+                    return backend;
+                }  
+            }
         }
 //@formatter:off
         final String friendlyName = "Ad hoc service running at " + _desc.replace(':', ' ');
