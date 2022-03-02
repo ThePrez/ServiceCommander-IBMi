@@ -181,7 +181,7 @@ public class ServiceCommander {
                 nonDashedArgs.add(remainingArg);
             }
         }
-        if(nonDashedArgs.isEmpty()) {
+        if (nonDashedArgs.isEmpty()) {
             printUsageAndExit();
         }
         final String operation = nonDashedArgs.removeFirst().trim();

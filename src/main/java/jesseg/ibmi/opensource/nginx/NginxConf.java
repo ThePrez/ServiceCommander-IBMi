@@ -9,7 +9,7 @@ import java.util.NoSuchElementException;
 
 public class NginxConf {
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         System.out.println("Hello, world!");
         // NginxConfNode root = new NginxConfNode(null);
         // root.addProperty("pid", "nginx.pid");
@@ -46,7 +46,7 @@ public class NginxConf {
         NginxConf root;
         try {
             root = new NginxConf(new File("C:\\nginx.in"));
-            LinkedList<String> upstreams = new LinkedList<String>();
+            final LinkedList<String> upstreams = new LinkedList<String>();
             upstreams.add("127.0.0.1:3341");
             upstreams.add("127.0.0.1:3342");
             root.overwrite(new String[] { "http", "upstream python_servers" }, "server", upstreams, true);
@@ -54,29 +54,29 @@ public class NginxConf {
             try (PrintWriter ps = new PrintWriter("C:\\nginx.conf", "UTF-8")) {
                 root.writeData(ps, 0);
             }
-        } catch (IOException e1) {
+        } catch (final IOException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
 
     }
 
-    private NginxConfNode m_root;
+    private final NginxConfNode m_root;
 
-    public NginxConf(File _f) throws IOException {
+    public NginxConf(final File _f) throws IOException {
         m_root = NginxConfNode.open(_f);
     }
 
-    private NginxConfNode getNode(String[] _path, boolean _create) {
+    private NginxConfNode getNode(final String[] _path, final boolean _create) {
         NginxConfNode ret = m_root;
-        for (String pathElement : _path) {
+        for (final String pathElement : _path) {
             try {
                 ret = ret.getChild(pathElement);
-            } catch (NoSuchElementException e) {
+            } catch (final NoSuchElementException e) {
                 if (!_create) {
                     throw e;
                 }
-                NginxConfNode newNode = new NginxConfNode(pathElement);
+                final NginxConfNode newNode = new NginxConfNode(pathElement);
                 ret.addChild(newNode);
                 ret = newNode;
             }
@@ -88,15 +88,15 @@ public class NginxConf {
         return m_root;
     }
 
-    public void overwrite(String[] _path, String _prop, List<String> _values, boolean _create) {
-        NginxConfNode node = getNode(_path, _create);
+    public void overwrite(final String[] _path, final String _prop, final List<String> _values, final boolean _create) {
+        final NginxConfNode node = getNode(_path, _create);
         node.purgeProperty(_prop);
-        for (String value : _values) {
+        for (final String value : _values) {
             node.addProperty(_prop, value);
         }
     }
 
-    public void writeData(PrintWriter _ps, int _i) {
+    public void writeData(final PrintWriter _ps, final int _i) {
         m_root.writeData(_ps, _i);
     }
 }

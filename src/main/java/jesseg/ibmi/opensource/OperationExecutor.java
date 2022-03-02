@@ -336,41 +336,41 @@ public class OperationExecutor {
         return m_mainService.getBatchMode().isBatch() && m_mainService.getSbmJobOpts().toUpperCase().contains("USER(");
     }
 
-    private void populateNginxConfFile(File _nginxConf) throws UnsupportedEncodingException, FileNotFoundException, IOException {
+    private void populateNginxConfFile(final File _nginxConf) throws UnsupportedEncodingException, FileNotFoundException, IOException {
         if (!_nginxConf.canRead()) {
             try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(_nginxConf), "UTF-8")) {
                 //@formatter:off
-                String fileContents = String.format("pid nginx.pid;\n" + 
-                        "events {}\n" + 
-                        "stream {\n" + 
-                        "  error_log logs/error.log warn;\n" + 
-                        "  upstream sc_servers {\n" + 
-                        "  }\n" + 
-                        "  server {\n" + 
-                        "    listen %s  backlog=8096;\n" + 
-                        "      proxy_pass sc_servers;\n" + 
-                        "  }\n" + 
+                final String fileContents = String.format("pid nginx.pid;\n" +
+                        "events {}\n" +
+                        "stream {\n" +
+                        "  error_log logs/error.log warn;\n" +
+                        "  upstream sc_servers {\n" +
+                        "  }\n" +
+                        "  server {\n" +
+                        "    listen %s  backlog=8096;\n" +
+                        "      proxy_pass sc_servers;\n" +
+                        "  }\n" +
                         "}", m_mainService.getCheckAlives().get(0).toString());
                 //@formatter:on
                 out.write(fileContents);
             }
         }
-        NginxConf conf = new NginxConf(_nginxConf);
-        List<String> upstreams = new LinkedList<String>();
-        for (ServiceDefinition backendSvc : m_mainService.getClusterBackends()) {
+        final NginxConf conf = new NginxConf(_nginxConf);
+        final List<String> upstreams = new LinkedList<String>();
+        for (final ServiceDefinition backendSvc : m_mainService.getClusterBackends()) {
             m_logger.println_verbose("Processing backend: " + backendSvc.getName());
-            String upstream = "127.0.0.1:" + backendSvc.getCheckAlives().get(0).getValue();
+            final String upstream = "127.0.0.1:" + backendSvc.getCheckAlives().get(0).getValue();
             m_logger.println_verbose("Adding upstream: " + upstream);
             upstreams.add(upstream);
         }
-        String streamOrHttp = conf.getRoot().getChildren("http").isEmpty() ? "stream":"http";
+        final String streamOrHttp = conf.getRoot().getChildren("http").isEmpty() ? "stream" : "http";
         conf.overwrite(new String[] { streamOrHttp, "upstream sc_servers" }, "server", upstreams, true);
         conf.overwrite(new String[] { streamOrHttp, "server" }, "listen", Collections.singletonList("" + m_mainService.getCheckAlives().get(0).getValue() + "  backlog=8096"), true);
 
         try (PrintWriter ps = new PrintWriter(_nginxConf, "UTF-8")) {
             conf.writeData(ps, 0);
         }
-        File logsDir = new File(_nginxConf.getParentFile(), "logs");
+        final File logsDir = new File(_nginxConf.getParentFile(), "logs");
 
         if (!logsDir.isDirectory() && !logsDir.mkdir()) {
             throw new IOException("Could not create log dir");
@@ -582,11 +582,11 @@ public class OperationExecutor {
         // If running cluster mode, dynamically configure nginx and start our cluster backends first
         if (m_mainService.isClusterMode()) {
             m_logger.printfln_verbose("Starting service '%s' in cluster mode", m_mainService.getFriendlyName());
-            File nginxConf = new File(m_mainService.getEffectiveWorkingDirectory(), "cluster.conf");
+            final File nginxConf = new File(m_mainService.getEffectiveWorkingDirectory(), "cluster.conf");
             populateNginxConfFile(nginxConf);
             m_logger.printfln_verbose("Nginx configuration refreshed");
 
-            for (ServiceDefinition backend : m_mainService.getClusterBackends()) {
+            for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
                 m_logger.printf("Attempting to start backend job '%s'...\n", backend.getFriendlyName());
                 try {
                     m_serviceDefs.put(backend);
@@ -716,7 +716,7 @@ public class OperationExecutor {
         }
 
         // If running cluster mode, stop all the backend jobs
-        for (ServiceDefinition backend : m_mainService.getClusterBackends()) {
+        for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
             m_logger.printf("Attempting to stop backend job '%s'...\n", backend.getFriendlyName());
             try {
                 m_serviceDefs.put(backend);

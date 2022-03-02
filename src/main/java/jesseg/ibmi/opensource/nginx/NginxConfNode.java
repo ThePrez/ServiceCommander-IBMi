@@ -17,29 +17,30 @@ import com.github.theprez.jcmdutils.StringUtils;
 
 public class NginxConfNode {
     private static final int INDENTATION_LEN = 2;
-    public static NginxConfNode open(File _file) throws IOException {
-        NginxConfNode root = new NginxConfNode(null, true);
+
+    public static NginxConfNode open(final File _file) throws IOException {
+        final NginxConfNode root = new NginxConfNode(null, true);
         if (null == _file) {
             return root;
         }
 
         NginxConfNode currentNode = root;
-        Stack<NginxConfNode> stack = new Stack<NginxConfNode>();
+        final Stack<NginxConfNode> stack = new Stack<NginxConfNode>();
         try (InputStreamReader in = new InputStreamReader(new BufferedInputStream(new FileInputStream(_file), 1024 * 128), "UTF-8")) {
             String curStr = "";
             int curChar = -1;
             while (-1 != (curChar = in.read())) {
-                char c = (char) curChar;
+                final char c = (char) curChar;
                 if ('{' == c) {
-                    NginxConfNode n = new NginxConfNode(curStr.trim());
+                    final NginxConfNode n = new NginxConfNode(curStr.trim());
                     stack.push(currentNode);
                     currentNode.addChild(n);
                     currentNode = n;
                     curStr = "";
                 } else if (';' == c) {
                     curStr = curStr.trim();
-                    String property = curStr.replaceAll("\\s.*", "");
-                    String value = curStr.replaceFirst("^[^\\s]*\\s+", "");
+                    final String property = curStr.replaceAll("\\s.*", "");
+                    final String value = curStr.replaceFirst("^[^\\s]*\\s+", "");
                     currentNode.addProperty(property, value);
                     curStr = "";
                 } else if ('}' == c) {
@@ -49,7 +50,7 @@ public class NginxConfNode {
                     curStr += c;
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (e instanceof IOException) {
                 throw (IOException) e;
             }
@@ -58,13 +59,14 @@ public class NginxConfNode {
 
         return root;
     }
-    private LinkedList<NginxConfNode> m_childNodes = new LinkedList<NginxConfNode>();
+
+    private final LinkedList<NginxConfNode> m_childNodes = new LinkedList<NginxConfNode>();
     private final boolean m_isRoot;
     private final String m_name;
 
-    private LinkedList<Entry<String, String>> m_properties = new LinkedList<Entry<String, String>>();
+    private final LinkedList<Entry<String, String>> m_properties = new LinkedList<Entry<String, String>>();
 
-    public NginxConfNode(String _name) {
+    public NginxConfNode(final String _name) {
         if (null == _name) {
             throw new NullPointerException();
         }
@@ -72,7 +74,7 @@ public class NginxConfNode {
         m_isRoot = false;
     }
 
-    private NginxConfNode(String _name, boolean _isRoot) {
+    private NginxConfNode(final String _name, final boolean _isRoot) {
         m_isRoot = _isRoot;
         if (_isRoot) {
             m_name = null;
@@ -84,22 +86,22 @@ public class NginxConfNode {
         }
     }
 
-    NginxConfNode addChild(NginxConfNode _child) {
+    NginxConfNode addChild(final NginxConfNode _child) {
         m_childNodes.add(_child);
         return this;
     }
 
-    public NginxConfNode addProperty(final String _prop, String _val) {
-        HashMap<String, String> tmp = new HashMap<String, String>();
+    public NginxConfNode addProperty(final String _prop, final String _val) {
+        final HashMap<String, String> tmp = new HashMap<String, String>();
         tmp.put(_prop, _val);
-        for (Entry<String, String> l : tmp.entrySet()) {
+        for (final Entry<String, String> l : tmp.entrySet()) {
             m_properties.add(l);
         }
         return this;
     }
 
     public NginxConfNode getChild(final String _childName) {
-        for (NginxConfNode e : m_childNodes) {
+        for (final NginxConfNode e : m_childNodes) {
             if (_childName.equals(e.m_name)) {
                 return e;
             }
@@ -108,8 +110,8 @@ public class NginxConfNode {
     }
 
     public List<NginxConfNode> getChildren(final String _regex) {
-        LinkedList<NginxConfNode> ret = new LinkedList<NginxConfNode>();
-        for (NginxConfNode e : m_childNodes) {
+        final LinkedList<NginxConfNode> ret = new LinkedList<NginxConfNode>();
+        for (final NginxConfNode e : m_childNodes) {
             if (null != e.m_name && e.m_name.matches(_regex)) {
                 ret.add(e);
             }
@@ -118,8 +120,8 @@ public class NginxConfNode {
     }
 
     List<String> getPropertyValues(final String _prop) {
-        LinkedList<String> ret = new LinkedList<String>();
-        for (Entry<String, String> e : m_properties) {
+        final LinkedList<String> ret = new LinkedList<String>();
+        for (final Entry<String, String> e : m_properties) {
             if (_prop.equalsIgnoreCase(e.getKey())) {
                 ret.add(e.getValue());
             }
@@ -132,8 +134,8 @@ public class NginxConfNode {
     }
 
     public NginxConfNode purgeProperty(final String _prop) {
-        LinkedList<Entry<String, String>> removals = new LinkedList<Entry<String, String>>();
-        for (Entry<String, String> e : m_properties) {
+        final LinkedList<Entry<String, String>> removals = new LinkedList<Entry<String, String>>();
+        for (final Entry<String, String> e : m_properties) {
             if (e.getKey().equalsIgnoreCase(_prop)) {
                 removals.add(e);
             }
@@ -142,10 +144,10 @@ public class NginxConfNode {
         return this;
     }
 
-    void writeData(final PrintWriter _writer, int _indent) {
-        String indentStr = StringUtils.spacePad("", _indent * INDENTATION_LEN);
-        int childIndent = isRoot() ? 0 : 1 + _indent;
-        String childIndentStr = isRoot() ? "" : StringUtils.spacePad("", childIndent * INDENTATION_LEN);
+    void writeData(final PrintWriter _writer, final int _indent) {
+        final String indentStr = StringUtils.spacePad("", _indent * INDENTATION_LEN);
+        final int childIndent = isRoot() ? 0 : 1 + _indent;
+        final String childIndentStr = isRoot() ? "" : StringUtils.spacePad("", childIndent * INDENTATION_LEN);
         if (m_properties.isEmpty() && m_childNodes.isEmpty()) {
             _writer.println(indentStr + m_name + " {}");
             return;
@@ -154,10 +156,10 @@ public class NginxConfNode {
             _writer.println(indentStr + m_name + " {");
         }
         try {
-            for (Entry<String, String> p : m_properties) {
+            for (final Entry<String, String> p : m_properties) {
                 _writer.println(childIndentStr + p.getKey() + " " + p.getValue() + ";");
             }
-            for (NginxConfNode child : m_childNodes) {
+            for (final NginxConfNode child : m_childNodes) {
                 child.writeData(_writer, childIndent);
             }
 

@@ -1,10 +1,8 @@
 package jesseg.ibmi.opensource;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import jesseg.ibmi.opensource.ServiceDefinition.CheckAlive;
 import jesseg.ibmi.opensource.utils.ListUtils;
 import jesseg.ibmi.opensource.yaml.YamlServiceDef;
 
@@ -142,8 +140,7 @@ public abstract class ServiceDefinition {
         return ListUtils.toString(getCheckAlives(), ", ");
     }
 
-    public List<ServiceDefinition> getClusterBackends()
-    {
+    public List<ServiceDefinition> getClusterBackends() {
         return new LinkedList<ServiceDefinition>();
     }
 
