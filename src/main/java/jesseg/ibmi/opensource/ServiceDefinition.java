@@ -1,8 +1,10 @@
 package jesseg.ibmi.opensource;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import jesseg.ibmi.opensource.ServiceDefinition.CheckAlive;
 import jesseg.ibmi.opensource.utils.ListUtils;
 import jesseg.ibmi.opensource.yaml.YamlServiceDef;
 
@@ -140,6 +142,11 @@ public abstract class ServiceDefinition {
         return ListUtils.toString(getCheckAlives(), ", ");
     }
 
+    public List<ServiceDefinition> getClusterBackends()
+    {
+        return new LinkedList<ServiceDefinition>();
+    }
+
     /**
      * Get the working directory that is configured to be used for starting and stopping the service, or <tt>null</tt> if unset
      *
@@ -255,6 +262,10 @@ public abstract class ServiceDefinition {
 
     public boolean isAdHoc() {
         return false;
+    }
+
+    public boolean isClusterMode() {
+        return !getClusterBackends().isEmpty();
     }
 
     public boolean isInGroup(final String _group) {

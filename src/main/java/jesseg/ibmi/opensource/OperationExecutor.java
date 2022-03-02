@@ -1,12 +1,18 @@
 package jesseg.ibmi.opensource;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,6 +29,7 @@ import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.BatchMode;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAlive;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
+import jesseg.ibmi.opensource.nginx.NginxConf;
 import jesseg.ibmi.opensource.utils.ListUtils;
 import jesseg.ibmi.opensource.utils.QueryUtils;
 import jesseg.ibmi.opensource.utils.SbmJobScript;
@@ -329,6 +336,48 @@ public class OperationExecutor {
         return m_mainService.getBatchMode().isBatch() && m_mainService.getSbmJobOpts().toUpperCase().contains("USER(");
     }
 
+    private void populateNginxConfFile(File _nginxConf) throws UnsupportedEncodingException, FileNotFoundException, IOException {
+        if (!_nginxConf.canRead()) {
+            try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(_nginxConf), "UTF-8")) {
+                //@formatter:off
+                String fileContents = String.format("pid nginx.pid;\n" + 
+                        "events {}\n" + 
+                        "stream {\n" + 
+                        "  error_log logs/error.log warn;\n" + 
+                        "  upstream sc_servers {\n" + 
+                        "  }\n" + 
+                        "  server {\n" + 
+                        "    listen %s  backlog=8096;\n" + 
+                        "      proxy_pass sc_servers;\n" + 
+                        "  }\n" + 
+                        "}", m_mainService.getCheckAlives().get(0).toString());
+                //@formatter:on
+                out.write(fileContents);
+            }
+        }
+        NginxConf conf = new NginxConf(_nginxConf);
+        List<String> upstreams = new LinkedList<String>();
+        for (ServiceDefinition backendSvc : m_mainService.getClusterBackends()) {
+            m_logger.println_verbose("Processing backend: " + backendSvc.getName());
+            String upstream = "127.0.0.1:" + backendSvc.getCheckAlives().get(0).getValue();
+            m_logger.println_verbose("Adding upstream: " + upstream);
+            upstreams.add(upstream);
+        }
+        String streamOrHttp = conf.getRoot().getChildren("http").isEmpty() ? "stream":"http";
+        conf.overwrite(new String[] { streamOrHttp, "upstream sc_servers" }, "server", upstreams, true);
+        conf.overwrite(new String[] { streamOrHttp, "server" }, "listen", Collections.singletonList("" + m_mainService.getCheckAlives().get(0).getValue() + "  backlog=8096"), true);
+
+        try (PrintWriter ps = new PrintWriter(_nginxConf, "UTF-8")) {
+            conf.writeData(ps, 0);
+        }
+        File logsDir = new File(_nginxConf.getParentFile(), "logs");
+
+        if (!logsDir.isDirectory() && !logsDir.mkdir()) {
+            throw new IOException("Could not create log dir");
+        }
+        logsDir.setWritable(true);
+    }
+
     private void printFile() {
         if (m_mainService.isAdHoc()) {
             return;
@@ -529,6 +578,25 @@ public class OperationExecutor {
                 throw new SCException(m_logger, e, FailureType.ERROR_STARTING_DEPENDENCY, "ERROR: Could not start dependency '%s' for service '%s': %s", dependencyName, m_mainService.getFriendlyName(), e.getLocalizedMessage());
             }
         }
+
+        // If running cluster mode, dynamically configure nginx and start our cluster backends first
+        if (m_mainService.isClusterMode()) {
+            m_logger.printfln_verbose("Starting service '%s' in cluster mode", m_mainService.getFriendlyName());
+            File nginxConf = new File(m_mainService.getEffectiveWorkingDirectory(), "cluster.conf");
+            populateNginxConfFile(nginxConf);
+            m_logger.printfln_verbose("Nginx configuration refreshed");
+
+            for (ServiceDefinition backend : m_mainService.getClusterBackends()) {
+                m_logger.printf("Attempting to start backend job '%s'...\n", backend.getFriendlyName());
+                try {
+                    m_serviceDefs.put(backend);
+                    new OperationExecutor(Operation.START, backend.getName(), m_serviceDefs, m_logger).execute();
+                } catch (final Exception e) {
+                    throw new SCException(m_logger, e, FailureType.ERROR_STARTING_DEPENDENCY, "ERROR: Could not start backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
+                }
+            }
+        }
+
         final ServiceStatusInfo currentStatus = getServiceStatus();
         if (ServiceStatusInfo.Status.RUNNING == currentStatus.getStatus()) {
             m_logger.printf("Service '%s' is already running\n", m_mainService.getFriendlyName());
@@ -541,6 +609,10 @@ public class OperationExecutor {
         if (StringUtils.isEmpty(command)) {
             throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "No start command specified for service '%s'", m_mainService.getFriendlyName());
         }
+        if (m_mainService.isClusterMode()) {
+            command = "nginx -p $(pwd) -c $(pwd)/cluster.conf";
+        }
+
         final File directory = new File(m_mainService.getEffectiveWorkingDirectory());
         if (!directory.exists() || !directory.canExecute()) {
             throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Cannot access configured directory %s", directory.getAbsolutePath());
@@ -639,7 +711,18 @@ public class OperationExecutor {
             try {
                 new OperationExecutor(Operation.STOP, dependentService.getName(), m_serviceDefs, m_logger).execute();
             } catch (final Exception e) {
-                throw new SCException(m_logger, e, FailureType.ERROR_STOPPING_DEPENDENT, "ERROR: Could not start dependent service '%s' in order to stop service service '%s': %s", dependentService.getFriendlyName(), m_mainService.getFriendlyName(), e.getLocalizedMessage());
+                throw new SCException(m_logger, e, FailureType.ERROR_STOPPING_DEPENDENT, "ERROR: Could not stop dependent service '%s' in order to stop service '%s': %s", dependentService.getFriendlyName(), m_mainService.getFriendlyName(), e.getLocalizedMessage());
+            }
+        }
+
+        // If running cluster mode, stop all the backend jobs
+        for (ServiceDefinition backend : m_mainService.getClusterBackends()) {
+            m_logger.printf("Attempting to stop backend job '%s'...\n", backend.getFriendlyName());
+            try {
+                m_serviceDefs.put(backend);
+                new OperationExecutor(Operation.STOP, backend.getName(), m_serviceDefs, m_logger).execute();
+            } catch (final Exception e) {
+                throw new SCException(m_logger, e, FailureType.ERROR_STOPPING_DEPENDENT, "ERROR: Could not stop backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
             }
         }
 
@@ -655,7 +738,12 @@ public class OperationExecutor {
         // Keep track of jobs (in case there we resort to endjob *IMMED, we don't have to query jobs twice)
         final List<String> knownJobList = new LinkedList<String>();
 
-        final String command = m_mainService.getStopCommand();
+        String command = m_mainService.getStopCommand();
+        if (m_mainService.isClusterMode()) {
+            command = "nginx -p $(pwd) -c $(pwd)/cluster.conf -s stop";
+        } else if ("<backend".equals(m_mainService.getSource())) {
+            command = "";
+        }
         if (StringUtils.isEmpty(command)) {
             // If the user doesn't provide a custom stop command, that's OK. We go directly to ENDJOB.
             knownJobList.addAll(stopViaEndJob(m_mainService.getShutdownWaitTime()));

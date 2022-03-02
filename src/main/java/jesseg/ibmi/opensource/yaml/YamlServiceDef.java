@@ -3,9 +3,13 @@ package jesseg.ibmi.opensource.yaml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.yaml.snakeyaml.Yaml;
 
@@ -14,6 +18,7 @@ import com.github.theprez.jcmdutils.StringUtils;
 
 import jesseg.ibmi.opensource.SCException;
 import jesseg.ibmi.opensource.ServiceDefinition;
+import jesseg.ibmi.opensource.ServiceDefinition.CheckAlive;
 
 /**
  * A service definition loaded from a .yaml file.
@@ -23,6 +28,8 @@ import jesseg.ibmi.opensource.ServiceDefinition;
 public class YamlServiceDef extends ServiceDefinition {
 
     private static final int UNSPECIFIED_INT = -1;
+    final List<CheckAlive> m_backendDeclarations;
+    List<ServiceDefinition> m_backends = null;
     private final String m_batchJobName;
     private final BatchMode m_batchMode;
     private final List<CheckAlive> m_checkAlives = new LinkedList<CheckAlive>();
@@ -31,18 +38,20 @@ public class YamlServiceDef extends ServiceDefinition {
     private final String m_friendlyName;
     private final List<String> m_groups;
     private final boolean m_isInherintingEnvVars;
+    private AppLogger m_logger;
     private final String m_name;
     private final String m_sbmJobOpts;
     private final File m_source;
     private final String m_startCmd;
+
     private final int m_startupWaitTime;
     private final String m_stopCmd;
     private final int m_stopWaitTime;
-
     private final String m_workingDir;
 
     @SuppressWarnings("unchecked")
     public YamlServiceDef(final String _name, final File _file, final AppLogger _logger) throws SCException {
+        m_logger = _logger;
         try {
             _logger.println_verbose("Initializing service " + _name);
             _logger.println_verbose("Loading yaml service definition from file " + _file);
@@ -101,6 +110,15 @@ public class YamlServiceDef extends ServiceDefinition {
             m_envVars = (List<String>) yamlData.remove("environment_vars");
             m_dependencies = (List<String>) yamlData.remove("service_dependencies");
 
+            m_backendDeclarations = new LinkedList<CheckAlive>();
+            String cluster = getOptionalYamlString(yamlData, "cluster");
+            if (StringUtils.isNonEmpty(cluster)) {
+                final String[] components = cluster.toString().split("\\s*,\\s*");
+                for (final String component : components) {
+                    m_backendDeclarations.add(getCheckAliveFromString(component));
+                }
+            }
+            
             m_groups = (List<String>) yamlData.remove("groups");
 
             m_isInherintingEnvVars = getOptionalYamlBool(yamlData, "environment_is_inheriting_vars", true);
@@ -120,7 +138,6 @@ public class YamlServiceDef extends ServiceDefinition {
             for (final String key : yamlData.keySet()) {
                 _logger.printf_warn("WARNING: Unrecognized attribute '%s' in file %s\n", key, _file.getAbsolutePath());
             }
-
         } catch (final Exception e) {
             throw new SCException(_logger, SCException.FailureType.INVALID_SERVICE_CONFIG, "Invalid configuration for service '%s' from file [%s]: %s", _name, _file.getAbsolutePath(), e.getLocalizedMessage());
         }
@@ -179,6 +196,43 @@ public class YamlServiceDef extends ServiceDefinition {
     }
 
     @Override
+    public List<ServiceDefinition> getClusterBackends() {
+        if (null != m_backends) {
+            return m_backends;
+        }
+        List<ServiceDefinition> ret = new LinkedList<ServiceDefinition>();
+
+        for (final CheckAlive backend : m_backendDeclarations) {
+            final String friendlyName = "Backend Job on port " + backend.getValue();
+            m_logger.printfln_verbose("Creating backend service for %s", getFriendlyName());
+            final String shortName = getName() + "@" + backend.getValue();
+            final List<String> envvars = new LinkedList<String>();
+            for (String envvar : getEnvironmentVars()) {
+                if (!envvar.startsWith("PORT=")) {
+                    envvars.add(envvar);
+                }
+            }
+            envvars.add("PORT=" + backend.getValue().trim());
+            final String backendStartCommand = getStartCommand();
+          //@formatter:off
+          ServiceDefinition backendDef = new ServiceDefinition() {
+                @Override public List<CheckAlive> getCheckAlives()  { return Collections.singletonList(backend); }
+                @Override public String getConfiguredWorkingDirectory() { return YamlServiceDef.this.getConfiguredWorkingDirectory();  }
+                @Override public String getEffectiveWorkingDirectory() { return YamlServiceDef.this.getEffectiveWorkingDirectory();  }
+                @Override public List<String> getEnvironmentVars()  { return envvars;              }
+                @Override public String getFriendlyName()           { return friendlyName; }
+                @Override public String getName()                   { return shortName;    }
+                @Override public String getSource()                 { return "<backend>";   }
+                @Override public String getStartCommand()           { return backendStartCommand;     }
+            };
+          //@formatter:on
+            ret.add(backendDef);
+        }
+        m_backends = ret;
+        return m_backends;
+    }
+
+    @Override
     public String getConfiguredWorkingDirectory() {
         return null == m_workingDir ? super.getConfiguredWorkingDirectory() : m_workingDir;
     }
@@ -191,16 +245,16 @@ public class YamlServiceDef extends ServiceDefinition {
     @Override
     public String getEffectiveWorkingDirectory() {
         // If unspecified, defer to superclass
-        if (null == m_workingDir) {
+        if (null == getConfiguredWorkingDirectory()) {
             return super.getEffectiveWorkingDirectory();
         }
 
         // If absolute path, use it. Otherwise, resolve relative to the location of the source .yaml file
-        final File workingDirFile = new File(m_workingDir);
+        final File workingDirFile = new File(getConfiguredWorkingDirectory());
         if (workingDirFile.isAbsolute()) {
             return workingDirFile.getAbsolutePath();
         } else {
-            return m_source.getParentFile().getAbsolutePath() + "/" + m_workingDir;
+            return m_source.getParentFile().getAbsolutePath() + "/" + getConfiguredWorkingDirectory();
         }
     }
 
@@ -309,5 +363,4 @@ public class YamlServiceDef extends ServiceDefinition {
     public boolean isInheritingEnvironmentVars() {
         return m_isInherintingEnvVars;
     }
-
 }
