@@ -115,6 +115,7 @@ public class ServiceCommander {
                 final ServiceDefinition svcDef = getAdHocServiceDef("port:" + port, serviceDefs, _logger);
                 String line = StringUtils.spacePad(ip, 17);
                 line += StringUtils.spacePad("" + port, 8);
+                line += svcDef.isClusterBackend() ? "  " : "";
                 if (svcDef.isAdHoc()) {
                     line += StringUtils.colorizeForTerminal("port:" + port, TerminalColor.CYAN);
                 } else {

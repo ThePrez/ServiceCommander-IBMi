@@ -534,15 +534,16 @@ public class OperationExecutor {
     private void printServiceStatus() throws NumberFormatException, IOException, SCException {
         final ServiceStatusInfo status = getServiceStatus();
         final String paddedStatusString;
+        final String indent = m_mainService.isClusterBackend() ? "  " : "";
         switch (status.getStatus()) {
             case RUNNING:
-                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("RUNNING", 23), TerminalColor.GREEN);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "RUNNING", 23), TerminalColor.GREEN);
                 break;
             case NOT_RUNNING:
-                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("NOT RUNNING", 23), TerminalColor.PURPLE);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "NOT RUNNING", 23), TerminalColor.PURPLE);
                 break;
             default:
-                final String statusString = String.format("PARTIAL (%d/%d)", status.m_runningList.size(), status.m_allList.size());
+                final String statusString = String.format("indent+PARTIAL (%d/%d)", status.m_runningList.size(), status.m_allList.size());
                 paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(statusString, 23), TerminalColor.YELLOW);
                 break;
 
@@ -551,7 +552,7 @@ public class OperationExecutor {
         if (status.isPartial()) {
             partialInfo += "[not running at -->" + ListUtils.toString(status.m_notRunningList, ", ") + "]";
         }
-        m_logger.printfln("  %s | %s (%s) %s", paddedStatusString, m_mainService.getName(), m_mainService.getFriendlyName(), partialInfo);
+        m_logger.printfln("  %s | %s%s (%s) %s", paddedStatusString, indent, StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN), m_mainService.getFriendlyName(), partialInfo);
     }
 
     private boolean shouldOutputGoToSplf() throws SCException {
