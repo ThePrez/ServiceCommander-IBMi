@@ -261,6 +261,10 @@ public abstract class ServiceDefinition {
         return false;
     }
 
+    public boolean isClusterBackend() {
+        return "<backend>".equals(getSource());
+    }
+
     public boolean isClusterMode() {
         return !getClusterBackends().isEmpty();
     }

@@ -220,6 +220,7 @@ public class YamlServiceDef extends ServiceDefinition {
                 @Override public String getName()                   { return shortName;    }
                 @Override public String getSource()                 { return "<backend>";   }
                 @Override public String getStartCommand()           { return backendStartCommand;     }
+                @Override public boolean isClusterBackend()         { return true;   }
             };
           //@formatter:on
             ret.add(backendDef);
