@@ -1,8 +1,10 @@
 package jesseg.ibmi.opensource;
 
 import java.io.File;
+import java.text.Collator;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -121,6 +123,29 @@ public class ServiceCommander {
             throw SCException.fromException(e, _logger);
         }
     }
+    
+    public static void listServiceGroups(ServiceDefinitionCollection serviceDefs, boolean isIgnoreGlobals, AppLogger logger) throws SCException {
+    	LinkedList<String> groups = new LinkedList<>();
+    	if (!isIgnoreGlobals) {
+    		groups.add("system");
+    	}
+    	for (ServiceDefinition serviceDefinition : serviceDefs.getServices()) {
+    		for (String serviceGroup : serviceDefinition.getGroups()) {
+    			if (!groups.contains(serviceGroup)) {
+    				groups.add(serviceGroup);
+    			}
+    		}
+    	}
+    	groups.sort(new Comparator<String>() {
+    		@Override
+    		public int compare(String s1, String s2) {
+    			return Collator.getInstance().compare(s1, s2);
+    		}
+    	});
+    	for (String group : groups) {
+    		logger.println(group);
+    	}
+    }
 
     private static boolean looksLikeFilename(final String _svc) {
         if (_svc.startsWith("/") || _svc.contains(".")) {
@@ -186,7 +211,7 @@ public class ServiceCommander {
         }
         final String operation = nonDashedArgs.removeFirst().trim();
 
-        if (0 == nonDashedArgs.size() && (operation.equalsIgnoreCase("check") || operation.equalsIgnoreCase("list") || operation.equalsIgnoreCase("status"))) {
+        if (0 == nonDashedArgs.size() && (operation.equalsIgnoreCase("check") || operation.equalsIgnoreCase("list") || operation.equalsIgnoreCase("status") || operation.equalsIgnoreCase("groups"))) {
             nonDashedArgs.add("group:all");
         }
         if (0 == nonDashedArgs.size()) {
@@ -219,22 +244,26 @@ public class ServiceCommander {
             } catch (final IllegalArgumentException e) {
                 throw new SCException(logger, e, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation '%s' requested", operation);
             }
-            if (service.trim().equalsIgnoreCase("all") && null == serviceDefs.get("all")) { // let "all" be shorthand for "group:all"
-                service = "group:all";
-            }
-            if (service.toLowerCase().startsWith("group:")) {
-                final String groupName = service.substring("group:".length()).trim();
-                performOperationsOnServices(op, serviceDefs.getServicesInGroup(groupName, logger), serviceDefs, logger);
-            } else if (service.toLowerCase().startsWith("port:") || service.toLowerCase().startsWith("job:")) {
-                final ServiceDefinition adHoc = getAdHocServiceDef(service, serviceDefs, logger);
-                serviceDefs.put(adHoc);
-                performOperationsOnServices(op, Collections.singleton(adHoc.getName()), serviceDefs, logger);
-            } else if (looksLikeFilename(service)) {
-                final YamlServiceDef def = new YamlServiceDef(null, new File(service), logger);
-                serviceDefs.put(def);
-                performOperationsOnServices(op, Collections.singleton(def.getName()), serviceDefs, logger);
+            if (op == Operation.GROUPS) {
+            	listServiceGroups(serviceDefs, isIgnoreGlobals, logger);
             } else {
-                performOperationsOnServices(op, Collections.singleton(service), serviceDefs, logger);
+	            if (service.trim().equalsIgnoreCase("all") && null == serviceDefs.get("all")) { // let "all" be shorthand for "group:all"
+	                service = "group:all";
+	            }
+	            if (service.toLowerCase().startsWith("group:")) {
+	                final String groupName = service.substring("group:".length()).trim();
+	                performOperationsOnServices(op, serviceDefs.getServicesInGroup(groupName, logger), serviceDefs, logger);
+	            } else if (service.toLowerCase().startsWith("port:") || service.toLowerCase().startsWith("job:")) {
+	                final ServiceDefinition adHoc = getAdHocServiceDef(service, serviceDefs, logger);
+	                serviceDefs.put(adHoc);
+	                performOperationsOnServices(op, Collections.singleton(adHoc.getName()), serviceDefs, logger);
+	            } else if (looksLikeFilename(service)) {
+	                final YamlServiceDef def = new YamlServiceDef(null, new File(service), logger);
+	                serviceDefs.put(def);
+	                performOperationsOnServices(op, Collections.singleton(def.getName()), serviceDefs, logger);
+	            } else {
+	                performOperationsOnServices(op, Collections.singleton(service), serviceDefs, logger);
+	            }
             }
         } catch (final SCException e) {
             logger.printExceptionStack_verbose(e);
@@ -312,6 +341,7 @@ public class ServiceCommander {
                                 + "        perfinfo: print basic performance info about the service\n"
                                 + "        loginfo: get log file info for the service (best guess only)\n"
                                 + "        list: print service short name and friendly name\n"
+                                + "        groups: print an overview of all groups"
                                 + "\n"
                                 + "    Valid formats of the <service(s)> specifier include:\n"
                                 + "        - the short name of a configured service\n"
