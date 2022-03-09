@@ -124,6 +124,7 @@ Usage: sc  [options] <operation> <service>
         perfinfo: print basic performance info about the service
         loginfo: get log file info for the service (best guess only)
         list: print service short name and friendly name
+        groups: print an overview of all groups
 
     Valid formats of the <service(s)> specifier include:
         - the short name of a configured service
@@ -246,6 +247,17 @@ See what ports are currently listening
 
 ```
 scopenports
+```
+
+List all groups
+
+```
+sc groups
+```
+
+Only list groups that are defined within the users private YAML configuration files
+```
+sc groups --ignore-globals
 ```
 
 ## Checking which ports are currently open
