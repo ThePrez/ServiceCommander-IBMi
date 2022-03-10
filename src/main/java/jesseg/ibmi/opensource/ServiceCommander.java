@@ -211,6 +211,7 @@ public class ServiceCommander {
         }
         final String operation = nonDashedArgs.removeFirst().trim();
 
+        // TODO: push this attributes into the `Operation` enum
         if (0 == nonDashedArgs.size() && (operation.equalsIgnoreCase("check") || operation.equalsIgnoreCase("list") || operation.equalsIgnoreCase("status") || operation.equalsIgnoreCase("groups"))) {
             nonDashedArgs.add("group:all");
         }
