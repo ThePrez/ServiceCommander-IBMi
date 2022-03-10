@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 
 import com.github.theprez.jcmdutils.AppLogger;
 import com.github.theprez.jcmdutils.AppLogger.DeferredLogger;
@@ -125,23 +126,15 @@ public class ServiceCommander {
     }
     
     public static void listServiceGroups(ServiceDefinitionCollection serviceDefs, boolean isIgnoreGlobals, AppLogger logger) throws SCException {
-    	LinkedList<String> groups = new LinkedList<>();
+    	TreeSet<String> groups = new TreeSet<String>();
     	if (!isIgnoreGlobals) {
     		groups.add("system");
     	}
     	for (ServiceDefinition serviceDefinition : serviceDefs.getServices()) {
     		for (String serviceGroup : serviceDefinition.getGroups()) {
-    			if (!groups.contains(serviceGroup)) {
-    				groups.add(serviceGroup);
-    			}
+    			groups.add(serviceGroup);
     		}
     	}
-    	groups.sort(new Comparator<String>() {
-    		@Override
-    		public int compare(String s1, String s2) {
-    			return Collator.getInstance().compare(s1, s2);
-    		}
-    	});
     	for (String group : groups) {
     		logger.println(group);
     	}
