@@ -64,16 +64,18 @@ public class OperationExecutor {
 
     static class PerfInfoFetcher extends Thread {
         private SCException m_exc = null;
+        private final String m_eyecatcher;
         private final String m_job;
         private final AppLogger m_logger;
         protected SortedMap<String, String> m_res = null;
         private final float m_sampleTime;
 
-        public PerfInfoFetcher(final String _job, final AppLogger _logger, final float _sampleTime) {
+        public PerfInfoFetcher(final String _job, final String _eyecatcher, final AppLogger _logger, final float _sampleTime) {
             super("PerformanceInfo-" + _job);
             m_job = _job;
             this.m_logger = _logger;
             m_sampleTime = _sampleTime;
+            m_eyecatcher = _eyecatcher;
             start();
         }
 
@@ -243,7 +245,27 @@ public class OperationExecutor {
         return ret;
     }
 
-    private List<String> getActiveJobsForService() throws SCException {
+    private List<String> getActiveClusterBackendJobsForService() throws SCException {
+        try {
+            final List<String> ret = new LinkedList<String>();
+            for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
+                for (final CheckAlive checkalive : backend.getCheckAlives()) {
+                    if (CheckAliveType.PORT == checkalive.getType()) {
+                        ret.addAll(QueryUtils.getListeningJobsByPort(checkalive.getValue(), m_logger));
+                    } else {
+                        ret.addAll(QueryUtils.getJobs(checkalive.getValue(), m_logger));
+                    }
+                }
+            }
+            return ListUtils.deduplicate(ret);
+        } catch (final IOException ioe) {
+            throw new SCException(m_logger, ioe, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
+        } catch (final NumberFormatException nfe) {
+            throw new SCException(m_logger, nfe, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAlivesHumanReadable());
+        }
+    }
+
+    private List<String> getActiveJobsForService(final boolean _includeClusterBackends) throws SCException {
         try {
             final List<String> ret = new LinkedList<String>();
             for (final CheckAlive checkalive : m_mainService.getCheckAlives()) {
@@ -253,9 +275,9 @@ public class OperationExecutor {
                     ret.addAll(QueryUtils.getJobs(checkalive.getValue(), m_logger));
                 }
             }
-            // if (ret.isEmpty()) {
-            // throw new SCException(m_logger, FailureType.ERROR_CHECKING_STATUS, "Unable to determine jobs for service '%s'", m_mainService.getFriendlyName());
-            // }
+            if (_includeClusterBackends) {
+                ret.addAll(getActiveClusterBackendJobsForService());
+            }
             return ListUtils.deduplicate(ret);
         } catch (final IOException ioe) {
             throw new SCException(m_logger, ioe, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
@@ -452,7 +474,7 @@ public class OperationExecutor {
 
     private void printJobInfo() throws SCException, IOException {
         m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + "):");
-        final List<String> jobs = getActiveJobsForService();
+        final List<String> jobs = getActiveJobsForService(false);
         if (jobs.isEmpty()) {
             m_logger.println("    " + StringUtils.colorizeForTerminal("NO JOB INFO (either not running, or running in kernel task)", TerminalColor.PURPLE));
         } else {
@@ -460,12 +482,20 @@ public class OperationExecutor {
                 m_logger.println("    " + job);
             }
         }
+        for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
+            m_logger.printf_verbose("Attempting to get jobinfo for backend job '%s'...\n", backend.getFriendlyName());
+            try {
+                new OperationExecutor(Operation.JOBINFO, backend.getName(), m_serviceDefs, m_logger).execute();
+            } catch (final Exception e) {
+                throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "ERROR: Could not get job info forF backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
+            }
+        }
     }
 
     private void printLogInfo() throws SCException {
         final String possibleLogFile = getPossibleLogFile();
         boolean isAnythingFound = false;
-        for (final String job : getActiveJobsForService()) {
+        for (final String job : getActiveJobsForService(false)) {
             try {
                 for (final String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
                     m_logger.println(m_mainService.getName() + ": " + StringUtils.colorizeForTerminal(splf, TerminalColor.CYAN));
@@ -477,7 +507,7 @@ public class OperationExecutor {
         }
         if (null != possibleLogFile) {
             if (!isAnythingFound) {
-                for (final String job : getActiveJobsForService()) {
+                for (final String job : getActiveJobsForService(false)) {
                     try {
                         final long fileTs = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).parse(new File(possibleLogFile).getName().substring(0, QueryUtils.DB_TIMESTAMP_FORMAT.length())).getTime();
                         final String jobStartDate = QueryUtils.getJobStartTime(job, m_logger);
@@ -509,17 +539,20 @@ public class OperationExecutor {
         m_logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
 
         m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + ")");
-        final List<String> jobs = getActiveJobsForService();
+        final List<String> jobs = getActiveJobsForService(false);
         if (jobs.isEmpty()) {
             m_logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
         } else {
             m_logger.println();
             final List<PerfInfoFetcher> dataFetcherThreads = new LinkedList<PerfInfoFetcher>();
             for (final String job : jobs) {
-                dataFetcherThreads.add(new PerfInfoFetcher(job, m_logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
+                dataFetcherThreads.add(new PerfInfoFetcher(job, "Job", m_logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
+            }
+            for (final String job : getActiveClusterBackendJobsForService()) {
+                dataFetcherThreads.add(new PerfInfoFetcher(job, "Backend job", m_logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
             }
             for (final PerfInfoFetcher dataFetcherThread : dataFetcherThreads) {
-                m_logger.println(StringUtils.colorizeForTerminal("Job: " + dataFetcherThread.m_job, TerminalColor.CYAN));
+                m_logger.println(StringUtils.colorizeForTerminal(dataFetcherThread.m_eyecatcher + ": " + dataFetcherThread.m_job, TerminalColor.CYAN));
                 final SortedMap<String, String> perfInfo = dataFetcherThread.getResults();
                 for (final Entry<String, String> pi : perfInfo.entrySet()) {
                     m_logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), TerminalColor.CYAN) + ": " + pi.getValue());
@@ -546,7 +579,6 @@ public class OperationExecutor {
                 final String statusString = String.format("indent+PARTIAL (%d/%d)", status.m_runningList.size(), status.m_allList.size());
                 paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(statusString, 23), TerminalColor.YELLOW);
                 break;
-
         }
         String partialInfo = "";
         if (status.isPartial()) {
@@ -831,7 +863,7 @@ public class OperationExecutor {
     }
 
     private List<String> stopViaEndJob(final int _waitTime) throws IOException, NumberFormatException, SCException {
-        final List<String> jobs = getActiveJobsForService();
+        final List<String> jobs = getActiveJobsForService(false);
         if (jobs.isEmpty()) {
             throw new SCException(m_logger, FailureType.GENERAL_ERROR, "Unable to determine job");
         }

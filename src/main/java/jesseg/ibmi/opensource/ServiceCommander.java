@@ -258,6 +258,10 @@ public class ServiceCommander {
             }
             final LinkedHashMap<Thread, AppLogger.DeferredLogger> outputList = new LinkedHashMap<Thread, AppLogger.DeferredLogger>();
             for (final String service : _services) {
+                final ServiceDefinition svcDef = _serviceDefs.get(service);
+                if (null == svcDef || (Operation.LIST == _op && svcDef.isClusterBackend())) {
+                    continue;
+                }
                 final DeferredLogger deferredLogger = new DeferredLogger(_logger);
                 deferredLogger.printf_verbose("Performing operation '%s' on service '%s'\n", _op.name(), service);
                 final Thread t = new Thread((Runnable) () -> {
