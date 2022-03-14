@@ -606,7 +606,7 @@ public class OperationExecutor {
             m_logger.printf("Service '%s' is already running\n", m_mainService.getFriendlyName());
             return;
         }
-        if (ServiceStatusInfo.Status.PARTIALLY_RUNNING == currentStatus.getStatus()) {
+        if (ServiceStatusInfo.Status.PARTIALLY_RUNNING == currentStatus.getStatus() && !m_mainService.isClusterMode()) {
             m_logger.printf_warn("Service '%s' is already partially running. You may need to restart if this operation fails.\n", m_mainService.getFriendlyName());
         }
         String command = m_mainService.getStartCommand();
