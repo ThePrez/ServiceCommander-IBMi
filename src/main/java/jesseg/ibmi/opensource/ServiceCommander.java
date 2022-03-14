@@ -175,8 +175,17 @@ public class ServiceCommander {
         if (args.remove("-h") || args.remove("--help")) {
             printUsageAndExit();
         }
+        if (args.remove("--version")) {
+            printVersion();
+            System.exit(0);
+        }
         final LinkedList<String> nonDashedArgs = new LinkedList<String>();
-        final AppLogger logger = new AppLogger.DefaultLogger(args.remove("-v"));
+        final boolean isDashV = args.remove("-v");
+        final AppLogger logger = new AppLogger.DefaultLogger(isDashV);
+        if (args.isEmpty() && isDashV) {
+            printVersion();
+            System.exit(0);
+        }
         for (final String remainingArg : args) {
             if (remainingArg.startsWith("--sampletime=")) {
                 try {
@@ -358,6 +367,21 @@ public class ServiceCommander {
 		// @formatter:on
         System.err.println(usage);
         System.exit(-1);
+    }
+
+    private static void printVersion() {
+        final String version = jesseg.ibmi.opensource.Version.s_scVersion;
+        final String buildTime = jesseg.ibmi.opensource.Version.s_compileDateTime;
+        if (StringUtils.isEmpty(version)) {
+            System.err.println(StringUtils.colorizeForTerminal("ERROR: Unknown version!", TerminalColor.BRIGHT_RED));
+        } else {
+            System.out.println("Version: " + version);
+        }
+        if (StringUtils.isEmpty(buildTime)) {
+            System.err.println(StringUtils.colorizeForTerminal("ERROR: Unknown build time!", TerminalColor.BRIGHT_RED));
+        } else {
+            System.out.println("Build time: " + buildTime);
+        }
     }
 
 }

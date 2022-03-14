@@ -37,7 +37,7 @@ to batch, and more
 
 
 %install
-%make_install INSTALL_ROOT=%{buildroot}
+%make_install INSTALL_ROOT=%{buildroot} SC_VERSION=%{version}
 
 
 %post
