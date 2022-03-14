@@ -25,7 +25,7 @@ function print_usage {
 }
 function cleanup_v0 {
     echo "Cleaning up v0 files..."
-    for VZERO in as-central.yaml as-database.yaml as-dtaq.yaml as-file.yaml as-netprt.yaml as-rmtcmd.yaml as-signon.yaml as-svrmap.yaml as-central-s.yaml as-database-s.yaml as-dtaq-s.yaml as-file-s.yaml as-netprt-s.yaml as-rmtcmd-s.yaml as-signon-s.yaml ddm.yaml directoryserver.yaml ftp.yaml netserver.yaml sshd.yaml telnet.yaml system_tcpsvr_secure ddm-ssl.yaml directoryserver-ssl.yaml telnet-ssl.yaml
+    for VZERO in as-central.yaml as-database.yaml as-dtaq.yaml as-file.yaml as-netprt.yaml as-rmtcmd.yaml as-signon.yaml as-svrmap.yaml as-central-s.yaml as-database-s.yaml as-dtaq-s.yaml as-file-s.yaml as-netprt-s.yaml as-rmtcmd-s.yaml as-signon-s.yaml ddm.yaml directoryserver.yaml ftp.yaml netserver.yaml sshd.yaml telnet.yaml system_tcpsvr_secure ddm-ssl.yaml directoryserver-ssl.yaml telnet-ssl.yaml navigator.yaml
     do
         rm -f $HOME/.sc/services/$VZERO
     done
