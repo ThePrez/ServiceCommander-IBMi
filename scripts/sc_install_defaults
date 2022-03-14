@@ -31,23 +31,31 @@ function cleanup_v0 {
     done
 }
 function install_apache {
-    echo "installing apache server $1..."
+    APACHENAME=$(echo $1 | sed 's|\..*||g' | awk '{ print tolower($0) }')
 
-    if [ ! -d "$1/htdocs" ]; then
-        echo "OOPS\!\! Not an Apache server here..."
+    echo "installing apache server $APACHENAME"
+
+    APACHEDIR=$(/usr/bin/Rfile -r $1 | head -n 1 | sed 's|.*-d ||g' | sed 's| .*||g')
+    if [[ ! -d "$APACHEDIR" ]]; then
+        echo "OOPS"'!!'" Could not find Apache directory $APACHEDIR..."
         return
     fi
-    PORT=$(grep -iE '^Listen ' ./$1/conf/httpd.conf |  sed 's|.*:||g' | tail -n 1)
+    APACHEFILE=$APACHEDIR/$(/usr/bin/Rfile -r $1 | head -n 1 | sed 's|.*-f ||g' | sed 's| .*||g')
+    if [[ ! -f "$APACHEFILE" ]]; then
+        echo "OOPS"'!!'" Could not find Apache configuration file $APACHEFILE..."
+        return
+    fi
+
+    PORT=$(grep -iE '^Listen ' $APACHEFILE |  sed 's|.*:||g' | tail -n 1)
     if [[ "" == "$PORT" ]]; then
-        echo "OOPS\!\! Not an Apache server here..."
+        echo "OOPS"'!!'" Not an Apache server here..."
         return
     fi
-        YAMLFILE="$TARGET_DIR/apache_$(echo "$1" | awk '{ print tolower($0) }').yaml"
-        echo "name: Apache server $1" > $YAMLFILE
-        echo "start_cmd: system \"STRTCPSVR SERVER(*HTTP) HTTPSVR($1)\"" >> $YAMLFILE
-        echo "stop_cmd: system \"ENDTCPSVR SERVER(*HTTP) HTTPSVR($1)\"" >> $YAMLFILE
-        echo 'check_alive: port' >> $YAMLFILE
-        echo "check_alive_criteria: $PORT" >> $YAMLFILE
+        YAMLFILE="$TARGET_DIR/apache_$APACHENAME.yaml"
+        echo "name: Apache server $APACHENAME" > $YAMLFILE
+        echo "start_cmd: system \"STRTCPSVR SERVER(*HTTP) HTTPSVR($APACHENAME)\"" >> $YAMLFILE
+        echo "stop_cmd: system \"ENDTCPSVR SERVER(*HTTP) HTTPSVR($APACHENAME)\"" >> $YAMLFILE
+        echo "check_alive: $PORT" >> $YAMLFILE
         echo "groups:" >> $YAMLFILE
         echo ' - "apache"' >> $YAMLFILE
 }
@@ -95,10 +103,10 @@ install_if_executable /QOpenSys/pkgs/bin/mysqld mariadb.yaml
 install_if_executable /usr/local/mariadb/bin/mysqld zenddbi.yaml
 install_if_executable /QOpenSys/pkgs/bin/crond crond.yaml
 
-cd /www
+cd /qsys.lib/qusrsys.lib/qatmhinstc.file
 
 if [ "1" == "$DO_APACHE" ]; then
-    for APACHE in $(ls)
+    for APACHE in $(ls *.MBR)
     do
         install_apache $APACHE
     done
