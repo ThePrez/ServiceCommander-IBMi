@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 1.1.1
+Version: 1.2.0
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -72,7 +72,16 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
-* Thu Feb 2022 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.1.1
+* Mon Mar 14 2022 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.2.0
+- feature(major): cluster mode
+- feature: new 'sc groups' operation to list groups
+- feature: Support '--version' command line option
+- feature: sc_install_defaults recognizes Apache virtual hosts
+- feature: '-q' option to suppress warnings
+- bugfix: sc_install_defaults finding defunct Apache instances
+- bugfix: sc_install_defaults --cleanupv0 cleans up Navigator
+
+* Thu Feb 24 2022 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.1.1
 - bugfix: error when service dependency does not exist
 
 * Fri Jan 07 2022 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.1.0
