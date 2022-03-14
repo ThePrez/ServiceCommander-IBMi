@@ -82,6 +82,12 @@ public class ServiceCommander {
                 _logger.printfln_verbose("Found pre-existing service for ad hoc specs: %s", svc.getFriendlyName());
                 return svc;
             }
+            for (final ServiceDefinition backend : svc.getClusterBackends()) {
+                if (backend.getCheckAlives().contains(new ServiceDefinition.SimpleCheckAlive(caType, caCriteria))) {
+                    _logger.printfln_verbose("Found pre-existing service cluster backend for ad hoc specs: %s", backend.getFriendlyName());
+                    return backend;
+                }
+            }
         }
 //@formatter:off
         final String friendlyName = "Ad hoc service running at " + _desc.replace(':', ' ');
@@ -112,6 +118,7 @@ public class ServiceCommander {
                 final ServiceDefinition svcDef = getAdHocServiceDef("port:" + port, serviceDefs, _logger);
                 String line = StringUtils.spacePad(ip, 17);
                 line += StringUtils.spacePad("" + port, 8);
+                line += svcDef.isClusterBackend() ? "  " : "";
                 if (svcDef.isAdHoc()) {
                     line += StringUtils.colorizeForTerminal("port:" + port, TerminalColor.CYAN);
                 } else {
@@ -199,7 +206,7 @@ public class ServiceCommander {
                 nonDashedArgs.add(remainingArg);
             }
         }
-        if(nonDashedArgs.isEmpty()) {
+        if (nonDashedArgs.isEmpty()) {
             printUsageAndExit();
         }
         final String operation = nonDashedArgs.removeFirst().trim();
@@ -274,6 +281,10 @@ public class ServiceCommander {
             }
             final LinkedHashMap<Thread, AppLogger.DeferredLogger> outputList = new LinkedHashMap<Thread, AppLogger.DeferredLogger>();
             for (final String service : _services) {
+                final ServiceDefinition svcDef = _serviceDefs.get(service);
+                if (null == svcDef || (Operation.LIST == _op && svcDef.isClusterBackend())) {
+                    continue;
+                }
                 final DeferredLogger deferredLogger = new DeferredLogger(_logger);
                 deferredLogger.printf_verbose("Performing operation '%s' on service '%s'\n", _op.name(), service);
                 final Thread t = new Thread((Runnable) () -> {

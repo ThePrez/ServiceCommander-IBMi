@@ -1,12 +1,18 @@
 package jesseg.ibmi.opensource;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,6 +29,7 @@ import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.BatchMode;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAlive;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
+import jesseg.ibmi.opensource.nginx.NginxConf;
 import jesseg.ibmi.opensource.utils.ListUtils;
 import jesseg.ibmi.opensource.utils.QueryUtils;
 import jesseg.ibmi.opensource.utils.SbmJobScript;
@@ -57,16 +64,18 @@ public class OperationExecutor {
 
     static class PerfInfoFetcher extends Thread {
         private SCException m_exc = null;
+        private final String m_eyecatcher;
         private final String m_job;
         private final AppLogger m_logger;
         protected SortedMap<String, String> m_res = null;
         private final float m_sampleTime;
 
-        public PerfInfoFetcher(final String _job, final AppLogger _logger, final float _sampleTime) {
+        public PerfInfoFetcher(final String _job, final String _eyecatcher, final AppLogger _logger, final float _sampleTime) {
             super("PerformanceInfo-" + _job);
             m_job = _job;
             this.m_logger = _logger;
             m_sampleTime = _sampleTime;
+            m_eyecatcher = _eyecatcher;
             start();
         }
 
@@ -236,7 +245,27 @@ public class OperationExecutor {
         return ret;
     }
 
-    private List<String> getActiveJobsForService() throws SCException {
+    private List<String> getActiveClusterBackendJobsForService() throws SCException {
+        try {
+            final List<String> ret = new LinkedList<String>();
+            for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
+                for (final CheckAlive checkalive : backend.getCheckAlives()) {
+                    if (CheckAliveType.PORT == checkalive.getType()) {
+                        ret.addAll(QueryUtils.getListeningJobsByPort(checkalive.getValue(), m_logger));
+                    } else {
+                        ret.addAll(QueryUtils.getJobs(checkalive.getValue(), m_logger));
+                    }
+                }
+            }
+            return ListUtils.deduplicate(ret);
+        } catch (final IOException ioe) {
+            throw new SCException(m_logger, ioe, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
+        } catch (final NumberFormatException nfe) {
+            throw new SCException(m_logger, nfe, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAlivesHumanReadable());
+        }
+    }
+
+    private List<String> getActiveJobsForService(final boolean _includeClusterBackends) throws SCException {
         try {
             final List<String> ret = new LinkedList<String>();
             for (final CheckAlive checkalive : m_mainService.getCheckAlives()) {
@@ -246,9 +275,9 @@ public class OperationExecutor {
                     ret.addAll(QueryUtils.getJobs(checkalive.getValue(), m_logger));
                 }
             }
-            // if (ret.isEmpty()) {
-            // throw new SCException(m_logger, FailureType.ERROR_CHECKING_STATUS, "Unable to determine jobs for service '%s'", m_mainService.getFriendlyName());
-            // }
+            if (_includeClusterBackends) {
+                ret.addAll(getActiveClusterBackendJobsForService());
+            }
             return ListUtils.deduplicate(ret);
         } catch (final IOException ioe) {
             throw new SCException(m_logger, ioe, FailureType.ERROR_CHECKING_STATUS, "Error occurred while checking status of service '%s': %s", m_mainService.getFriendlyName(), ioe.getLocalizedMessage());
@@ -291,9 +320,13 @@ public class OperationExecutor {
     public ServiceStatusInfo getServiceStatus() throws SCException {
         try {
             final ServiceStatusInfo ret = new ServiceStatusInfo();
-            final List<CheckAlive> checkalives = m_mainService.getCheckAlives();
+            final List<CheckAlive> checkalives = new LinkedList<CheckAlive>();
+            checkalives.addAll(m_mainService.getCheckAlives());
             if (checkalives.isEmpty()) {
                 throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAlivesHumanReadable());
+            }
+            for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
+                checkalives.addAll(backend.getCheckAlives());
             }
             for (final CheckAlive checkalive : checkalives) {
                 ret.m_allList.add(checkalive);
@@ -327,6 +360,48 @@ public class OperationExecutor {
 
     private boolean isLikelyRunningAsAnotherUser() {
         return m_mainService.getBatchMode().isBatch() && m_mainService.getSbmJobOpts().toUpperCase().contains("USER(");
+    }
+
+    private void populateNginxConfFile(final File _nginxConf) throws UnsupportedEncodingException, FileNotFoundException, IOException {
+        if (!_nginxConf.canRead()) {
+            try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(_nginxConf), "UTF-8")) {
+                //@formatter:off
+                final String fileContents = String.format("pid nginx.pid;\n" +
+                        "events {}\n" +
+                        "stream {\n" +
+                        "  error_log logs/error.log warn;\n" +
+                        "  upstream sc_servers {\n" +
+                        "  }\n" +
+                        "  server {\n" +
+                        "    listen %s  backlog=8096;\n" +
+                        "      proxy_pass sc_servers;\n" +
+                        "  }\n" +
+                        "}", m_mainService.getCheckAlives().get(0).toString());
+                //@formatter:on
+                out.write(fileContents);
+            }
+        }
+        final NginxConf conf = new NginxConf(_nginxConf);
+        final String streamOrHttp = conf.getRoot().getChildren("http").isEmpty() ? "stream" : "http";
+        final List<String> upstreams = new LinkedList<String>();
+        for (final ServiceDefinition backendSvc : m_mainService.getClusterBackends()) {
+            m_logger.println_verbose("Processing backend: " + backendSvc.getName());
+            final String upstream = "127.0.0.1:" + backendSvc.getCheckAlives().get(0).getValue();
+            m_logger.println_verbose("Adding upstream: " + upstream);
+            upstreams.add("http".equals(streamOrHttp) ? "http://" + upstream : upstream);
+        }
+        conf.overwrite(new String[] { streamOrHttp, "upstream sc_servers" }, "server", upstreams, true);
+        conf.overwrite(new String[] { streamOrHttp, "server" }, "listen", Collections.singletonList("" + m_mainService.getCheckAlives().get(0).getValue() + "  backlog=8096"), true);
+
+        try (PrintWriter ps = new PrintWriter(_nginxConf, "UTF-8")) {
+            conf.writeData(ps, 0);
+        }
+        final File logsDir = new File(_nginxConf.getParentFile(), "logs");
+
+        if (!logsDir.isDirectory() && !logsDir.mkdir()) {
+            throw new IOException("Could not create log dir");
+        }
+        logsDir.setWritable(true);
     }
 
     private void printFile() {
@@ -399,7 +474,7 @@ public class OperationExecutor {
 
     private void printJobInfo() throws SCException, IOException {
         m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + "):");
-        final List<String> jobs = getActiveJobsForService();
+        final List<String> jobs = getActiveJobsForService(false);
         if (jobs.isEmpty()) {
             m_logger.println("    " + StringUtils.colorizeForTerminal("NO JOB INFO (either not running, or running in kernel task)", TerminalColor.PURPLE));
         } else {
@@ -407,12 +482,20 @@ public class OperationExecutor {
                 m_logger.println("    " + job);
             }
         }
+        for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
+            m_logger.printf_verbose("Attempting to get jobinfo for backend job '%s'...\n", backend.getFriendlyName());
+            try {
+                new OperationExecutor(Operation.JOBINFO, backend.getName(), m_serviceDefs, m_logger).execute();
+            } catch (final Exception e) {
+                throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "ERROR: Could not get job info forF backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
+            }
+        }
     }
 
     private void printLogInfo() throws SCException {
         final String possibleLogFile = getPossibleLogFile();
         boolean isAnythingFound = false;
-        for (final String job : getActiveJobsForService()) {
+        for (final String job : getActiveJobsForService(false)) {
             try {
                 for (final String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
                     m_logger.println(m_mainService.getName() + ": " + StringUtils.colorizeForTerminal(splf, TerminalColor.CYAN));
@@ -424,7 +507,7 @@ public class OperationExecutor {
         }
         if (null != possibleLogFile) {
             if (!isAnythingFound) {
-                for (final String job : getActiveJobsForService()) {
+                for (final String job : getActiveJobsForService(false)) {
                     try {
                         final long fileTs = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).parse(new File(possibleLogFile).getName().substring(0, QueryUtils.DB_TIMESTAMP_FORMAT.length())).getTime();
                         final String jobStartDate = QueryUtils.getJobStartTime(job, m_logger);
@@ -456,17 +539,20 @@ public class OperationExecutor {
         m_logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
 
         m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + ")");
-        final List<String> jobs = getActiveJobsForService();
+        final List<String> jobs = getActiveJobsForService(false);
         if (jobs.isEmpty()) {
             m_logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
         } else {
             m_logger.println();
             final List<PerfInfoFetcher> dataFetcherThreads = new LinkedList<PerfInfoFetcher>();
             for (final String job : jobs) {
-                dataFetcherThreads.add(new PerfInfoFetcher(job, m_logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
+                dataFetcherThreads.add(new PerfInfoFetcher(job, "Job", m_logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
+            }
+            for (final String job : getActiveClusterBackendJobsForService()) {
+                dataFetcherThreads.add(new PerfInfoFetcher(job, "Backend job", m_logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
             }
             for (final PerfInfoFetcher dataFetcherThread : dataFetcherThreads) {
-                m_logger.println(StringUtils.colorizeForTerminal("Job: " + dataFetcherThread.m_job, TerminalColor.CYAN));
+                m_logger.println(StringUtils.colorizeForTerminal(dataFetcherThread.m_eyecatcher + ": " + dataFetcherThread.m_job, TerminalColor.CYAN));
                 final SortedMap<String, String> perfInfo = dataFetcherThread.getResults();
                 for (final Entry<String, String> pi : perfInfo.entrySet()) {
                     m_logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), TerminalColor.CYAN) + ": " + pi.getValue());
@@ -481,24 +567,24 @@ public class OperationExecutor {
     private void printServiceStatus() throws NumberFormatException, IOException, SCException {
         final ServiceStatusInfo status = getServiceStatus();
         final String paddedStatusString;
+        final String indent = m_mainService.isClusterBackend() ? "  " : "";
         switch (status.getStatus()) {
             case RUNNING:
-                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("RUNNING", 23), TerminalColor.GREEN);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "RUNNING", 23), TerminalColor.GREEN);
                 break;
             case NOT_RUNNING:
-                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad("NOT RUNNING", 23), TerminalColor.PURPLE);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "NOT RUNNING", 23), TerminalColor.PURPLE);
                 break;
             default:
-                final String statusString = String.format("PARTIAL (%d/%d)", status.m_runningList.size(), status.m_allList.size());
+                final String statusString = String.format("indent+PARTIAL (%d/%d)", status.m_runningList.size(), status.m_allList.size());
                 paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(statusString, 23), TerminalColor.YELLOW);
                 break;
-
         }
         String partialInfo = "";
         if (status.isPartial()) {
             partialInfo += "[not running at -->" + ListUtils.toString(status.m_notRunningList, ", ") + "]";
         }
-        m_logger.printfln("  %s | %s (%s) %s", paddedStatusString, m_mainService.getName(), m_mainService.getFriendlyName(), partialInfo);
+        m_logger.printfln("  %s | %s%s (%s) %s", paddedStatusString, indent, StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN), m_mainService.getFriendlyName(), partialInfo);
     }
 
     private boolean shouldOutputGoToSplf() throws SCException {
@@ -529,18 +615,40 @@ public class OperationExecutor {
                 throw new SCException(m_logger, e, FailureType.ERROR_STARTING_DEPENDENCY, "ERROR: Could not start dependency '%s' for service '%s': %s", dependencyName, m_mainService.getFriendlyName(), e.getLocalizedMessage());
             }
         }
+
+        // If running cluster mode, dynamically configure nginx and start our cluster backends first
+        if (m_mainService.isClusterMode()) {
+            m_logger.printfln_verbose("Starting service '%s' in cluster mode", m_mainService.getFriendlyName());
+            final File nginxConf = new File(m_mainService.getEffectiveWorkingDirectory(), "cluster.conf");
+            populateNginxConfFile(nginxConf);
+            m_logger.printfln_verbose("Nginx configuration refreshed");
+
+            for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
+                m_logger.printf("Attempting to start backend job '%s'...\n", backend.getFriendlyName());
+                try {
+                    new OperationExecutor(Operation.START, backend.getName(), m_serviceDefs, m_logger).execute();
+                } catch (final Exception e) {
+                    throw new SCException(m_logger, e, FailureType.ERROR_STARTING_DEPENDENCY, "ERROR: Could not start backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
+                }
+            }
+        }
+
         final ServiceStatusInfo currentStatus = getServiceStatus();
         if (ServiceStatusInfo.Status.RUNNING == currentStatus.getStatus()) {
             m_logger.printf("Service '%s' is already running\n", m_mainService.getFriendlyName());
             return;
         }
-        if (ServiceStatusInfo.Status.PARTIALLY_RUNNING == currentStatus.getStatus()) {
+        if (ServiceStatusInfo.Status.PARTIALLY_RUNNING == currentStatus.getStatus() && !m_mainService.isClusterMode()) {
             m_logger.printf_warn("Service '%s' is already partially running. You may need to restart if this operation fails.\n", m_mainService.getFriendlyName());
         }
         String command = m_mainService.getStartCommand();
         if (StringUtils.isEmpty(command)) {
             throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "No start command specified for service '%s'", m_mainService.getFriendlyName());
         }
+        if (m_mainService.isClusterMode()) {
+            command = "nginx -p $(pwd) -c $(pwd)/cluster.conf";
+        }
+
         final File directory = new File(m_mainService.getEffectiveWorkingDirectory());
         if (!directory.exists() || !directory.canExecute()) {
             throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Cannot access configured directory %s", directory.getAbsolutePath());
@@ -639,7 +747,18 @@ public class OperationExecutor {
             try {
                 new OperationExecutor(Operation.STOP, dependentService.getName(), m_serviceDefs, m_logger).execute();
             } catch (final Exception e) {
-                throw new SCException(m_logger, e, FailureType.ERROR_STOPPING_DEPENDENT, "ERROR: Could not start dependent service '%s' in order to stop service service '%s': %s", dependentService.getFriendlyName(), m_mainService.getFriendlyName(), e.getLocalizedMessage());
+                throw new SCException(m_logger, e, FailureType.ERROR_STOPPING_DEPENDENT, "ERROR: Could not stop dependent service '%s' in order to stop service '%s': %s", dependentService.getFriendlyName(), m_mainService.getFriendlyName(), e.getLocalizedMessage());
+            }
+        }
+
+        // If running cluster mode, stop all the backend jobs
+        for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
+            m_logger.printf("Attempting to stop backend job '%s'...\n", backend.getFriendlyName());
+            try {
+                m_serviceDefs.put(backend);
+                new OperationExecutor(Operation.STOP, backend.getName(), m_serviceDefs, m_logger).execute();
+            } catch (final Exception e) {
+                throw new SCException(m_logger, e, FailureType.ERROR_STOPPING_DEPENDENT, "ERROR: Could not stop backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
             }
         }
 
@@ -655,7 +774,12 @@ public class OperationExecutor {
         // Keep track of jobs (in case there we resort to endjob *IMMED, we don't have to query jobs twice)
         final List<String> knownJobList = new LinkedList<String>();
 
-        final String command = m_mainService.getStopCommand();
+        String command = m_mainService.getStopCommand();
+        if (m_mainService.isClusterMode()) {
+            command = "nginx -p $(pwd) -c $(pwd)/cluster.conf -s stop";
+        } else if ("<backend".equals(m_mainService.getSource())) {
+            command = "";
+        }
         if (StringUtils.isEmpty(command)) {
             // If the user doesn't provide a custom stop command, that's OK. We go directly to ENDJOB.
             knownJobList.addAll(stopViaEndJob(m_mainService.getShutdownWaitTime()));
@@ -739,7 +863,7 @@ public class OperationExecutor {
     }
 
     private List<String> stopViaEndJob(final int _waitTime) throws IOException, NumberFormatException, SCException {
-        final List<String> jobs = getActiveJobsForService();
+        final List<String> jobs = getActiveJobsForService(false);
         if (jobs.isEmpty()) {
             throw new SCException(m_logger, FailureType.GENERAL_ERROR, "Unable to determine job");
         }

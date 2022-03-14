@@ -92,7 +92,7 @@ public class ServiceInit {
                 si.addCapturedEnvVars("PATH", "JAVA_HOME");
             }
             try {
-                int port = Integer.valueOf(checkAliveCriteria.trim());
+                final int port = Integer.valueOf(checkAliveCriteria.trim());
                 si.addCapturedEnvVars("PORT=" + port);
             } catch (final NumberFormatException _e) {
             }

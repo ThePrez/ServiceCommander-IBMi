@@ -392,6 +392,7 @@ The following attributes may be specified in the service definition (`.yaml`) fi
 - `stop_cmd`: The service shutdown command. If unspecified, the service will be located by port number or job name.
 - `startup_wait_time`: The wait time, in seconds, to wait for the service to start up (the default is 60 seconds if unspecified)
 - `stop_wait_time`: The wait time, in seconds, to wait for the service to stop (the default is 45 seconds if unspecified)
+- `cluster`: Enable cluster mode by providing a comma-separated list of ports (see "Cluster Mode," below)
 - `batch_mode`: Whether or not to submit the service to batch
 - `sbmjob_jobname`: If submitting to batch, the custom job name to be used for the batch job
 - `sbmjob_opts`: If submitting to batch, custom options for the SBMJOB command (for instance, a custom JOBD) 
@@ -415,6 +416,113 @@ batch_mode: 'false'
 environment_vars:
 - PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/ccs/bin:/QOpenSys/usr/bin/X11:/usr/sbin:.:/usr/bin
 
+```
+
+## Cluster Mode
+Service Commander allows for the automatic "clustering" of your applications. When utilizing "cluster mode":
+- Service Commander will start _n_ worker jobs, each running on a different port
+- Service Commander will manage the worker jobs when performing operations on the service
+- Work is load-balanced across the worker jobs as needed
+
+For example, imagine a service configured like this:
+
+```yaml
+name: Active Jobs Dashboard
+dir: /home/JGORZINS/ibmi-oss-examples/python/active-jobs-dashboard
+start_cmd: python3.9 ./server.py
+check_alive: 9333
+```
+
+In standard operation, this example would start up a Python web server that listens on port 9333.
+Cluster mode can be easily enabled with the `cluster` value. The `cluster` value provides a set of ports
+for the worker jobs to listen on. The number of backend workers is simply based on the quantity of ports specified
+in this property. 
+
+In this example, we run the same Python web server with cluster mode, using 4 backend jobs:
+
+```yaml
+name: Active Jobs Dashboard
+dir: /home/JGORZINS/ibmi-oss-examples/python/active-jobs-dashboard
+start_cmd: python3.9 ./server.py
+cluster: 9334,9335,9336,9337
+check_alive: 9333
+```
+
+The application is still expected to run on 9333, so in the case of a web server, it would still run at
+`http://<system_name>:9333`. Service Commander will run four backend worker jobs, running on ports 9334, 9335,
+9336, and 9337.
+
+### Prerequisites for Cluster Mode
+
+In order for cluster mode to work correctly, your application must honor the `PORT` environment variable. If the
+technology has the ability to run on dynamically-defined ports but cannot recognize `PORT`, then the program startup
+can be wrapped in a script that transposes the environment variable to a command line option. For instance:
+
+```bash
+#!/QOpenSys/pkgs/bin/bash
+exec ./startup.sh --port=$PORT
+```
+
+In case the application requires more than one port, Service Commander also provides these environment variables to the
+backend worker jobs, which can then be used to run the different components of the backend worker with different ports:
+
+- `PORT_PLUS_1`
+- `PORT_PLUS_2`
+- `PORT_PLUS_3`
+- `PORT_PLUS_4`
+- `PORT_PLUS_5`
+
+To avoid collusions with other backend worker jobs, leave the necessary gaps between ports. For instance, if your application
+uses three ports, specify the backend worker jobs 3 ports apart. For instance, `cluster: 8000, 8003, 8006, 8009`.
+
+### Cluster mode methodologies
+
+There are two methodologies that can be used for the load-balancing activity:
+1. **http**: This methodology has more customization options (for instance, microcaching, handling http headers, "sticky" sessions, etc) but only works with the http protocol. To enable, you must manually edit the "cluster.conf" file that is created when your service is first started.
+2. **stream** _(default)_: This methodology has less overhead than 'http', but also has fewer configuration options. However, it works with most protocols. 
+
+### Cluster mode advanced configuration
+
+More advanced configuration can be achieved in one of two ways:
+
+**Defining `cluster_opts` in the service configuration** 
+_NOT YET SUPPORTED_
+
+**cluster.conf**
+When a service is first started in cluster mode, a `cluster.conf` file is created in the service's working directory. Cluster mode is built on top of nginx,
+and this file is the nginx configuration file. Once `cluster.conf` is created, you can feel free to edit it in any way that is supported by nginx.
+For instance, this example:
+- uses the **http** methodology for load balancing
+- Enables 10-second request caching
+- Enables a `/tablesorter` directory for serving static content
+
+```nginx
+pid nginx.pid;
+events {}
+http {
+  error_log logs/error.log warn;
+  proxy_cache_path /tmp/cache keys_zone=cache:10m levels=1:2 inactive=600s max_size=100m;
+  upstream python_servers {
+    server 127.0.0.1:3341;
+    server 127.0.0.1:3342;
+  }
+  server {
+    proxy_cache cache;
+    proxy_cache_lock on;
+    proxy_cache_valid 200 10s;
+    proxy_cache_methods GET HEAD POST;
+    proxy_cache_use_stale updating error timeout http_500 http_502 http_503 http_504;
+    proxy_buffering on;
+    listen 9333 backlog=8096;
+    location / {
+      proxy_pass http://python_servers;
+    }
+    location /tablesorter {
+      autoindex on;
+      alias tablesorter/;
+    }
+  }
+}
 ```
 
 # Demo (video)
