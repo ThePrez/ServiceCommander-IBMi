@@ -382,14 +382,14 @@ public class OperationExecutor {
             }
         }
         final NginxConf conf = new NginxConf(_nginxConf);
+        final String streamOrHttp = conf.getRoot().getChildren("http").isEmpty() ? "stream" : "http";
         final List<String> upstreams = new LinkedList<String>();
         for (final ServiceDefinition backendSvc : m_mainService.getClusterBackends()) {
             m_logger.println_verbose("Processing backend: " + backendSvc.getName());
             final String upstream = "127.0.0.1:" + backendSvc.getCheckAlives().get(0).getValue();
             m_logger.println_verbose("Adding upstream: " + upstream);
-            upstreams.add(upstream);
+            upstreams.add("http".equals(streamOrHttp) ? "http://" + upstream : upstream);
         }
-        final String streamOrHttp = conf.getRoot().getChildren("http").isEmpty() ? "stream" : "http";
         conf.overwrite(new String[] { streamOrHttp, "upstream sc_servers" }, "server", upstreams, true);
         conf.overwrite(new String[] { streamOrHttp, "server" }, "listen", Collections.singletonList("" + m_mainService.getCheckAlives().get(0).getValue() + "  backlog=8096"), true);
 
