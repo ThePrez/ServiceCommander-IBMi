@@ -42,7 +42,7 @@ import jesseg.ibmi.opensource.utils.SbmJobScript;
 public class OperationExecutor {
 
     public enum Operation {
-        CHECK(false), FILE(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), START(true), STOP(true), GROUPS(false);
+        CHECK(false), FILE(false), GROUPS(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), START(true), STOP(true);
         public static Operation valueOfWithAliasing(final String _opStr) {
             final String lookupStr = _opStr.trim().toUpperCase();
             if (lookupStr.equals("STATUS")) {

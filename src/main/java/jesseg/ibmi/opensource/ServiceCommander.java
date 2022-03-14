@@ -1,10 +1,8 @@
 package jesseg.ibmi.opensource;
 
 import java.io.File;
-import java.text.Collator;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -131,20 +129,20 @@ public class ServiceCommander {
             throw SCException.fromException(e, _logger);
         }
     }
-    
-    public static void listServiceGroups(ServiceDefinitionCollection serviceDefs, boolean isIgnoreGlobals, AppLogger logger) throws SCException {
-    	TreeSet<String> groups = new TreeSet<String>();
-    	if (!isIgnoreGlobals) {
-    		groups.add("system");
-    	}
-    	for (ServiceDefinition serviceDefinition : serviceDefs.getServices()) {
-    		for (String serviceGroup : serviceDefinition.getGroups()) {
-    			groups.add(serviceGroup);
-    		}
-    	}
-    	for (String group : groups) {
-    		logger.println(group);
-    	}
+
+    public static void listServiceGroups(final ServiceDefinitionCollection serviceDefs, final boolean isIgnoreGlobals, final AppLogger logger) throws SCException {
+        final TreeSet<String> groups = new TreeSet<String>();
+        if (!isIgnoreGlobals) {
+            groups.add("system");
+        }
+        for (final ServiceDefinition serviceDefinition : serviceDefs.getServices()) {
+            for (final String serviceGroup : serviceDefinition.getGroups()) {
+                groups.add(serviceGroup);
+            }
+        }
+        for (final String group : groups) {
+            logger.println(group);
+        }
     }
 
     private static boolean looksLikeFilename(final String _svc) {
@@ -246,25 +244,25 @@ public class ServiceCommander {
                 throw new SCException(logger, e, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation '%s' requested", operation);
             }
             if (op == Operation.GROUPS) {
-            	listServiceGroups(serviceDefs, isIgnoreGlobals, logger);
+                listServiceGroups(serviceDefs, isIgnoreGlobals, logger);
             } else {
-	            if (service.trim().equalsIgnoreCase("all") && null == serviceDefs.get("all")) { // let "all" be shorthand for "group:all"
-	                service = "group:all";
-	            }
-	            if (service.toLowerCase().startsWith("group:")) {
-	                final String groupName = service.substring("group:".length()).trim();
-	                performOperationsOnServices(op, serviceDefs.getServicesInGroup(groupName, logger), serviceDefs, logger);
-	            } else if (service.toLowerCase().startsWith("port:") || service.toLowerCase().startsWith("job:")) {
-	                final ServiceDefinition adHoc = getAdHocServiceDef(service, serviceDefs, logger);
-	                serviceDefs.put(adHoc);
-	                performOperationsOnServices(op, Collections.singleton(adHoc.getName()), serviceDefs, logger);
-	            } else if (looksLikeFilename(service)) {
-	                final YamlServiceDef def = new YamlServiceDef(null, new File(service), logger);
-	                serviceDefs.put(def);
-	                performOperationsOnServices(op, Collections.singleton(def.getName()), serviceDefs, logger);
-	            } else {
-	                performOperationsOnServices(op, Collections.singleton(service), serviceDefs, logger);
-	            }
+                if (service.trim().equalsIgnoreCase("all") && null == serviceDefs.get("all")) { // let "all" be shorthand for "group:all"
+                    service = "group:all";
+                }
+                if (service.toLowerCase().startsWith("group:")) {
+                    final String groupName = service.substring("group:".length()).trim();
+                    performOperationsOnServices(op, serviceDefs.getServicesInGroup(groupName, logger), serviceDefs, logger);
+                } else if (service.toLowerCase().startsWith("port:") || service.toLowerCase().startsWith("job:")) {
+                    final ServiceDefinition adHoc = getAdHocServiceDef(service, serviceDefs, logger);
+                    serviceDefs.put(adHoc);
+                    performOperationsOnServices(op, Collections.singleton(adHoc.getName()), serviceDefs, logger);
+                } else if (looksLikeFilename(service)) {
+                    final YamlServiceDef def = new YamlServiceDef(null, new File(service), logger);
+                    serviceDefs.put(def);
+                    performOperationsOnServices(op, Collections.singleton(def.getName()), serviceDefs, logger);
+                } else {
+                    performOperationsOnServices(op, Collections.singleton(service), serviceDefs, logger);
+                }
             }
         } catch (final SCException e) {
             logger.printExceptionStack_verbose(e);
