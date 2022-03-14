@@ -46,11 +46,15 @@ function install_apache {
         return
     fi
 
-    PORT=$(grep -iE '^Listen ' $APACHEFILE |  sed 's|.*:||g' | tail -n 1)
+    PORT=$(grep -iE '^Listen ' $APACHEFILE |  sed 's|.*:||g' | tail -n 1 | tr -cd '[0-9]')
     if [[ "" == "$PORT" ]]; then
         echo "OOPS"'!!'" Not an Apache server here..."
         return
     fi
+        for VHOSTPORT in $(grep -iE '^Listen ' $(dirname $APACHEFILE)/vhosts/*.conf 2>/dev/null |  sed 's|.*:||g' | sed 's|\r$||g'  )
+        do
+            PORT="$PORT,$VHOSTPORT"
+        done
         YAMLFILE="$TARGET_DIR/apache_$APACHENAME.yaml"
         echo "name: Apache server $APACHENAME" > $YAMLFILE
         echo "start_cmd: system \"STRTCPSVR SERVER(*HTTP) HTTPSVR($APACHENAME)\"" >> $YAMLFILE
