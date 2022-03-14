@@ -207,6 +207,8 @@ The following attributes may be specified in the service definition (\fB\fC\&.ya
 .IP \(bu 2
 \fB\fCstop_wait_time\fR: The wait time, in seconds, to wait for the service to stop (the default is 45 seconds if unspecified)
 .IP \(bu 2
+\fB\fCcluster\fR: Enable cluster mode by providing a comma\-separated list of ports (see "Cluster Mode," below)
+.IP \(bu 2
 \fB\fCbatch_mode\fR: Whether or not to submit the service to batch
 .IP \(bu 2
 \fB\fCsbmjob_jobname\fR: If submitting to batch, the custom job name to be used for the batch job
@@ -237,6 +239,126 @@ check_alive: '80'
 batch_mode: 'false'
 environment_vars:
 \- PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/ccs/bin:/QOpenSys/usr/bin/X11:/usr/sbin:.:/usr/bin
+.fi
+.RE
+.SH Cluster Mode
+.PP
+Service Commander allows for the automatic "clustering" of your applications. When utilizing "cluster mode":
+\- Service Commander will start \fIn\fP worker jobs, each running on a different port
+\- Service Commander will manage the worker jobs when performing operations on the service
+\- Work is load\-balanced across the worker jobs as needed
+.PP
+For example, imagine a service configured like this:
+.PP
+.RS
+.nf
+name: Active Jobs Dashboard
+dir: /home/JGORZINS/ibmi\-oss\-examples/python/active\-jobs\-dashboard
+start_cmd: python3.9 ./server.py
+check_alive: 9333
+.fi
+.RE
+.PP
+In standard operation, this example would start up a Python web server that listens on port 9333.
+Cluster mode can be easily enabled with the \fB\fCcluster\fR value. The \fB\fCcluster\fR value provides a set of ports
+for the worker jobs to listen on. The number of backend workers is simply based on the quantity of ports specified
+in this property. 
+.PP
+In this example, we run the same Python web server with cluster mode, using 4 backend jobs:
+.PP
+.RS
+.nf
+name: Active Jobs Dashboard
+dir: /home/JGORZINS/ibmi\-oss\-examples/python/active\-jobs\-dashboard
+start_cmd: python3.9 ./server.py
+cluster: 9334,9335,9336,9337
+check_alive: 9333
+.fi
+.RE
+.PP
+The application is still expected to run on 9333, so in the case of a web server, it would still run at
+\fB\fChttp://<system_name>:9333\fR\&. Service Commander will run four backend worker jobs, running on ports 9334, 9335,
+9336, and 9337.
+.SS Prerequisites for Cluster Mode
+.PP
+In order for cluster mode to work correctly, your application must honor the \fB\fCPORT\fR environment variable. If the
+technology has the ability to run on dynamically\-defined ports but cannot recognize \fB\fCPORT\fR, then the program startup
+can be wrapped in a script that transposes the environment variable to a command line option. For instance:
+.PP
+.RS
+.nf
+#!/QOpenSys/pkgs/bin/bash
+exec ./startup.sh \-\-port=$PORT
+.fi
+.RE
+.PP
+In case the application requires more than one port, Service Commander also provides these environment variables to the
+backend worker jobs, which can then be used to run the different components of the backend worker with different ports:
+.RS
+.IP \(bu 2
+\fB\fCPORT_PLUS_1\fR
+.IP \(bu 2
+\fB\fCPORT_PLUS_2\fR
+.IP \(bu 2
+\fB\fCPORT_PLUS_3\fR
+.IP \(bu 2
+\fB\fCPORT_PLUS_4\fR
+.IP \(bu 2
+\fB\fCPORT_PLUS_5\fR
+.RE
+.PP
+To avoid collusions with other backend worker jobs, leave the necessary gaps between ports. For instance, if your application
+uses three ports, specify the backend worker jobs 3 ports apart. For instance, \fB\fCcluster: 8000, 8003, 8006, 8009\fR\&.
+.SS Cluster mode methodologies
+.PP
+There are two methodologies that can be used for the load\-balancing activity:
+1. \fBhttp\fP: This methodology has more customization options (for instance, microcaching, handling http headers, "sticky" sessions, etc) but only works with the http protocol. To enable, you must manually edit the "cluster.conf" file that is created when your service is first started.
+2. \fBstream\fP 
+.BR _ (default)_: 
+This methodology has less overhead than 'http', but also has fewer configuration options. However, it works with most protocols. 
+.SS Cluster mode advanced configuration
+.PP
+More advanced configuration can be achieved in one of two ways:
+.PP
+\fBDefining \fB\fCcluster_opts\fR in the service configuration\fP 
+\fINOT YET SUPPORTED\fP
+.PP
+\fBcluster.conf\fP
+When a service is first started in cluster mode, a \fB\fCcluster.conf\fR file is created in the service's working directory. Cluster mode is built on top of nginx,
+and this file is the nginx configuration file. Once \fB\fCcluster.conf\fR is created, you can feel free to edit it in any way that is supported by nginx.
+For instance, this example:
+\- uses the \fBhttp\fP methodology for load balancing
+\- Enables 10\-second request caching
+\- Enables a \fB\fC/tablesorter\fR directory for serving static content
+.PP
+.RS
+.nf
+pid nginx.pid;
+events {}
+http {
+  error_log logs/error.log warn;
+  proxy_cache_path /tmp/cache keys_zone=cache:10m levels=1:2 inactive=600s max_size=100m;
+  upstream python_servers {
+    server 127.0.0.1:3341;
+    server 127.0.0.1:3342;
+  }
+  server {
+    proxy_cache cache;
+    proxy_cache_lock on;
+    proxy_cache_valid 200 10s;
+    proxy_cache_methods GET HEAD POST;
+    proxy_cache_use_stale updating error timeout http_500 http_502 http_503 http_504;
+    proxy_buffering on;
+    listen 9333 backlog=8096;
+    location / {
+      proxy_pass http://python_servers;
+    }
+    location /tablesorter {
+      autoindex on;
+      alias tablesorter/;
+    }
+  }
+}
 .fi
 .RE
 .SH Testimonials
@@ -272,6 +394,7 @@ Usage: sc  [options] <operation> <service>
         perfinfo: print basic performance info about the service
         loginfo: get log file info for the service (best guess only)
         list: print service short name and friendly name
+        groups: print an overview of all groups
 
     Valid formats of the <service(s)> specifier include:
         \- the short name of a configured service
