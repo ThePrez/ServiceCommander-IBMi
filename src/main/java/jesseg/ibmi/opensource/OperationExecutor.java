@@ -382,7 +382,7 @@ public class OperationExecutor {
             }
         }
         final NginxConf conf = new NginxConf(_nginxConf);
-        final String streamOrHttp = conf.getRoot().getChildren("http").isEmpty() ? "stream" : "http";
+        final String streamOrHttp = conf.getRoot().getChildren("stream").isEmpty() ? "http" : "stream";
         final List<String> upstreams = new LinkedList<String>();
         for (final ServiceDefinition backendSvc : m_mainService.getClusterBackends()) {
             m_logger.println_verbose("Processing backend: " + backendSvc.getName());
