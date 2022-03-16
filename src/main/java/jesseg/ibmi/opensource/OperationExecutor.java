@@ -568,23 +568,25 @@ public class OperationExecutor {
         final ServiceStatusInfo status = getServiceStatus();
         final String paddedStatusString;
         final String indent = m_mainService.isClusterBackend() ? "  " : "";
+        TerminalColor statusColor = TerminalColor.BLUE;
+        int statusPadSize = 18;
         switch (status.getStatus()) {
             case RUNNING:
-                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "RUNNING", 23), TerminalColor.GREEN);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "RUNNING", statusPadSize),statusColor= TerminalColor.GREEN);
                 break;
             case NOT_RUNNING:
-                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "NOT RUNNING", 23), TerminalColor.PURPLE);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "NOT RUNNING", statusPadSize), statusColor=TerminalColor.PURPLE);
                 break;
             default:
                 final String statusString = String.format("" + indent + "PARTIAL (%d/%d)", status.m_runningList.size(), status.m_allList.size());
-                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(statusString, 23), TerminalColor.YELLOW);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(statusString, statusPadSize), statusColor=TerminalColor.YELLOW);
                 break;
         }
         String partialInfo = "";
         if (status.isPartial()) {
             partialInfo += StringUtils.colorizeForTerminal("[not running at -->" + ListUtils.toString(status.m_notRunningList, ", ") + "]", TerminalColor.YELLOW);
         }
-        m_logger.printfln("  %s | %s%s (%s) %s", paddedStatusString, indent, StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN), m_mainService.getFriendlyName(), partialInfo);
+        m_logger.printfln("  %s | %s%s (%s) %s", paddedStatusString, indent, StringUtils.colorizeForTerminal(m_mainService.getName(), statusColor), m_mainService.getFriendlyName(), partialInfo);
     }
 
     private boolean shouldOutputGoToSplf() throws SCException {
