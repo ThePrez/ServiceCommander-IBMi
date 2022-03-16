@@ -283,8 +283,9 @@ public class ServiceCommander {
     private static void performOperationsOnServices(final Operation _op, final Set<String> _services, final ServiceDefinitionCollection _serviceDefs, final AppLogger _logger) throws SCException {
         final Stack<SCException> exceptions = new Stack<SCException>();
         if (!_op.isChangingSystemState()) {
-            if(10 < _services.size()) {
-            QueryUtils.setCaching(true);}
+            if (10 < _services.size()) {
+                QueryUtils.setCaching(true);
+            }
             if (Operation.PERFINFO == _op) { // this one's treated special because it might take a very long time.f
                 _logger.println("Gathering performance information...");
             }

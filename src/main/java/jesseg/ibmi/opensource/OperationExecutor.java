@@ -665,11 +665,11 @@ public class OperationExecutor {
         for (final String var : m_mainService.getEnvironmentVars()) {
             envp.add(var);
         }
-        
+
         // If there's only one checkalive, and it's a port checkalive, then add the PORT and PORT_PLUS_n envvars
         int numPortCheckalives = 0;
         int checkAlivePort = -1;
-        for (CheckAlive ca : m_mainService.getCheckAlives()) {
+        for (final CheckAlive ca : m_mainService.getCheckAlives()) {
             if (CheckAliveType.PORT == ca.getType()) {
                 numPortCheckalives++;
                 checkAlivePort = Integer.valueOf(ca.getValue());
