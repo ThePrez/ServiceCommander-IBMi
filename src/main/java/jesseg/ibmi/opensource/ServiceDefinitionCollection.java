@@ -128,6 +128,10 @@ public class ServiceDefinitionCollection {
         return ret;
     }
 
+    public boolean hasService(final String _service) {
+        return m_data.containsKey(_service);
+    }
+
     public void put(final ServiceDefinition _serviceDef) {
         m_data.put(_serviceDef.getName(), _serviceDef);
     }

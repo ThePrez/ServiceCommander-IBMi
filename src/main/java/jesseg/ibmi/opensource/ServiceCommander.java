@@ -265,7 +265,7 @@ public class ServiceCommander {
                     final ServiceDefinition adHoc = getAdHocServiceDef(service, serviceDefs, logger);
                     serviceDefs.put(adHoc);
                     performOperationsOnServices(op, Collections.singleton(adHoc.getName()), serviceDefs, logger);
-                } else if (looksLikeFilename(service)) {
+                } else if (looksLikeFilename(service) && !serviceDefs.hasService(service)) {
                     final YamlServiceDef def = new YamlServiceDef(null, new File(service), logger);
                     serviceDefs.put(def);
                     performOperationsOnServices(op, Collections.singleton(def.getName()), serviceDefs, logger);
