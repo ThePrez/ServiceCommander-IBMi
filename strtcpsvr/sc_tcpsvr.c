@@ -62,7 +62,7 @@ size_t unpad_length(const char *padded, size_t length)
     return length;
 }
 
-void to_job_ccsid(char *out, size_t out_len, char * in)
+void to_job_ccsid(char *out, size_t out_len, char *in)
 {
     QtqCode_T compile_ccsid = {37, 0, 0, 0, 0, 0};
     QtqCode_T job_ccsid = {0, 0, 0, 0, 0, 0};
@@ -75,8 +75,8 @@ void to_job_ccsid(char *out, size_t out_len, char * in)
 
     size_t inleft = strlen(in);
     size_t outleft = out_len;
-    char* input = in;
-    char* output = out;
+    char *input = in;
+    char *output = out;
 
     int rc = iconv(cd, &input, &inleft, &output, &outleft);
     if (rc == -1)
@@ -87,12 +87,13 @@ void to_job_ccsid(char *out, size_t out_len, char * in)
     iconv_close(cd);
 }
 
-int is_batch() {
+int is_batch()
+{
     char buffer[128];
     memset(buffer, 0x00, sizeof(buffer));
     // Run in batch mode if we're in a non-interactive job
     QUSRJOBI(buffer, sizeof(buffer), "JOBI0100", "*                         ",
-                "                ");
+             "                ");
     int is_batch = ('I' != buffer[60]);
 
     // Run in batch mode if user profile starts with 'Q'
@@ -106,7 +107,7 @@ int is_batch() {
     }
 
     // .. or override with SC_TCPSVR_SUBMIT environment variable
-    char* sc_submit = getenv("SC_TCPSVR_SUBMIT");
+    char *sc_submit = getenv("SC_TCPSVR_SUBMIT");
     if (NULL == sc_submit)
     {
         sc_submit = "";
@@ -160,7 +161,7 @@ int main(int argc, char *argv[])
     char command[CMD_MAX];
     char command_printf_fmt[CMD_MAX];
     char sc_operation[32];
-    char* sc_options = getenv("SC_TCPSVR_OPTIONS");
+    char *sc_options = getenv("SC_TCPSVR_OPTIONS");
     if (NULL == sc_options)
     {
         sc_options = "";
@@ -180,11 +181,11 @@ int main(int argc, char *argv[])
         parm->rc = RC_FAILED;
         return -1;
     }
-    if(0 != is_batch()) {
+    if (0 != is_batch())
+    {
         memset(command_printf_fmt, 0x00, sizeof(command));
-        to_job_ccsid(command_printf_fmt, sizeof(command_printf_fmt)-1, 
-        "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' 'exec /QOpenSys/pkgs/bin/sc %s %s %s 2>&1 | cat'))"
-        );
+        to_job_ccsid(command_printf_fmt, sizeof(command_printf_fmt) - 1,
+                     "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' 'exec /QOpenSys/pkgs/bin/sc %s %s %s 2>&1 | cat'))");
         snprintf(command, sizeof(command), command_printf_fmt, sc_options, sc_operation, instance);
         Qp0zLprintf("Running command: 'sc %s %s %s'\n", sc_options, sc_operation, instance);
         Qp0zLprintf("Check spooled file output for progress\n");
@@ -202,24 +203,25 @@ int main(int argc, char *argv[])
     // So, here we go.....
 
     // First things first, we need an arguments array set up...
-    char* child_argv[4];
-    child_argv[0] = "/QSYS.LIB/QSHELL.LIB/QZSHSH.PGM";// Note that "/QOpenSys/pkgs/bin/bash" won't work because PASE executables are not allowed
+    char *child_argv[4];
+    child_argv[0] = "/QSYS.LIB/QSHELL.LIB/QZSHSH.PGM"; // Note that "/QOpenSys/pkgs/bin/bash" won't work because PASE executables are not allowed
     child_argv[1] = "-c";
     char sc_cmd[1024];
-    snprintf(sc_cmd,sizeof(sc_cmd), "/QOpenSys/pkgs/bin/sc %s %s %s 2>&1", sc_options, sc_operation, instance);
+    snprintf(sc_cmd, sizeof(sc_cmd), "/QOpenSys/pkgs/bin/sc %s %s %s 2>&1", sc_options, sc_operation, instance);
     child_argv[2] = sc_cmd;
     child_argv[3] = NULL;
 
     // ...and an environment for the child process...
-    char* envp[5];
-    envp[0]="QIBM_MULTI_THREADED=Y";
-    envp[1]="PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin";
-    envp[2]="QIBM_USE_DESCRIPTOR_STDIO=Y";
-    envp[3] = (char*)NULL;
+    char *envp[5];
+    envp[0] = "QIBM_MULTI_THREADED=Y";
+    envp[1] = "PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin";
+    envp[2] = "QIBM_USE_DESCRIPTOR_STDIO=Y";
+    envp[3] = (char *)NULL;
 
     // ...and we need to set up the pipes...
     int stdoutFds[2];
-    if (pipe(stdoutFds) != 0) {
+    if (pipe(stdoutFds) != 0)
+    {
         printf("failure on pipe\n");
         return 1;
     }
@@ -231,16 +233,16 @@ int main(int argc, char *argv[])
     // ...and we want to spawn a multithread-capable job...
     struct inheritance inherit;
     memset(&inherit, 0, sizeof(inherit));
-    inherit.flags=SPAWN_SETTHREAD_NP;
+    inherit.flags = SPAWN_SETTHREAD_NP;
 
     // ...and we can FINALLY run our command!
     // Qp0zLprintf("Running command: '%s'\n", sc_cmd);
     pid_t child_pid = spawnp(child_argv[0], //executable
-            3, // fd_count
-            fd_map, //fd_map[]
-            &inherit, //inherit 
-            child_argv, //argv
-            envp);//envp
+                             3,             // fd_count
+                             fd_map,        //fd_map[]
+                             &inherit,      //inherit
+                             child_argv,    //argv
+                             envp);         //envp
     if (child_pid == -1)
     {
         Qp0zLprintf("Error spawning child process: %s\n", strerror(errno));
@@ -251,19 +253,23 @@ int main(int argc, char *argv[])
     close(stdoutFds[1]);
 
     // Now, let's read the output from the child process and print it here.
-    char line[1024*4];
+    char line[1024 * 4];
     memset(line, 0, sizeof(line));
     int bytesRead = -1;
-    char* linePtr = line;
-    while ((rc = read(stdoutFds[0], linePtr,1)) > 0) {
+    char *linePtr = line;
+    while ((rc = read(stdoutFds[0], linePtr, 1)) > 0)
+    {
         int pos = linePtr - line;
-        if(*linePtr == '\n' || pos >= (sizeof(line) - 1)) {
+        if (*linePtr == '\n' || pos >= (sizeof(line) - 1))
+        {
             *linePtr = '\0';
             Qp0zLprintf("%s\n", line);
             printf("%s\n", line);
             linePtr = line;
             memset(line, 0, sizeof(line));
-        } else {
+        }
+        else
+        {
             linePtr++;
         }
     }
