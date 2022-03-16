@@ -569,17 +569,17 @@ public class OperationExecutor {
         final String paddedStatusString;
         final String indent = m_mainService.isClusterBackend() ? "  " : "";
         TerminalColor statusColor = TerminalColor.BLUE;
-        int statusPadSize = 18;
+        final int statusPadSize = 18;
         switch (status.getStatus()) {
             case RUNNING:
-                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "RUNNING", statusPadSize),statusColor= TerminalColor.GREEN);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "RUNNING", statusPadSize), statusColor = TerminalColor.GREEN);
                 break;
             case NOT_RUNNING:
-                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "NOT RUNNING", statusPadSize), statusColor=TerminalColor.PURPLE);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "NOT RUNNING", statusPadSize), statusColor = TerminalColor.PURPLE);
                 break;
             default:
                 final String statusString = String.format("" + indent + "PARTIAL (%d/%d)", status.m_runningList.size(), status.m_allList.size());
-                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(statusString, statusPadSize), statusColor=TerminalColor.YELLOW);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(statusString, statusPadSize), statusColor = TerminalColor.YELLOW);
                 break;
         }
         String partialInfo = "";
