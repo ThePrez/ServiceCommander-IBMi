@@ -283,10 +283,13 @@ public class ServiceCommander {
     private static void performOperationsOnServices(final Operation _op, final Set<String> _services, final ServiceDefinitionCollection _serviceDefs, final AppLogger _logger) throws SCException {
         final Stack<SCException> exceptions = new Stack<SCException>();
         if (!_op.isChangingSystemState()) {
+            if(10 < _services.size()) {
+            QueryUtils.setCaching(true);}
             if (Operation.PERFINFO == _op) { // this one's treated special because it might take a very long time.f
                 _logger.println("Gathering performance information...");
             }
             final LinkedHashMap<Thread, AppLogger.DeferredLogger> outputList = new LinkedHashMap<Thread, AppLogger.DeferredLogger>();
+            _logger.println_verbose("gonna start worker threads");
             for (final String service : _services) {
                 final ServiceDefinition svcDef = _serviceDefs.get(service);
                 if (null == svcDef || (Operation.LIST == _op && svcDef.isClusterBackend())) {
@@ -304,6 +307,7 @@ public class ServiceCommander {
                 outputList.put(t, deferredLogger);
                 t.start();
             }
+            _logger.println_verbose("Worker threads have all been started");
             for (final Entry<Thread, DeferredLogger> output : outputList.entrySet()) {
                 try {
                     output.getKey().join();

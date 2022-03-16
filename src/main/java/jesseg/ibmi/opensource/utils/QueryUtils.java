@@ -8,10 +8,13 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.github.theprez.jcmdutils.AppLogger;
 import com.github.theprez.jcmdutils.ProcessLauncher;
@@ -29,6 +32,9 @@ import jesseg.ibmi.opensource.SCException.FailureType;
 public class QueryUtils {
 
     public static final String DB_TIMESTAMP_FORMAT = "yyyy-MM-dd-HH.mm.ss";
+    private static boolean s_caching = false;
+    private static Set<Integer> s_cachedOpenPorts = null;
+    private static Object s_cacheLock = new ReentrantLock();
 
     private static List<String> deduplicate(final List<String> _in) {
         final HashSet<String> s = new HashSet<String>();
@@ -219,6 +225,23 @@ public class QueryUtils {
     }
 
     public static boolean isListeningOnPort(final int _port, final AppLogger _logger) throws IOException {
+        if (s_caching) {
+            synchronized (s_cacheLock) {
+            if (null != s_cachedOpenPorts) {
+                return s_cachedOpenPorts.contains(_port);
+            }
+            final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "SELECT DISTINCT LOCAL_PORT FROM QSYS2.NETSTAT_INFO WHERE TCP_STATE = 'LISTEN'" });
+            final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
+            Set<Integer> openPorts = new LinkedHashSet<Integer>();
+            for (String portLine : queryResults) {
+                try {
+                    openPorts.add(Integer.valueOf(portLine.replace("\"", "")));
+                } catch (NumberFormatException e) {
+                    _logger.exception(e);
+                }
+            }
+            s_cachedOpenPorts = openPorts;}
+        }
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "SELECT COUNT(*) FROM QSYS2.NETSTAT_INFO WHERE LOCAL_PORT = " + _port + " and TCP_STATE = 'LISTEN'" });
         final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
         final String firstLine = queryResults.get(0);
@@ -227,5 +250,9 @@ public class QueryUtils {
 
     public static boolean isListeningOnPort(final String _port, final AppLogger _logger) throws NumberFormatException, IOException {
         return isListeningOnPort(Integer.valueOf(_port.trim()), _logger);
+    }
+
+    public static void setCaching(boolean _b) {
+        s_caching = _b;
     }
 }
