@@ -208,7 +208,7 @@ public class YamlServiceDef extends ServiceDefinition {
                     envvars.add(envvar);
                 }
             }
-            envvars.add("PORT=" + backend.getValue().trim());
+            // 'sc start' will add PORT automatically --> envvars.add("PORT=" + backend.getValue().trim());
             final String backendStartCommand = getStartCommand();
           //@formatter:off
           final ServiceDefinition backendDef = new ServiceDefinition() {
