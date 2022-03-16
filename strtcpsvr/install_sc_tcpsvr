@@ -3,23 +3,51 @@
 SCTARGET=${SCTARGET:-SCOMMANDER}
 SCTGTRLS=${SCTGTRLS:-*CURRENT}
 
+oopsies() {
+  echo ''
+  echo ''
+  echo '-------------------------------------------------------'
+  echo 'Cleaning up from error...'
+  /QOpenSys/usr/bin/system -Kkpiebv "DLTLIB ${SCTARGET}"
+  /QOpenSys/usr/bin/system -Kkpiebv "RMVTCPSVR SVRSPCVAL(*SC)" || echo "TCPSVR was not installed"
+  echo ''
+  echo 'FAILED!!'
+  echo ''
+  exit 1
+}
+
 /QOpenSys/usr/bin/system -Kkpiebv "CRTLIB LIB(${SCTARGET}) TEXT('Service Commander')" || echo "lib doesn't exist yet"
 /QOpenSys/usr/bin/system -Kkpiebv "DLTMOD MODULE(${SCTARGET}/SC)" || echo "module doesn't exist yet"
 /QOpenSys/usr/bin/system -Kkpiebv "DLTPGM PGM(${SCTARGET}/SC)" || echo "program doesn't exist yet"
 /QOpenSys/usr/bin/system -Kkpiebv "RMVTCPSVR SVRSPCVAL(*SC)" || echo "TCPSVR doesn't exist yet"
 /QOpenSys/usr/bin/system -Kkpiebv "DLTF FILE(${SCTARGET}/README)" || echo "README doesn't exist yet"
 
-set -e
 DIR=$(/QOpenSys/pkgs/bin/readlink -f $(dirname $0))
-/QOpenSys/usr/bin/system -Kkpiebv "CRTCMOD MODULE(${SCTARGET}/SC) SRCSTMF('${DIR}/sc_tcpsvr.c') SYSIFCOPT(*IFS64IO) TERASPACE(*YES *TSIFC) TGTCCSID(37) TGTRLS(${SCTGTRLS})"
-/QOpenSys/usr/bin/system -Kkpiebv "CRTPGM PGM(${SCTARGET}/SC) MODULE(${SCTARGET}/SC) USRPRF(*OWNER) TEXT('Service Commander') TGTRLS(${SCTGTRLS})"
-/QOpenSys/usr/bin/system -Kkpiebv "CHGOBJOWN OBJ(QSYS/${SCTARGET}) OBJTYPE(*LIB) NEWOWN(QTCP) CUROWNAUT(*SAME)"
-/QOpenSys/usr/bin/system -Kkpiebv "CHGOBJOWN OBJ(${SCTARGET}/SC) OBJTYPE(*PGM) NEWOWN(QTCP) CUROWNAUT(*SAME)"
-/QOpenSys/usr/bin/system -Kkpiebv "ADDTCPSVR SVRSPCVAL(*SC) PGM(${SCTARGET}/SC) SVRNAME(SC) SVRTYPE(SC) TEXT('Service Commander')"
+
+/QOpenSys/usr/bin/system -Kkpiebv "CHGOBJOWN OBJ(QSYS/${SCTARGET}) OBJTYPE(*LIB) NEWOWN(QSYS) CUROWNAUT(*REVOKE)" || oopsies
+/QOpenSys/usr/bin/system -Kkpiebv "CRTCMOD MODULE(${SCTARGET}/SC) SRCSTMF('${DIR}/sc_tcpsvr.c') SYSIFCOPT(*IFS64IO) TERASPACE(*YES *TSIFC) TGTCCSID(37) TGTRLS(${SCTGTRLS})" || oopsies
+/QOpenSys/usr/bin/system -Kkpiebv "CRTPGM PGM(${SCTARGET}/SC) MODULE(${SCTARGET}/SC) USRPRF(*OWNER) TEXT('Service Commander') TGTRLS(${SCTGTRLS})" || oopsies
+/QOpenSys/usr/bin/system -Kkpiebv "CHGOBJOWN OBJ(${SCTARGET}/SC) OBJTYPE(*PGM) NEWOWN(QSYS) CUROWNAUT(*REVOKE)" || oopsies
+/QOpenSys/usr/bin/system -Kkpiebv "CHGAUT OBJ('/qsys.lib/${SCTARGET}.lib/sc.pgm') USER(*PUBLIC) DTAAUT(*EXCLUDE) OBJAUT(*NONE)" || oopsies
+/QOpenSys/usr/bin/system -Kkpiebv "CHGAUT OBJ('/qsys.lib/${SCTARGET}.lib/sc.pgm') USER(QTCP) DTAAUT(*X) OBJAUT(*NONE)" || oopsies
+/QOpenSys/usr/bin/system -Kkpiebv "ADDTCPSVR SVRSPCVAL(*SC) PGM(${SCTARGET}/SC) SVRNAME(SC) SVRTYPE(SC) TEXT('Service Commander')" || oopsies
 
 # Add a README source file in the library
-/QOpenSys/usr/bin/system -Kkpiebv "CRTSRCPF FILE(${SCTARGET}/README) RCDLEN(92) MBR(README)"
+/QOpenSys/usr/bin/system -Kkpiebv "CRTSRCPF FILE(${SCTARGET}/README) RCDLEN(92) MBR(README)" || oopsies
 db2util "insert into ${SCTARGET}.README (SRCDTA) values ('For more information, see the GitHub repository:'),
-                                                        ('https://github.com/ThePrez/ServiceCommander-IBMi')"
+                                                        ('https://github.com/ThePrez/ServiceCommander-IBMi')" || oopsies
 
+
+echo ''
 echo 'SUCCESS!!'
+echo ''
+echo 'To run Service Commander via STRTCPSVR:'
+echo '  STRTCPSVR SERVER(*SC) INSTANCE('"'"'my_svc'"'"')'
+echo ''
+echo 'More examples:'
+echo '  To start all services in the "default" group:'
+echo '     STRTCPSVR SERVER(*SC)'
+echo ''
+echo '  To run all services in the "apache" group:'
+echo '     STRTCPSVR SERVER(*SC) INSTANCE('"'"'group:apache'"'"')'
+echo ''
