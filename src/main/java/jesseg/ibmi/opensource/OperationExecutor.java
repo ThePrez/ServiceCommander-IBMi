@@ -582,7 +582,7 @@ public class OperationExecutor {
         }
         String partialInfo = "";
         if (status.isPartial()) {
-            partialInfo += "[not running at -->" + ListUtils.toString(status.m_notRunningList, ", ") + "]";
+            partialInfo += StringUtils.colorizeForTerminal("[not running at -->" + ListUtils.toString(status.m_notRunningList, ", ") + "]", TerminalColor.YELLOW);
         }
         m_logger.printfln("  %s | %s%s (%s) %s", paddedStatusString, indent, StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN), m_mainService.getFriendlyName(), partialInfo);
     }
