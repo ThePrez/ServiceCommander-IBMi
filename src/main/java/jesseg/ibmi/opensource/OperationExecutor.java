@@ -576,7 +576,7 @@ public class OperationExecutor {
                 paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "NOT RUNNING", 23), TerminalColor.PURPLE);
                 break;
             default:
-                final String statusString = String.format("indent+PARTIAL (%d/%d)", status.m_runningList.size(), status.m_allList.size());
+                final String statusString = String.format("" + indent + "PARTIAL (%d/%d)", status.m_runningList.size(), status.m_allList.size());
                 paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(statusString, 23), TerminalColor.YELLOW);
                 break;
         }
