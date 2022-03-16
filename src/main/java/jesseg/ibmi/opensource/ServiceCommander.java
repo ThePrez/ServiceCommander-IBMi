@@ -293,7 +293,7 @@ public class ServiceCommander {
             _logger.println_verbose("gonna start worker threads");
             for (final String service : _services) {
                 final ServiceDefinition svcDef = _serviceDefs.get(service);
-                if (null == svcDef || (Operation.LIST == _op && svcDef.isClusterBackend())) {
+                if (Operation.LIST == _op && (null != svcDef && svcDef.isClusterBackend())) {
                     continue;
                 }
                 final DeferredLogger deferredLogger = new DeferredLogger(_logger);
