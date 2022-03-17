@@ -203,13 +203,15 @@ int main(int argc, char *argv[])
     // So, here we go.....
 
     // First things first, we need an arguments array set up...
-    char *child_argv[4];
-    child_argv[0] = "/QSYS.LIB/QSHELL.LIB/QZSHSH.PGM"; // Note that "/QOpenSys/pkgs/bin/bash" won't work because PASE executables are not allowed
-    child_argv[1] = "-c";
+    char *child_argv[6];
+    child_argv[0] = "/QSYS.LIB/QP2SHELL2.PGM"; // Note that "/QOpenSys/pkgs/bin/bash" won't work because PASE executables are not allowed
+    child_argv[1] = "/QOpenSys/pkgs/bin/bash";
+    child_argv[2] = "-l";
+    child_argv[3] = "-c";
     char sc_cmd[1024];
     snprintf(sc_cmd, sizeof(sc_cmd), "/QOpenSys/pkgs/bin/sc %s %s %s 2>&1", sc_options, sc_operation, instance);
-    child_argv[2] = sc_cmd;
-    child_argv[3] = NULL;
+    child_argv[4] = sc_cmd;
+    child_argv[5] = NULL;
 
     // ...and an environment for the child process...
     char *envp[5];
