@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
     int stdoutFds[2];
     if (pipe(stdoutFds) != 0)
     {
-        printf("failure on pipe\n");
+        fprintf(stderr, "failure on pipe\n");
         return 1;
     }
     int fd_map[3];
@@ -248,6 +248,7 @@ int main(int argc, char *argv[])
     if (child_pid == -1)
     {
         Qp0zLprintf("Error spawning child process: %s\n", strerror(errno));
+        fprintf(stderr, "Error spawning child process: %s\n", strerror(errno));
         parm->rc = RC_FAILED;
         return -1;
     }
