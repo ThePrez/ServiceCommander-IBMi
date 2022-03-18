@@ -78,6 +78,8 @@ fi
 - feature: Support '--version' command line option
 - feature: sc_install_defaults recognizes Apache virtual hosts
 - feature: '-q' option to suppress warnings
+- feature: STRTCPSVR/ENDTCPSVR now shows progress
+- improvement: STRTCPSVR/ENDTCPSVR run with elevated privileges
 - bugfix: sc_install_defaults finding defunct Apache instances
 - bugfix: sc_install_defaults --cleanupv0 cleans up Navigator
 
