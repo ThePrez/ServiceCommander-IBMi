@@ -214,11 +214,22 @@ int main(int argc, char *argv[])
     child_argv[5] = NULL;
 
     // ...and an environment for the child process...
-    char *envp[5];
+    char *envp[10];
     envp[0] = "QIBM_MULTI_THREADED=Y";
     envp[1] = "PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin";
     envp[2] = "QIBM_USE_DESCRIPTOR_STDIO=Y";
-    envp[3] = (char *)NULL;
+    envp[3] = "PASE_STDIO_ISATTY=N";
+    struct passwd *pd;
+    char logname[20];
+    if (NULL != (pd = getpwuid(getuid())))
+    {
+        sprintf(logname, "LOGNAME=%s", pd->pw_name);
+    }
+    else {
+        sprintf(logname, "LOGNAME=%s", getenv("LOGNAME"));
+    }
+    envp[4] = logname;
+    envp[5] = (char *)NULL;
 
     // ...and we need to set up the pipes...
     int stdoutFds[2];
