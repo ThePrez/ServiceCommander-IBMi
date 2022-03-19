@@ -352,7 +352,8 @@ name. So, for instance, if your short name is "my_node_app", you can run `sc sta
 Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`. 
 In these instances, the operations will be performed on the specified jobs. This is determined by looking for
 jobs matching the given job name or listening on the given port. The job name can be specified either in
-`jobname` or `subsystem/jobname` format.
+`jobname` or `subsystem/jobname` format. It can also be specified in `PGM-____` format to check for jobs running
+a certain program from the main thread.
 
 If an existing service definition is found (configured via YAML, as in the preceding section) that matches the
 job name or port criteria, that service will be used. For instance, if you have a service configured to run on
@@ -386,7 +387,8 @@ The following attributes may be specified in the service definition (`.yaml`) fi
 **Required fields**
 
 - `start_cmd`: the command used to start the service
-- `check_alive`: How to check whether the service is alove or not. This can be a port number, or a job name in either the the format "jobname" or "subsystem/jobname". To specify multiple criteria, just use a comma-separated list or a YAML String array. 
+- `check_alive`: How to check whether the service is alove or not. This can be a port number, or a job name in either the the format "jobname" or "subsystem/jobname". It can also be specified in `PGM-____` format to check for jobs running a certain program from the main thread. To specify
+multiple criteria, just use a comma-separated list or a YAML String array. 
 
 **Optional fields that are often needed/wanted**
 
@@ -408,7 +410,7 @@ The following attributes may be specified in the service definition (`.yaml`) fi
 - `groups`: Custom groups that this service belongs to. Groups can be used to start and stop sets of services in a single operation. Specify as an array of strings.
 
 **Deprecated fields**
-- `check_alive_criteria`: (Deprecated)The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname". This field is deprecated. As of v1.0.0, the `check_alive` field handles both port numbers and job names (or a list containing both).
+- `check_alive_criteria`: (Deprecated)The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname". It can also be specified in `PGM-____` format to check for jobs running a certain program from the main thread. This field is deprecated. As of v1.0.0, the `check_alive` field handles both port numbers and job names (or a list containing both).
 
 ### YAML file example
 The following is an example of a simple configuration for a Node.js application that runs on port 80:
