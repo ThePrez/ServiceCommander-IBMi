@@ -133,6 +133,8 @@ public class QueryUtils {
         if (isSbsQualified) {
             final String[] split = _job.split("/");
             jobs = getJobsMatchingNameAndSbs(split[1], split[0], _logger);
+        } else if (_job.toUpperCase().startsWith("PGM-")) {
+            jobs = getJobsMatchingPgm(_job.substring(4), _logger);
         } else {
             jobs = getJobsMatchingName(_job, _logger);
         }
@@ -155,6 +157,17 @@ public class QueryUtils {
         final List<String> ret = new LinkedList<String>();
 
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", "" + _jobName.trim().toUpperCase(), "-p", _sbs.trim().toUpperCase(), "SELECT JOB_NAME FROM TABLE(QSYS2.ACTIVE_JOB_INFO(JOB_NAME_FILTER => ?, SUBSYSTEM_LIST_FILTER => ?)) as X" });
+        final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
+
+        for (final String queryResult : queryResults) {
+            ret.add(queryResult.replace("\"", "").trim());
+        }
+        return deduplicate(ret);
+    }
+
+    private static List<String> getJobsMatchingPgm(final String _pgm, final AppLogger _logger) throws IOException {
+        final List<String> ret = new LinkedList<String>();
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", _pgm.trim().toUpperCase(), "SELECT JOB_NAME FROM TABLE(QSYS2.ACTIVE_JOB_INFO()) as X WHERE FUNCTION_TYPE = 'PGM' and upper(FUNCTION) = ?" });
         final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
 
         for (final String queryResult : queryResults) {
