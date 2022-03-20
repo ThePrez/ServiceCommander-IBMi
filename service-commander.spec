@@ -100,7 +100,7 @@ fi
 - feature: Several new options for 'sc_install_defaults'
 - feature: New '--ignore-groups' option for 'sc'
 - feature: Allow service path names to be relative
-- feature: preinstall common system services
+- feature: preinstall crond, MariaDB, and Zend DBi
 - enhancement: hide system services by default
 - enhancement: sort services alphabetically on 'sc check'
 - enhancement: add man pages for all utilities
