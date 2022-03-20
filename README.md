@@ -405,6 +405,7 @@ multiple criteria, just use a comma-separated list or a YAML String array.
 - `sbmjob_jobname`: If submitting to batch, the custom job name to be used for the batch job
 - `sbmjob_opts`: If submitting to batch, custom options for the SBMJOB command (for instance, a custom JOBD) 
 - `environment_is_inheriting_vars`: Whether the service inherits environment variables from the current environment (default is true)
+- `only_if_executable`: This configuration is ignored unless the specified file exists and is executable
 - `environment_vars`: Custom environment variables to be set when launching the service. Specify as an array of strings in `"KEY=VALUE"` format
 - `service_dependencies`: An array of services that this service depends on. This is the simple name of the service (for instance, if the dependency is defined as "myservice", then it is expected to be defined in a file named `myservice.yaml`), not the "friendly" name of the service.
 - `groups`: Custom groups that this service belongs to. Groups can be used to start and stop sets of services in a single operation. Specify as an array of strings.
