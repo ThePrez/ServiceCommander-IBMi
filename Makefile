@@ -54,8 +54,8 @@ man/%.1.gz: man/%.1
 	gzip $^
 
 install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man/sc.1 man/scopenports.1 man/scedit.1 man/sc_install_defaults.1 man/scinit.1
-	install -m 755 -o qsys -D -d ${INSTALL_ROOT}/QOpenSys/pkgs/bin ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/
-	chmod 755 ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/
+	install -m 755 -o qsys -D -d ${INSTALL_ROOT}/QOpenSys/pkgs/bin ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system ${INSTALL_ROOT}/QOpenSys/etc/sc/services/oss_common ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/
+	chmod 755 ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/services ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system ${INSTALL_ROOT}/QOpenSys/etc/sc/services/oss_common ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/
 	chown -R qsys ${INSTALL_ROOT}/QOpenSys/etc/sc
 	chown -R qsys ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/
 	install -m 555 -o qsys scripts/sc ${INSTALL_ROOT}/QOpenSys/pkgs/bin/
@@ -67,6 +67,7 @@ install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man
 	install -m 644 -o qsys samples/system_tcpsvr/* ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
 	install -m 644 -o qsys samples/system_common/* ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
 	install -m 644 -o qsys samples/host_servers/* ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
+	install -m 644 -o qsys samples/oss_common/* ${INSTALL_ROOT}/QOpenSys/etc/sc/services/oss_common
 	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/etc/sc/services/ -type f -print -exec chmod 644 {} \;
 	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/etc/sc/services/ -type l -print -exec chmod 644 {} \;
 	install -m 444 -o qsys -D man/*.1 ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/

@@ -1,6 +1,7 @@
 name: PostgreSQL Server
-start_cmd: pg_ctl start
-stop_cmd: pg_ctl stop
+start_cmd: /QOpenSys/pkgs/bin/pg_ctl start
+stop_cmd: /QOpenSys/pkgs/bin/pg_ctl stop
+only_if_executable: /QOpenSys/pkgs/bin/pg_ctl
 
 check_alive: port
 # default port is 5432

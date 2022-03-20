@@ -1,9 +1,14 @@
 name: Cron daemon
 start_cmd: /QOpenSys/pkgs/bin/crond -n
 
+only_if_executable: /QOpenSys/pkgs/bin/crond
+
 check_alive: jobname 
-check_alive_criteria: crond
+check_alive_criteria: PGM-crond
 
 batch_mode: yes
 sbmjob_jobname: crond
 sbmjob_opts: JOBQ(QUSRNOMAX)
+
+groups:
+ - "autostart"
