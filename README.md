@@ -559,6 +559,7 @@ This will result in several jobs that continuously check on the service and atte
 Service Commander now has integration with system STRTCPSVR and ENDTCPSVR commands. This feature is experimental and may be removed
 if too problematic.
 
+
 To integrate with the STRTCPSVR and ENDTCPSVR commands, you can run the following command as an admin user:
 
 ```
@@ -584,7 +585,19 @@ After doing so, you can run the `*SC` TCP server commands, specifying the simple
 STRTCPSVR SERVER(*SC) INSTANCE('kafka')
 ```
 
-**Running two or more STRTCPSVR commands simultaneously**
+**Important Note: As of Service Commander v1.2.x, the TCP server is set to `AUTOSTART(*YES)` by default. If this
+is not the desired behavior, change it with the CHGTCPSVR command. For instance:**
+```bash
+CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)
+```
+
+### Special groups used by STRTCPSVR/ENDTCPSVR**
+There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
+
+- `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
+- `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
+
+### Running two or more STRTCPSVR commands simultaneously
 
 Be aware that running two or more STRTCPSVR commands at the same time in different jobs can cause the command to fail with TCP1A11. This is because the system will only run one STRTCPSVR command at a time and uses an internal locking mechanism to control this. The wait time is 30 seconds, and if STRTCPSVR in job A is taking longer to start the service, the STRTCPSVR in job B and C etc. will time out when aquiring the lock.
 
@@ -596,7 +609,7 @@ ADDENVVAR ENVVAR(SC_TCPSVR_SUBMIT) VALUE('Y') LEVEL(*SYS) REPLACE(*YES)
 
 When STRTCPSVR detects the environment variable having the value 'Y', it will submit a job to start the service instead of starting the service in the job running the STRTCPSVR command, thus shortening the lock time significantly and allow the same command in other jobs to run and not time out.
 
-# Using with ADDJOBSCDE
+### Using with ADDJOBSCDE
 
 It may be desired to start, stop, or ensure the liveliness of services on a particular schedule. This is most easily accomplished once the `STRTCPSVR`
 integration is leveraged. This makes it easier to create job scheduler entries. For instance, to ensure that the `myapp` service is
@@ -605,15 +618,3 @@ running, every day at 01:00:
 ```
 ADDJOBSCDE JOB(SC) CMD(STRTCPSVR SERVER(*SC) INSTANCE('myapp')) FRQ(*WEEKLY) SCDDATE(*NONE) SCDDAY(*ALL) SCDTIME(010000)
 ```
-
-**Important Notes about AUTOSTART(*YES)**
-
-You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user. Be are that adding QTCP to new group profiles or granting special authorities may represent a security exposure. Also, due to the highly-flexible nature of this tool, it is not good practice to run this command as an elevated user in an unattended fashion. 
-In summary, it is likely not a good idea to use `AUTOSTART(*YES)`.
-
-
-**Special groups used by STRTCPSVR/ENDTCPSVR**
-There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
-
-- `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
-- `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
