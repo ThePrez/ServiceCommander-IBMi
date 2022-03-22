@@ -429,7 +429,7 @@ whatever job is running on port 8080.
 
 This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
 
-- A global directory (/QOpenSys/etc/sc/services). This, of coures, requires you to have admin access (`*ALLOBJ` special authority).
+- A global directory (/QOpenSys/etc/sc/services). This, of course, requires you to have admin access (`*ALLOBJ` special authority).
 - A user-specific directory($HOME/.sc/services)
 - If defined, whatever the value of the `services.dir` system property is.
 The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
@@ -447,7 +447,7 @@ The following attributes may be specified in the service definition (`.yaml`) fi
 
 ##### Required fields
 
-- `start_cmd`: the command used to start the service
+- `start_cmd`: The command used to start the service
 - `check_alive`: How to check whether the service is alove or not. This can be a port number, or a job name in either the the format "jobname" or "subsystem/jobname". It can also be specified in `PGM-____` format to check for jobs running a certain program from the main thread. To specify
 multiple criteria, just use a comma-separated list or a YAML String array.
 
@@ -472,7 +472,7 @@ multiple criteria, just use a comma-separated list or a YAML String array.
 
 ##### Deprecated fields
 
-- `check_alive_criteria`: (Deprecated)The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname". It can also be specified in `PGM-____` format to check for jobs running a certain program from the main thread. This field is deprecated. As of v1.0.0, the `check_alive` field handles both port numbers and job names (or a list containing both).
+- `check_alive_criteria`: The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname". It can also be specified in `PGM-____` format to check for jobs running a certain program from the main thread. This field is deprecated. As of v1.0.0, the `check_alive` field handles both port numbers and job names (or a list containing both).
 
 #### YAML file example
 
@@ -636,7 +636,7 @@ To integrate with the STRTCPSVR and ENDTCPSVR commands, you can run the followin
 /QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
 ```
 
-This will install create the `SCOMMANDER` library and compile/install the TCP program into that library. To use a different
+This will create the `SCOMMANDER` library and compile/install the TCP program into that library. To use a different
 library, just set the `SCTARGET` variable. For instance:
 
 ```bash
@@ -649,7 +649,7 @@ If you need to compile to a previous release of IBM i, set the `SCTGTRLS` variab
 SCTGTRLS=V7R1M0 /QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
 ```
 
-After doing so, you can run the `*SC` TCP server commands, specifying the simple name of the sc-managed service as the instance name. For example:
+After install, you can run the `*SC` TCP server commands, specifying the simple name of the sc-managed service as the instance name. For example:
 
 ```cl
 STRTCPSVR SERVER(*SC) INSTANCE('kafka')
@@ -667,7 +667,7 @@ ADDENVVAR ENVVAR(SC_TCPSVR_SUBMIT) VALUE('Y') LEVEL(*SYS) REPLACE(*YES)
 
 When STRTCPSVR detects the environment variable having the value 'Y', it will submit a job to start the service instead of starting the service in the job running the STRTCPSVR command, thus shortening the lock time significantly and allow the same command in other jobs to run and not time out.
 
-## Using with ADDJOBSCDE
+### Using with ADDJOBSCDE
 
 It may be desired to start, stop, or ensure the liveliness of services on a particular schedule. This is most easily accomplished once the `STRTCPSVR`
 integration is leveraged. This makes it easier to create job scheduler entries. For instance, to ensure that the `myapp` service is
