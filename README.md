@@ -45,7 +45,7 @@
 
 </details>
 
-# Introduction
+## Introduction
 
 A utility for unifying the daunting task of managing various services and applications running on IBM i. Its objective is to provide an intuitive, easy-to-use command line interface for managing services or jobs. It also provides integration with `STRTCPSVR`.
 
@@ -63,7 +63,7 @@ This tool can be used to manage a number of services, for instance:
 
 ![logo](sc_logo.jpg)
 
-# Current features
+## Current features
 Some of the features of the tool include:
 
 - The ability to specify dependencies (for instance, if one application or service dependds on another), and it will start any dependencies as needed
@@ -76,15 +76,15 @@ Some of the features of the tool include:
 - Ability to define manage ad hoc services specified on the command line
 - Ability to see what ports are currently open (have a job listening)
 
-# Hands-on Exercise
+## Hands-on Exercise
 Want to walk through a quick exercise to get some basic "hands-on" experience with this tool? If so, please see [our very simple hands-on exercise](quickstart/HANDS_ON.md)
 
-# Have feedback or want to contribute?
+## Have feedback or want to contribute?
 Feel free to [open an issue](https://github.com/ThePrez/ServiceCommander-IBMi/issues/new/choose) with any questions, problems, or other comments. If you'd like to contribute to the project, see [CONTRIBUTING.md](https://github.com/ThePrez/ServiceCommander-IBMi/blob/main/CONTRIBUTING.md) for more information on how to get started. 
 
 In any event, we're glad to have you aboard in any capacity, whether as a user, spectator, or contributor!
 
-# Important differences from other service management tools
+## Important differences from other service management tools
 Service Commander's design is fundamentally different from other tools that accomplish similar tasks, like init.d, supervisord, and so on. Namely, the functions within Service Commander are intended to work regardless of:
 
 - Who else may start or stop the service
@@ -97,9 +97,9 @@ Instead, this tool makes strong assumptions based on checks for a particular job
 
 Service Commander's unique design is intended to offer a great deal of flexibility and ease of management through the use of simple `.yaml` files.
 
-# Installation
+## Installation
 
-## System Requirements
+### System Requirements
 
 For most of the features of this tool, the following is required to be installed (the installation steps should handle these for you):
 
@@ -119,7 +119,7 @@ The performance information support (`perfinfo`) has additional requirements tha
     - IBM i 7.1 (and earlier): not supported
 
 
-## Option 1: Binary distribution
+### Option 1: Binary distribution
 You can install the binary distribution by installing the `service-commander` package:
 
 ```
@@ -128,7 +128,7 @@ yum install service-commander
 
 If you are not familiar with IBM i RPMs, see [this documentation](http://ibm.biz/ibmi-rpms) to get started.
 
-## Option 2: Build from source (for development or fix evaluation)
+### Option 2: Build from source (for development or fix evaluation)
 Feel free to build from the `main` branch to start making code contributions or to evaluate a fix/feature not yet publish. This process assumes your `PATH` environment variable is set up properly, otherwise:
 
 ```
@@ -145,7 +145,7 @@ cd ServiceCommander-IBMi
 make install_with_runtime_dependencies
 ```
 
-# Basic usage
+## Basic usage
 
 Usage of the command is summarized as:
 
@@ -190,7 +190,7 @@ launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn 
 you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
 
 
-## Specifying options in environment variables
+### Specifying options in environment variables
 
 If you would like to set some of the tool's options via environment variable, you may do so with one of the following:
 
@@ -202,7 +202,7 @@ For example, to gather verbose output when using `STRTCPSVR`, run the following 
 ADDENVVAR ENVVAR(SC_OPTIONS) VALUE('-v') REPLACE(*YES)
 ```
 
-## Special `system` group (hidden by default)
+### Special `system` group (hidden by default)
 Service Commander ships a handful of pre-made configurations for common system services. These include things like:
 
 - IBM i host servers
@@ -212,7 +212,7 @@ Service Commander ships a handful of pre-made configurations for common system s
 By default, the `sc` command ignores these system services. So, for instance, if you run `sc check all`, it will omit
 these preconfigured system services. In order to include them, use the `-a` option, for instance `sc -a check all`.
 
-## Usage examples
+### Usage examples
 
 Start the service named `kafka`:
 
@@ -309,7 +309,7 @@ Only list groups that are defined within the users private YAML configuration fi
 sc groups --ignore-globals
 ```
 
-## Checking which ports are currently open
+### Checking which ports are currently open
 As of version 0.7.x, Service Commander also comes with a utility, `scopenports` that allow you to see which ports are open.
 Usage is as follows:
 
@@ -335,9 +335,9 @@ sc jobinfo port:62006
 **Important Note:** Currently, the `scopenports` utility can only show human-readable descriptions for services that have
 been configured for `sc`'s use. To populate some common defaults, run `sc_install_defaults`.
 
-# Configuring Services
+## Configuring Services
 
-## Initializing your configuration with defaults
+### Initializing your configuration with defaults
 
 If you'd like to start with pre-made configurations for common services, simply run the
 `sc_install_defaults` command. Its usage is as follows:
@@ -373,7 +373,7 @@ If you ran this tool with v0.x, you will want to clean up the old configurations
 sc_install_defaults --cleanupv0
 ```
 
-## Using the 'scinit' tool
+### Using the 'scinit' tool
 You can use the `scinit` tool can be used to create the YAML configuration files for you. Basic usage of the tool is simply:
 
 ```
@@ -397,7 +397,7 @@ scinit <program start command>
 The `scinit` tool will ask you for a "short name" among other things. When done, a service configuration will be saved under that short
 name. So, for instance, if your short name is "my_node_app", you can run `sc start my_node_app`.
 
-## Ad hoc service definition
+### Ad hoc service definition
 Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`. 
 In these instances, the operations will be performed on the specified jobs. This is determined by looking for
 jobs matching the given job name or listening on the given port. The job name can be specified either in
@@ -415,7 +415,7 @@ It is also useful for cases where you just want to find out who (if anyone) is u
 `sc jobinfo port:8080` will show you which job is listening on port 8080. Similarly, `sc stop port:8080` will kill
 whatever job is running on port 8080.
 
-## Directly creating/editing YAML configuration files
+### Directly creating/editing YAML configuration files
 This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
 
 - A global directory (/QOpenSys/etc/sc/services). This, of coures, requires you to have admin access (`*ALLOBJ` special authority).
@@ -429,22 +429,22 @@ The file can also be located in any arbitrary directory, but it must be explicit
 sc start myservice.yml
 ```
 
-### YAML File Format
+#### YAML File Format
 See the [samples](https://github.com/ThePrez/ServiceCommander-IBMi/tree/main/samples) directory for some sample service definitions. 
 The following attributes may be specified in the service definition (`.yaml`) file:
 
-#### Required fields
+##### Required fields
 
 - `start_cmd`: the command used to start the service
 - `check_alive`: How to check whether the service is alove or not. This can be a port number, or a job name in either the the format "jobname" or "subsystem/jobname". It can also be specified in `PGM-____` format to check for jobs running a certain program from the main thread. To specify
 multiple criteria, just use a comma-separated list or a YAML String array. 
 
-#### Optional fields that are often needed/wanted
+##### Optional fields that are often needed/wanted
 
 - `name`: A "friendly" name of the service
 - `dir`: The working directory in which to run the startup/shutdown commands
 
-#### Other optional fields
+##### Other optional fields
 
 - `stop_cmd`: The service shutdown command. If unspecified, the service will be located by port number or job name.
 - `startup_wait_time`: The wait time, in seconds, to wait for the service to start up (the default is 60 seconds if unspecified)
@@ -458,10 +458,10 @@ multiple criteria, just use a comma-separated list or a YAML String array.
 - `service_dependencies`: An array of services that this service depends on. This is the simple name of the service (for instance, if the dependency is defined as "myservice", then it is expected to be defined in a file named `myservice.yaml`), not the "friendly" name of the service.
 - `groups`: Custom groups that this service belongs to. Groups can be used to start and stop sets of services in a single operation. Specify as an array of strings.
 
-#### Deprecated fields
+##### Deprecated fields
 - `check_alive_criteria`: (Deprecated)The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname". It can also be specified in `PGM-____` format to check for jobs running a certain program from the main thread. This field is deprecated. As of v1.0.0, the `check_alive` field handles both port numbers and job names (or a list containing both).
 
-### YAML file example
+#### YAML file example
 The following is an example of a simple configuration for a Node.js application that runs on port 80:
 
 ```yaml
@@ -475,7 +475,7 @@ environment_vars:
 
 ```
 
-## Cluster Mode
+### Cluster Mode
 Service Commander allows for the automatic "clustering" of your applications. When utilizing "cluster mode":
 - Service Commander will start _n_ worker jobs, each running on a different port
 - Service Commander will manage the worker jobs when performing operations on the service
@@ -509,7 +509,7 @@ The application is still expected to run on 9333, so in the case of a web server
 `http://<system_name>:9333`. Service Commander will run four backend worker jobs, running on ports 9334, 9335,
 9336, and 9337.
 
-### Prerequisites for Cluster Mode
+#### Prerequisites for Cluster Mode
 
 In order for cluster mode to work correctly, your application must honor the `PORT` environment variable. If the
 technology has the ability to run on dynamically-defined ports but cannot recognize `PORT`, then the program startup
@@ -532,20 +532,20 @@ backend worker jobs, which can then be used to run the different components of t
 To avoid collusions with other backend worker jobs, leave the necessary gaps between ports. For instance, if your application
 uses three ports, specify the backend worker jobs 3 ports apart. For instance, `cluster: 8000, 8003, 8006, 8009`.
 
-### Cluster mode methodologies
+#### Cluster mode methodologies
 
 There are two methodologies that can be used for the load-balancing activity:
 1. **http**: This methodology has more customization options (for instance, microcaching, handling http headers, "sticky" sessions, etc) but only works with the http protocol. To enable, you must manually edit the "cluster.conf" file that is created when your service is first started.
 2. **stream** _(default)_: This methodology has less overhead than 'http', but also has fewer configuration options. However, it works with most protocols. 
 
-### Cluster mode advanced configuration
+#### Cluster mode advanced configuration
 
 More advanced configuration can be achieved in one of two ways:
 
-#### Defining `cluster_opts` in the service configuration
+##### Defining `cluster_opts` in the service configuration
 _NOT YET SUPPORTED_
 
-### cluster.conf
+#### cluster.conf
 When a service is first started in cluster mode, a `cluster.conf` file is created in the service's working directory. Cluster mode is built on top of nginx,
 and this file is the nginx configuration file. Once `cluster.conf` is created, you can feel free to edit it in any way that is supported by nginx.
 For instance, this example:
@@ -582,10 +582,10 @@ http {
 }
 ```
 
-# Demo (video)
+## Demo (video)
 [![asciicast](https://asciinema.org/a/459898.svg)](https://asciinema.org/a/459898)
 
-# Automatically restarting a service if it fails
+## Automatically restarting a service if it fails
 Currently, this tool does not have built-in monitoring and restart capabilities. This may be a future enhancement. In the meantime, one can use simple scripting to accomplish a similar task. For instance, to check every 40 seconds and ensure that the `navigator` service is running, you could submit a job like this (replace the sleep time, service name, and submitted job name to match your use case):
 
 ```
@@ -598,12 +598,12 @@ This will result in several jobs that continuously check on the service and atte
  WRKACTJOB JOB(NAVMON) 
 ```
 
-# Testimonials
+## Testimonials
 > "I use this a lot for my own personal use. Might be useless for the rest of the world. I don't know, though."
 >
 > &nbsp; --[@ThePrez](https://github.com/ThePrez/), creator of Service Commander
 
-# STRTCPSVR Integration
+## STRTCPSVR Integration
 
 Service Commander now has integration with system STRTCPSVR and ENDTCPSVR commands. This feature is experimental and may be removed
 if too problematic.
@@ -633,7 +633,7 @@ After doing so, you can run the `*SC` TCP server commands, specifying the simple
 STRTCPSVR SERVER(*SC) INSTANCE('kafka')
 ```
 
-## Running two or more STRTCPSVR commands simultaneously
+### Running two or more STRTCPSVR commands simultaneously
 
 Be aware that running two or more STRTCPSVR commands at the same time in different jobs can cause the command to fail with TCP1A11. This is because the system will only run one STRTCPSVR command at a time and uses an internal locking mechanism to control this. The wait time is 30 seconds, and if STRTCPSVR in job A is taking longer to start the service, the STRTCPSVR in job B and C etc. will time out when aquiring the lock.
 
@@ -645,7 +645,7 @@ ADDENVVAR ENVVAR(SC_TCPSVR_SUBMIT) VALUE('Y') LEVEL(*SYS) REPLACE(*YES)
 
 When STRTCPSVR detects the environment variable having the value 'Y', it will submit a job to start the service instead of starting the service in the job running the STRTCPSVR command, thus shortening the lock time significantly and allow the same command in other jobs to run and not time out.
 
-# Using with ADDJOBSCDE
+## Using with ADDJOBSCDE
 
 It may be desired to start, stop, or ensure the liveliness of services on a particular schedule. This is most easily accomplished once the `STRTCPSVR`
 integration is leveraged. This makes it easier to create job scheduler entries. For instance, to ensure that the `myapp` service is
@@ -655,13 +655,13 @@ running, every day at 01:00:
 ADDJOBSCDE JOB(SC) CMD(STRTCPSVR SERVER(*SC) INSTANCE('myapp')) FRQ(*WEEKLY) SCDDATE(*NONE) SCDDAY(*ALL) SCDTIME(010000)
 ```
 
-## Important Notes about AUTOSTART(*YES)
+### Important Notes about AUTOSTART(*YES)
 
 You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user. Be are that adding QTCP to new group profiles or granting special authorities may represent a security exposure. Also, due to the highly-flexible nature of this tool, it is not good practice to run this command as an elevated user in an unattended fashion. 
 In summary, it is likely not a good idea to use `AUTOSTART(*YES)`.
 
 
-## Special groups used by STRTCPSVR/ENDTCPSVR
+### Special groups used by STRTCPSVR/ENDTCPSVR
 There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
 
 - `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
