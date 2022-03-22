@@ -641,6 +641,10 @@ This will result in several jobs that continuously check on the service and atte
 > "I use this a lot for my own personal use. Might be useless for the rest of the world. I don't know, though."
 >
 > &nbsp; --[@ThePrez](https://github.com/ThePrez/), creator of Service Commander
+>
+> "Service Commander is a great tool that has helped us controlling the rising number of services, that we run on IBM i. Previously we had different commands for different services, but now we just define the services in Service Commander and let it control the (auto)start and stop of the services. Not at all useless!"
+>
+> &nbsp; --[@chrjorgensen](https://github.com/chrjorgensen/), IBM i System Administrator and contributor to Service Commander
 
 ## STRTCPSVR Integration
 
