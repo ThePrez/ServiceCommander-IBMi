@@ -20,6 +20,7 @@
 - [Configuring Services](#configuring-services)
   - [Initializing your configuration with defaults](#initializing-your-configuration-with-defaults)
   - [Using the 'scinit' tool](#using-the-scinit-tool)
+  - [Using the 'scedit' tool](#using-the-scedit-tool)
   - [Ad hoc service definition](#ad-hoc-service-definition)
   - [Directly creating/editing YAML configuration files](#directly-creatingediting-yaml-configuration-files)
     - [YAML File Format](#yaml-file-format)
@@ -405,6 +406,22 @@ scinit <program start command>
 
 The `scinit` tool will ask you for a "short name" among other things. When done, a service configuration will be saved under that short
 name. So, for instance, if your short name is "my_node_app", you can run `sc start my_node_app`.
+
+### Using the 'scedit' tool
+
+You can use the `scedit` tool to edit the already created YAML configuration files. Basic usage of the tool is simply:
+
+```bash
+scedit <service>
+```
+
+When activated, `scedit` will locate the YAML file for the service and open the file in the first of the following editors:
+
+1. The editor specified in the $EDITOR environment variable. This is the recommended way of specifying the editor you want out of all editors installed
+2. The `nano` editor
+3. The `joe` editor
+4. The `vim` editor
+5. The `vi` editor
 
 ### Ad hoc service definition
 
