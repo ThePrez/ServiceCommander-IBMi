@@ -310,6 +310,7 @@ sc groups
 ```
 
 Only list groups that are defined within the users private YAML configuration files
+
 ```bash
 sc groups --ignore-globals
 ```
