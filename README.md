@@ -6,7 +6,6 @@
 - [Introduction](#introduction)
 - [Current features](#current-features)
 - [Hands-on Exercise](#hands-on-exercise)
-- [Have feedback or want to contribute?](#have-feedback-or-want-to-contribute)
 - [Important differences from other service management tools](#important-differences-from-other-service-management-tools)
 - [Installation](#installation)
   - [System Requirements](#system-requirements)
@@ -36,6 +35,7 @@
     - [Defining `cluster_opts` in the service configuration](#defining-clusteropts-in-the-service-configuration)
     - [cluster.conf](#clusterconf)
 - [Demo (video)](#demo-video)
+- [Have feedback or want to contribute?](#have-feedback-or-want-to-contribute)
 - [Automatically restarting a service if it fails](#automatically-restarting-a-service-if-it-fails)
 - [Testimonials](#testimonials)
 - [STRTCPSVR Integration](#strtcpsvr-integration)
@@ -77,16 +77,6 @@ Some of the features of the tool include:
 - Assistance in providing/managing log files. This is a best-guess only and naively assumes the service uses stdout/stderr as its logging mechanism. Service Commander has its own primitive logging system that works well only for certain types of services
 - Ability to define manage ad hoc services specified on the command line
 - Ability to see what ports are currently open (have a job listening)
-
-## Hands-on Exercise
-
-Want to walk through a quick exercise to get some basic "hands-on" experience with this tool? If so, please see [our very simple hands-on exercise](quickstart/HANDS_ON.md)
-
-## Have feedback or want to contribute?
-
-Feel free to [open an issue](https://github.com/ThePrez/ServiceCommander-IBMi/issues/new/choose) with any questions, problems, or other comments. If you'd like to contribute to the project, see [CONTRIBUTING.md](https://github.com/ThePrez/ServiceCommander-IBMi/blob/main/CONTRIBUTING.md) for more information on how to get started.
-
-In any event, we're glad to have you aboard in any capacity, whether as a user, spectator, or contributor!
 
 ## Important differences from other service management tools
 
@@ -151,6 +141,10 @@ cd ServiceCommander-IBMi
 make install_with_runtime_dependencies
 ```
 
+## Hands-on Exercise
+
+Want to walk through a quick exercise to get some basic "hands-on" experience with this tool? If so, please see [our very simple hands-on exercise](quickstart/HANDS_ON.md)
+
 ## Basic usage
 
 Usage of the command is summarized as:
@@ -193,29 +187,6 @@ Usage: sc  [options] <operation> <service>
 
 The above usage assumes the program is installed with the above installation steps and is therefore
 launched with the `sc` script.
-
-### Specifying options in environment variables
-
-If you would like to set some of the tool's options via environment variable, you may do so with one of the following:
-
-- `SC_TCPSVR_OPTIONS`, which will be processed when invoked via the `STRTCPSVR`/`ENDTCPSVR` commands
-- `SC_OPTIONS`, which will be processed on all invocations
-For example, to gather verbose output when using `STRTCPSVR`, run the following before your `STRTCPSVR` command:
-
-```cl
-ADDENVVAR ENVVAR(SC_OPTIONS) VALUE('-v') REPLACE(*YES)
-```
-
-### Special `system` group (hidden by default)
-
-Service Commander ships a handful of pre-made configurations for common system services. These include things like:
-
-- IBM i host servers
-- common system services (like ftp, ssh, etc)
-- Administration interfaces (like Navigator for i)
-
-By default, the `sc` command ignores these system services. So, for instance, if you run `sc check all`, it will omit
-these preconfigured system services. In order to include them, use the `-a` option, for instance `sc -a check all`.
 
 ### Usage examples
 
@@ -261,18 +232,6 @@ List all services
 sc list group:all
 ```
 
-List all services in the special "system" group
-
-```bash
-sc list group:system
-```
-
-List all services including those in the special "system" group
-
-```bash
-sc -a list group:all
-```
-
 List jobs running on port 8080
 
 ```bash
@@ -297,12 +256,6 @@ Start the service defined in a local file, `myservice.yml`
 sc start myservice.yml
 ```
 
-See what ports are currently listening
-
-```bash
-scopenports
-```
-
 List all groups
 
 ```bash
@@ -315,9 +268,9 @@ Only list groups that are defined within the users private YAML configuration fi
 sc groups --ignore-globals
 ```
 
-### Checking which ports are currently open
+### Command for checking which ports are currently open
 
-As of version 0.7.x, Service Commander also comes with a utility, `scopenports` that allow you to see which ports are open.
+Service Commander (>=0.7.x) also comes with command `scopenports` that allow you to see which ports are open.
 Usage is as follows:
 
 ```bash
@@ -326,6 +279,12 @@ Usage: scopenports  [options]
     Valid options include:
         -v: verbose mode
         --mine: only show ports that you have listening
+```
+
+See what ports are currently listening
+
+```bash
+scopenports
 ```
 
 Example output when invoked with the `--mine` option:
@@ -339,8 +298,43 @@ the above example, if I wanted to see which job was running on port 62006, I cou
 sc jobinfo port:62006
 ```
 
-**Important Note:** Currently, the `scopenports` utility can only show human-readable descriptions for services that have
+**Important Note:** Currently, `scopenports` can only show human-readable descriptions for services that have
 been configured for `sc`'s use. To populate some common defaults, run `sc_install_defaults`.
+
+### Special `system` group (hidden by default)
+
+Service Commander ships a handful of pre-made configurations for common system services. These include things like:
+
+- IBM i host servers
+- common system services (like ftp, ssh, etc)
+- Administration interfaces (like Navigator for i)
+
+By default, the `sc` command ignores these system services. So, for instance, if you run `sc check all`, it will omit
+these preconfigured system services. In order to include them, use the `-a` option, for instance `sc -a check all`.
+
+List all services in the special "system" group
+
+```bash
+sc list group:system
+```
+
+List all services including those in the special "system" group
+
+```bash
+sc -a list group:all
+```
+
+### Specifying options in environment variables
+
+If you would like to set some of the tool's options via environment variable, you may do so with one of the following:
+
+- `SC_TCPSVR_OPTIONS`, which will be processed when invoked via the `STRTCPSVR`/`ENDTCPSVR` commands
+- `SC_OPTIONS`, which will be processed on all invocations
+For example, to gather verbose output when using `STRTCPSVR`, run the following before your `STRTCPSVR` command:
+
+```cl
+ADDENVVAR ENVVAR(SC_OPTIONS) VALUE('-v') REPLACE(*YES)
+```
 
 ## Configuring Services
 
@@ -504,7 +498,9 @@ environment_vars:
 - PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/ccs/bin:/QOpenSys/usr/bin/X11:/usr/sbin:.:/usr/bin
 ```
 
-### Cluster Mode
+### Advanced usage
+
+#### Cluster Mode
 
 Service Commander allows for the automatic "clustering" of your applications. When utilizing "cluster mode":
 
@@ -540,7 +536,7 @@ The application is still expected to run on 9333, so in the case of a web server
 `http://<system_name>:9333`. Service Commander will run four backend worker jobs, running on ports 9334, 9335,
 9336, and 9337.
 
-#### Prerequisites for Cluster Mode
+##### Prerequisites for Cluster Mode
 
 In order for cluster mode to work correctly, your application must honor the `PORT` environment variable. If the
 technology has the ability to run on dynamically-defined ports but cannot recognize `PORT`, then the program startup
@@ -563,22 +559,22 @@ backend worker jobs, which can then be used to run the different components of t
 To avoid collusions with other backend worker jobs, leave the necessary gaps between ports. For instance, if your application
 uses three ports, specify the backend worker jobs 3 ports apart. For instance, `cluster: 8000, 8003, 8006, 8009`.
 
-#### Cluster mode methodologies
+##### Cluster mode methodologies
 
 There are two methodologies that can be used for the load-balancing activity:
 
 1. **http**: This methodology has more customization options (for instance, microcaching, handling http headers, "sticky" sessions, etc) but only works with the http protocol. To enable, you must manually edit the "cluster.conf" file that is created when your service is first started.
 2. **stream** _(default)_: This methodology has less overhead than 'http', but also has fewer configuration options. However, it works with most protocols.
 
-#### Cluster mode advanced configuration
+##### Cluster mode advanced configuration
 
 More advanced configuration can be achieved in one of two ways:
 
-##### Defining `cluster_opts` in the service configuration
+###### Defining `cluster_opts` in the service configuration
 
 This is _NOT YET SUPPORTED_
 
-#### cluster.conf
+##### cluster.conf
 
 When a service is first started in cluster mode, a `cluster.conf` file is created in the service's working directory. Cluster mode is built on top of nginx,
 and this file is the nginx configuration file. Once `cluster.conf` is created, you can feel free to edit it in any way that is supported by nginx.
@@ -617,11 +613,7 @@ http {
 }
 ```
 
-## Demo (video)
-
-[![asciicast](https://asciinema.org/a/459898.svg)](https://asciinema.org/a/459898)
-
-## Automatically restarting a service if it fails
+### Automatically restarting a service if it fails
 
 Currently, this tool does not have built-in monitoring and restart capabilities. This may be a future enhancement. In the meantime, one can use simple scripting to accomplish a similar task. For instance, to check every 40 seconds and ensure that the `navigator` service is running, you could submit a job like this (replace the sleep time, service name, and submitted job name to match your use case):
 
@@ -635,17 +627,7 @@ This will result in several jobs that continuously check on the service and atte
  WRKACTJOB JOB(NAVMON)
 ```
 
-## Testimonials
-
-> "I use this a lot for my own personal use. Might be useless for the rest of the world. I don't know, though."
->
-> &nbsp; --[@ThePrez](https://github.com/ThePrez/), creator of Service Commander
->
-> "Service Commander is a great tool that has helped us controlling the rising number of services, that we run on IBM i. Previously we had different commands for different services, but now we just define the services in Service Commander and let it control the (auto)start and stop of the services. Not at all useless!"
->
-> &nbsp; --[@chrjorgensen](https://github.com/chrjorgensen/), IBM i System Administrator and contributor to Service Commander
-
-## STRTCPSVR Integration
+### STRTCPSVR Integration
 
 Service Commander now has integration with system STRTCPSVR and ENDTCPSVR commands. This feature is experimental and may be removed
 if too problematic.
@@ -675,7 +657,7 @@ After install, you can run the `*SC` TCP server commands, specifying the simple 
 STRTCPSVR SERVER(*SC) INSTANCE('kafka')
 ```
 
-### Running two or more STRTCPSVR commands simultaneously
+#### Running two or more STRTCPSVR commands simultaneously
 
 Be aware that running two or more STRTCPSVR commands at the same time in different jobs can cause the command to fail with TCP1A11. This is because the system will only run one STRTCPSVR command at a time and uses an internal locking mechanism to control this. The wait time is 30 seconds, and if STRTCPSVR in job A is taking longer to start the service, the STRTCPSVR in job B and C etc. will time out when aquiring the lock.
 
@@ -687,7 +669,7 @@ ADDENVVAR ENVVAR(SC_TCPSVR_SUBMIT) VALUE('Y') LEVEL(*SYS) REPLACE(*YES)
 
 When STRTCPSVR detects the environment variable having the value 'Y', it will submit a job to start the service instead of starting the service in the job running the STRTCPSVR command, thus shortening the lock time significantly and allow the same command in other jobs to run and not time out.
 
-### Using with ADDJOBSCDE
+#### Using with ADDJOBSCDE
 
 It may be desired to start, stop, or ensure the liveliness of services on a particular schedule. This is most easily accomplished once the `STRTCPSVR`
 integration is leveraged. This makes it easier to create job scheduler entries. For instance, to ensure that the `myapp` service is
@@ -697,14 +679,34 @@ running, every day at 01:00:
 ADDJOBSCDE JOB(SC) CMD(STRTCPSVR SERVER(*SC) INSTANCE('myapp')) FRQ(*WEEKLY) SCDDATE(*NONE) SCDDAY(*ALL) SCDTIME(010000)
 ```
 
-### Important Notes about AUTOSTART(*YES)
+#### Important Notes about AUTOSTART(*YES)
 
 You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user. Be are that adding QTCP to new group profiles or granting special authorities may represent a security exposure. Also, due to the highly-flexible nature of this tool, it is not good practice to run this command as an elevated user in an unattended fashion.
 In summary, it is likely not a good idea to use `AUTOSTART(*YES)`.
 
-### Special groups used by STRTCPSVR/ENDTCPSVR
+#### Special groups used by STRTCPSVR/ENDTCPSVR
 
 There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
 
 - `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
 - `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
+
+## Demo (video)
+
+[![asciicast](https://asciinema.org/a/459898.svg)](https://asciinema.org/a/459898)
+
+## Have feedback or want to contribute?
+
+Feel free to [open an issue](https://github.com/ThePrez/ServiceCommander-IBMi/issues/new/choose) with any questions, problems, or other comments. If you'd like to contribute to the project, see [CONTRIBUTING.md](https://github.com/ThePrez/ServiceCommander-IBMi/blob/main/CONTRIBUTING.md) for more information on how to get started.
+
+In any event, we're glad to have you aboard in any capacity, whether as a user, spectator, or contributor!
+
+## Testimonials
+
+> "I use this a lot for my own personal use. Might be useless for the rest of the world. I don't know, though."
+>
+> &nbsp; --[@ThePrez](https://github.com/ThePrez/), creator of Service Commander
+>
+> "Service Commander is a great tool that has helped us controlling the rising number of services, that we run on IBM i. Previously we had different commands for different services, but now we just define the services in Service Commander and let it control the (auto)start and stop of the services. Not at all useless!"
+>
+> &nbsp; --[@chrjorgensen](https://github.com/chrjorgensen/), IBM i System Administrator and contributor to Service Commander
