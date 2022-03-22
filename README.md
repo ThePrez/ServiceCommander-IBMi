@@ -560,7 +560,7 @@ More advanced configuration can be achieved in one of two ways:
 
 ##### Defining `cluster_opts` in the service configuration
 
-_NOT YET SUPPORTED_
+This is _NOT YET SUPPORTED_
 
 #### cluster.conf
 
