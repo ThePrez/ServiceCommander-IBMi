@@ -83,7 +83,7 @@ Want to walk through a quick exercise to get some basic "hands-on" experience wi
 
 ## Have feedback or want to contribute?
 
-Feel free to [open an issue](https://github.com/ThePrez/ServiceCommander-IBMi/issues/new/choose) with any questions, problems, or other comments. If you'd like to contribute to the project, see [CONTRIBUTING.md](https://github.com/ThePrez/ServiceCommander-IBMi/blob/main/CONTRIBUTING.md) for more information on how to get started. 
+Feel free to [open an issue](https://github.com/ThePrez/ServiceCommander-IBMi/issues/new/choose) with any questions, problems, or other comments. If you'd like to contribute to the project, see [CONTRIBUTING.md](https://github.com/ThePrez/ServiceCommander-IBMi/blob/main/CONTRIBUTING.md) for more information on how to get started.
 
 In any event, we're glad to have you aboard in any capacity, whether as a user, spectator, or contributor!
 
@@ -95,7 +95,7 @@ Service Commander's design is fundamentally different from other tools that acco
 - What other tools may be used to start or stop the service. For instance, Service Commander may start/stop an IBM i host server, but so could the `STRHOSTSVR`/`ENDHOSTSVR` CL commands.
 - Whether the service runs in the initially spawned job or a secondary job
 
-Also, this tool doesn't have the privilege of being the unified, integrated solution with the operating system that other tools may have. Therefore, Service Commander cannot take the liberty of assuming that it can keep track of the resources tied to the services that it manages. So, for example, this tool does not keep track of process IDs of launched processes. Similarly, it doesn't have special access to kernel data structures, etc. 
+Also, this tool doesn't have the privilege of being the unified, integrated solution with the operating system that other tools may have. Therefore, Service Commander cannot take the liberty of assuming that it can keep track of the resources tied to the services that it manages. So, for example, this tool does not keep track of process IDs of launched processes. Similarly, it doesn't have special access to kernel data structures, etc.
 
 Instead, this tool makes strong assumptions based on checks for a particular job name or port usage (see `check_alive_criteria` in the file format documentation). A known limitation, therefore, is that Service Commander may mistake another job for a configured service based on one of these attributes. For example, if you configure a service that is supposed to be listening on port 80, Service Commander will assume that any job listening on port 80 is indeed that service.
 
@@ -192,7 +192,7 @@ Usage: sc  [options] <operation> <service>
 ```
 
 The above usage assumes the program is installed with the above installation steps and is therefore
-launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn compile`), 
+launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn compile`),
 you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
 
 
@@ -408,7 +408,7 @@ name. So, for instance, if your short name is "my_node_app", you can run `sc sta
 
 ### Ad hoc service definition
 
-Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`. 
+Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`.
 In these instances, the operations will be performed on the specified jobs. This is determined by looking for
 jobs matching the given job name or listening on the given port. The job name can be specified either in
 `jobname` or `subsystem/jobname` format. It can also be specified in `PGM-____` format to check for jobs running
@@ -419,7 +419,7 @@ job name or port criteria, that service will be used. For instance, if you have 
 port 80, then specifying `sc info port:80` will show information about the service configured to run on port 80.
 
 Ad hoc service definition is useful for quick checks without the need to create a YAML definition. It's also
-useful if you do not recall the service name, but remember the job name or port. 
+useful if you do not recall the service name, but remember the job name or port.
 
 It is also useful for cases where you just want to find out who (if anyone) is using a certain port. For instance,
 `sc jobinfo port:8080` will show you which job is listening on port 8080. Similarly, `sc stop port:8080` will kill
@@ -431,7 +431,7 @@ This tool allows you to define any services of interest in `.yaml` files. These 
 
 - A global directory (/QOpenSys/etc/sc/services). This, of coures, requires you to have admin access (`*ALLOBJ` special authority).
 - A user-specific directory($HOME/.sc/services)
-- If defined, whatever the value of the `services.dir` system property is. 
+- If defined, whatever the value of the `services.dir` system property is.
 The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
 
 The file can also be located in any arbitrary directory, but it must be explicitly passed along to the `sc` command, for instance
@@ -442,14 +442,14 @@ sc start myservice.yml
 
 #### YAML File Format
 
-See the [samples](https://github.com/ThePrez/ServiceCommander-IBMi/tree/main/samples) directory for some sample service definitions. 
+See the [samples](https://github.com/ThePrez/ServiceCommander-IBMi/tree/main/samples) directory for some sample service definitions.
 The following attributes may be specified in the service definition (`.yaml`) file:
 
 ##### Required fields
 
 - `start_cmd`: the command used to start the service
 - `check_alive`: How to check whether the service is alove or not. This can be a port number, or a job name in either the the format "jobname" or "subsystem/jobname". It can also be specified in `PGM-____` format to check for jobs running a certain program from the main thread. To specify
-multiple criteria, just use a comma-separated list or a YAML String array. 
+multiple criteria, just use a comma-separated list or a YAML String array.
 
 ##### Optional fields that are often needed/wanted
 
@@ -464,7 +464,7 @@ multiple criteria, just use a comma-separated list or a YAML String array.
 - `cluster`: Enable cluster mode by providing a comma-separated list of ports (see "Cluster Mode," below)
 - `batch_mode`: Whether or not to submit the service to batch
 - `sbmjob_jobname`: If submitting to batch, the custom job name to be used for the batch job
-- `sbmjob_opts`: If submitting to batch, custom options for the SBMJOB command (for instance, a custom JOBD) 
+- `sbmjob_opts`: If submitting to batch, custom options for the SBMJOB command (for instance, a custom JOBD)
 - `environment_is_inheriting_vars`: Whether the service inherits environment variables from the current environment (default is true)
 - `environment_vars`: Custom environment variables to be set when launching the service. Specify as an array of strings in `"KEY=VALUE"` format
 - `service_dependencies`: An array of services that this service depends on. This is the simple name of the service (for instance, if the dependency is defined as "myservice", then it is expected to be defined in a file named `myservice.yaml`), not the "friendly" name of the service.
@@ -508,7 +508,7 @@ check_alive: 9333
 In standard operation, this example would start up a Python web server that listens on port 9333.
 Cluster mode can be easily enabled with the `cluster` value. The `cluster` value provides a set of ports
 for the worker jobs to listen on. The number of backend workers is simply based on the quantity of ports specified
-in this property. 
+in this property.
 
 In this example, we run the same Python web server with cluster mode, using 4 backend jobs:
 
@@ -551,7 +551,7 @@ uses three ports, specify the backend worker jobs 3 ports apart. For instance, `
 
 There are two methodologies that can be used for the load-balancing activity:
 1. **http**: This methodology has more customization options (for instance, microcaching, handling http headers, "sticky" sessions, etc) but only works with the http protocol. To enable, you must manually edit the "cluster.conf" file that is created when your service is first started.
-2. **stream** _(default)_: This methodology has less overhead than 'http', but also has fewer configuration options. However, it works with most protocols. 
+2. **stream** _(default)_: This methodology has less overhead than 'http', but also has fewer configuration options. However, it works with most protocols.
 
 #### Cluster mode advanced configuration
 
@@ -608,13 +608,13 @@ http {
 Currently, this tool does not have built-in monitoring and restart capabilities. This may be a future enhancement. In the meantime, one can use simple scripting to accomplish a similar task. For instance, to check every 40 seconds and ensure that the `navigator` service is running, you could submit a job like this (replace the sleep time, service name, and submitted job name to match your use case):
 
 ```
-SBMJOB CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '-c' 'while :; do sleep 40 && /QOpenSys/pkgs/bin/sc start navigator >/dev/null 2>&1 ; done')) JOB(NAVMON) JOBD(*USRPRF) JOBQ(QUSRNOMAX)                         
+SBMJOB CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '-c' 'while :; do sleep 40 && /QOpenSys/pkgs/bin/sc start navigator >/dev/null 2>&1 ; done')) JOB(NAVMON) JOBD(*USRPRF) JOBQ(QUSRNOMAX)
 ```
 
 This will result in several jobs that continuously check on the service and attempt to start it if the service is dead. If you wish to stop this behavior, simply kill the jobs. In the above example, the job name is `NAVMON`, so the WRKACTJOB command to do this interactively looks like:
 
 ```
- WRKACTJOB JOB(NAVMON) 
+ WRKACTJOB JOB(NAVMON)
 ```
 
 ## Testimonials
@@ -677,7 +677,7 @@ ADDJOBSCDE JOB(SC) CMD(STRTCPSVR SERVER(*SC) INSTANCE('myapp')) FRQ(*WEEKLY) SCD
 
 ### Important Notes about AUTOSTART(*YES)
 
-You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user. Be are that adding QTCP to new group profiles or granting special authorities may represent a security exposure. Also, due to the highly-flexible nature of this tool, it is not good practice to run this command as an elevated user in an unattended fashion. 
+You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user. Be are that adding QTCP to new group profiles or granting special authorities may represent a security exposure. Also, due to the highly-flexible nature of this tool, it is not good practice to run this command as an elevated user in an unattended fashion.
 In summary, it is likely not a good idea to use `AUTOSTART(*YES)`.
 
 
