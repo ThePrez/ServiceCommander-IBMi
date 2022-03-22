@@ -122,7 +122,6 @@ The performance information support (`perfinfo`) has additional requirements tha
   - IBM i 7.2: Group PTF SF99702 Level 23
   - IBM i 7.1 (and earlier): not supported
 
-
 ### Option 1: Binary distribution
 
 You can install the binary distribution by installing the `service-commander` package:
@@ -194,7 +193,6 @@ Usage: sc  [options] <operation> <service>
 The above usage assumes the program is installed with the above installation steps and is therefore
 launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn compile`),
 you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
-
 
 ### Specifying options in environment variables
 
@@ -679,7 +677,6 @@ ADDJOBSCDE JOB(SC) CMD(STRTCPSVR SERVER(*SC) INSTANCE('myapp')) FRQ(*WEEKLY) SCD
 
 You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user. Be are that adding QTCP to new group profiles or granting special authorities may represent a security exposure. Also, due to the highly-flexible nature of this tool, it is not good practice to run this command as an elevated user in an unattended fashion.
 In summary, it is likely not a good idea to use `AUTOSTART(*YES)`.
-
 
 ### Special groups used by STRTCPSVR/ENDTCPSVR
 
