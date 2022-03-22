@@ -365,6 +365,7 @@ usage: sc_install_defaults [options]
 ```
 
 This utility can be used to install This will install service definitions for:
+
 - The Cron daemon (if you have cron installed)
 - MariaDB (if you have mariadb installed)
 - IBM i HTTP Server (DG1) instances (unless you specify `--noapache`)
@@ -490,6 +491,7 @@ environment_vars:
 ### Cluster Mode
 
 Service Commander allows for the automatic "clustering" of your applications. When utilizing "cluster mode":
+
 - Service Commander will start _n_ worker jobs, each running on a different port
 - Service Commander will manage the worker jobs when performing operations on the service
 - Work is load-balanced across the worker jobs as needed
@@ -548,6 +550,7 @@ uses three ports, specify the backend worker jobs 3 ports apart. For instance, `
 #### Cluster mode methodologies
 
 There are two methodologies that can be used for the load-balancing activity:
+
 1. **http**: This methodology has more customization options (for instance, microcaching, handling http headers, "sticky" sessions, etc) but only works with the http protocol. To enable, you must manually edit the "cluster.conf" file that is created when your service is first started.
 2. **stream** _(default)_: This methodology has less overhead than 'http', but also has fewer configuration options. However, it works with most protocols.
 
@@ -564,6 +567,7 @@ _NOT YET SUPPORTED_
 When a service is first started in cluster mode, a `cluster.conf` file is created in the service's working directory. Cluster mode is built on top of nginx,
 and this file is the nginx configuration file. Once `cluster.conf` is created, you can feel free to edit it in any way that is supported by nginx.
 For instance, this example:
+
 - uses the **http** methodology for load balancing
 - Enables 10-second request caching
 - Enables a `/tablesorter` directory for serving static content
