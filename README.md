@@ -384,7 +384,7 @@ sc_install_defaults --cleanupv0
 
 ### Using the 'scinit' tool
 
-You can use the `scinit` tool can be used to create the YAML configuration files for you. Basic usage of the tool is simply:
+You can use the `scinit` tool to create the YAML configuration files for you. Basic usage of the tool is simply:
 
 ```bash
 scinit <program start command>
@@ -401,7 +401,7 @@ For instance, if you would normally launch a Node.js application from `/home/MYU
 
 ```bash
 cd /home/MYUSR/mydir
-scinit <program start command>
+scinit node app.js
 ```
 
 The `scinit` tool will ask you for a "short name" among other things. When done, a service configuration will be saved under that short
