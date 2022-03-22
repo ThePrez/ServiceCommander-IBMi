@@ -132,6 +132,7 @@ cd /QOpenSys/pkgs/lib/sc/samples
 install_if_executable /QOpenSys/pkgs/bin/mysqld mariadb.yaml
 install_if_executable /usr/local/mariadb/bin/mysqld zenddbi.yaml
 install_if_executable /QOpenSys/pkgs/bin/crond crond.yaml
+install_if_executable /QOpenSys/pkgs/bin/pg_ctl postgres.yaml
 
 cd /qsys.lib/qusrsys.lib/qatmhinstc.file
 
