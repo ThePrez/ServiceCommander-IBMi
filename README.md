@@ -126,7 +126,7 @@ The performance information support (`perfinfo`) has additional requirements tha
 
 You can install the binary distribution by installing the `service-commander` package:
 
-```
+```bash
 yum install service-commander
 ```
 
@@ -136,14 +136,14 @@ If you are not familiar with IBM i RPMs, see [this documentation](http://ibm.biz
 
 Feel free to build from the `main` branch to start making code contributions or to evaluate a fix/feature not yet publish. This process assumes your `PATH` environment variable is set up properly, otherwise:
 
-```
+```bash
 PATH=/QOpenSys/pkgs/bin:$PATH
 export PATH
 ```
 
 The build itself can be done with the following steps:
 
-```
+```bash
 yum install git ca-certificates-mozilla make-gnu
 git clone https://github.com/ThePrez/ServiceCommander-IBMi/
 cd ServiceCommander-IBMi
@@ -202,7 +202,7 @@ If you would like to set some of the tool's options via environment variable, yo
 - `SC_OPTIONS`, which will be processed on all invocations
 For example, to gather verbose output when using `STRTCPSVR`, run the following before your `STRTCPSVR` command:
 
-```
+```cl
 ADDENVVAR ENVVAR(SC_OPTIONS) VALUE('-v') REPLACE(*YES)
 ```
 
@@ -221,96 +221,96 @@ these preconfigured system services. In order to include them, use the `-a` opti
 
 Start the service named `kafka`:
 
-```
+```bash
 sc start kafka
 ```
 
 Stop the service named `zookeeper`:
 
-```
+```bash
 sc stop zookeeper
 ```
 
 Check status of all configured services (all services belong to a special group named "all")
 
-```
+```bash
 sc check group:all
 ```
 
 Try to start all configured services
 
-```
+```bash
 sc start group:all
 ```
 
 Print information about all configured services
 
-```
+```bash
 sc info group:all
 ```
 
 Try to start all services in "host_servers" group
 
-```
+```bash
 sc start group:host_servers
 ```
 
 List all services
 
-```
+```bash
 sc list group:all
 ```
 
 List all services in the special "system" group
 
-```
+```bash
 sc list group:system
 ```
 
 List all services including those in the special "system" group
 
-```
+```bash
 sc -a list group:all
 ```
 
 List jobs running on port 8080
 
-```
+```bash
 sc jobinfo port:8080
 ```
 
 Stop jobs running on port 8080
 
-```
+```bash
 sc stop port:8080
 ```
 
 Check if anything is running on port 8080
 
-```
+```bash
 sc check port:8080
 ```
 
 Start the service defined in a local file, `myservice.yml`
 
-```
+```bash
 sc start myservice.yml
 ```
 
 See what ports are currently listening
 
-```
+```bash
 scopenports
 ```
 
 List all groups
 
-```
+```bash
 sc groups
 ```
 
 Only list groups that are defined within the users private YAML configuration files
-```
+```bash
 sc groups --ignore-globals
 ```
 
@@ -319,7 +319,7 @@ sc groups --ignore-globals
 As of version 0.7.x, Service Commander also comes with a utility, `scopenports` that allow you to see which ports are open.
 Usage is as follows:
 
-```fortran
+```bash
 Usage: scopenports  [options]
 
     Valid options include:
@@ -348,7 +348,7 @@ been configured for `sc`'s use. To populate some common defaults, run `sc_instal
 If you'd like to start with pre-made configurations for common services, simply run the
 `sc_install_defaults` command. Its usage is as follows:
 
-```
+```bash
 usage: sc_install_defaults [options]
 
     valid options include:
@@ -375,7 +375,7 @@ This group is used by the `--cleanup` option when re-running the script.
 **Important Note # 2**
 If you ran this tool with v0.x, you will want to clean up the old configurations by running:
 
-```
+```bash
 sc_install_defaults --cleanupv0
 ```
 
@@ -383,7 +383,7 @@ sc_install_defaults --cleanupv0
 
 You can use the `scinit` tool can be used to create the YAML configuration files for you. Basic usage of the tool is simply:
 
-```
+```bash
 scinit <program start command>
 ```
 
@@ -396,7 +396,7 @@ In doing so, the `scinit` will create the YAML configuration file for you and al
 
 For instance, if you would normally launch a Node.js application from `/home/MYUSR/mydir` by running `node app.js`, you would run:
 
-```
+```bash
 cd /home/MYUSR/mydir
 scinit <program start command>
 ```
@@ -434,7 +434,7 @@ The file name must be in the format of `service_name.yaml` (or `service_name.yml
 
 The file can also be located in any arbitrary directory, but it must be explicitly passed along to the `sc` command, for instance
 
-```
+```bash
 sc start myservice.yml
 ```
 
@@ -484,7 +484,6 @@ check_alive: '80'
 batch_mode: 'false'
 environment_vars:
 - PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/ccs/bin:/QOpenSys/usr/bin/X11:/usr/sbin:.:/usr/bin
-
 ```
 
 ### Cluster Mode
@@ -605,13 +604,13 @@ http {
 
 Currently, this tool does not have built-in monitoring and restart capabilities. This may be a future enhancement. In the meantime, one can use simple scripting to accomplish a similar task. For instance, to check every 40 seconds and ensure that the `navigator` service is running, you could submit a job like this (replace the sleep time, service name, and submitted job name to match your use case):
 
-```
+```cl
 SBMJOB CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '-c' 'while :; do sleep 40 && /QOpenSys/pkgs/bin/sc start navigator >/dev/null 2>&1 ; done')) JOB(NAVMON) JOBD(*USRPRF) JOBQ(QUSRNOMAX)
 ```
 
 This will result in several jobs that continuously check on the service and attempt to start it if the service is dead. If you wish to stop this behavior, simply kill the jobs. In the above example, the job name is `NAVMON`, so the WRKACTJOB command to do this interactively looks like:
 
-```
+```cl
  WRKACTJOB JOB(NAVMON)
 ```
 
@@ -628,26 +627,26 @@ if too problematic.
 
 To integrate with the STRTCPSVR and ENDTCPSVR commands, you can run the following command as an admin user:
 
-```
+```bash
 /QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
 ```
 
 This will install create the `SCOMMANDER` library and compile/install the TCP program into that library. To use a different
 library, just set the `SCTARGET` variable. For instance:
 
-```
+```bash
 SCTARGET=mylib /QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
 ```
 
 If you need to compile to a previous release of IBM i, set the `SCTGTRLS` variable to the required value of CRTCMOD parameter TGTRLS. Example for IBM i 7.1:
 
-```
+```bash
 SCTGTRLS=V7R1M0 /QOpenSys/pkgs/lib/sc/tcpsvr/install_sc_tcpsvr
 ```
 
 After doing so, you can run the `*SC` TCP server commands, specifying the simple name of the sc-managed service as the instance name. For example:
 
-```
+```cl
 STRTCPSVR SERVER(*SC) INSTANCE('kafka')
 ```
 
@@ -657,7 +656,7 @@ Be aware that running two or more STRTCPSVR commands at the same time in differe
 
 If you need to run more than one STRTCPSVR *SC command at a time (e.g. after IPL where the system is busy and the service can take longer to start), you can reduce the lock time significantly by setting an environment variable before running the STRTCPSVR command:
 
-```
+```cl
 ADDENVVAR ENVVAR(SC_TCPSVR_SUBMIT) VALUE('Y') LEVEL(*SYS) REPLACE(*YES)
 ```
 
@@ -669,7 +668,7 @@ It may be desired to start, stop, or ensure the liveliness of services on a part
 integration is leveraged. This makes it easier to create job scheduler entries. For instance, to ensure that the `myapp` service is
 running, every day at 01:00:
 
-```
+```cl
 ADDJOBSCDE JOB(SC) CMD(STRTCPSVR SERVER(*SC) INSTANCE('myapp')) FRQ(*WEEKLY) SCDDATE(*NONE) SCDDAY(*ALL) SCDTIME(010000)
 ```
 
