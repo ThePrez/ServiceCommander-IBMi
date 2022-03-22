@@ -117,10 +117,10 @@ The performance information support (`perfinfo`) has additional requirements tha
 - Python 3 with the ibm_db database connector (`yum install python3-ibm_db`)
 - Required operating system support, which depends on your IBM i operating system level, as follows:
 
-    - IBM i 7.4: included with base OS
-    - IBM i 7.3: Group PTF SF99703 Level 11
-    - IBM i 7.2: Group PTF SF99702 Level 23
-    - IBM i 7.1 (and earlier): not supported
+  - IBM i 7.4: included with base OS
+  - IBM i 7.3: Group PTF SF99703 Level 11
+  - IBM i 7.2: Group PTF SF99702 Level 23
+  - IBM i 7.1 (and earlier): not supported
 
 
 ### Option 1: Binary distribution
