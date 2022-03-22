@@ -1,4 +1,52 @@
 # Service Commander for IBM i
+
+<details>
+  <summary>Index - click to show/hide...</summary>
+
+- [Introduction](#introduction)
+- [Current features](#current-features)
+- [Hands-on Exercise](#hands-on-exercise)
+- [Have feedback or want to contribute?](#have-feedback-or-want-to-contribute)
+- [Important differences from other service management tools](#important-differences-from-other-service-management-tools)
+- [Installation](#installation)
+  - [System Requirements](#system-requirements)
+  - [Option 1: Binary distribution](#option-1:-binary-distribution)
+  - [Option 2: Build from source (for development or fix evaluation)](#option-2-build-from-source-for-development-or-fix-evaluation)
+- [Basic usage](#basic-usage)
+  - [Specifying options in environment variables](#specifying-options-in-environment-variables)
+  - [Special `system` group (hidden by default)](#special-system-group-hidden-by-default)
+  - [Usage examples](#usage-examples)
+  - [Checking which ports are currently open](#checking-which-ports-are-currently-open)
+- [Configuring Services](#configuring-services)
+  - [Initializing your configuration with defaults](#initializing-your-configuration-with-defaults)
+  - [Using the 'scinit' tool](#using-the-scinit-tool)
+  - [Ad hoc service definition](#ad-hoc-service-definition)
+  - [Directly creating/editing YAML configuration files](#directly-creatingediting-yaml-configuration-files)
+    - [YAML File Format](#yaml-file-format)
+      - [Required fields](#required-fields)
+      - [Optional fields that are often needed/wanted](#optional-fields-that-are-often-neededwanted)
+      - [Other optional fields](#other-optional-fields)
+      - [Deprecated fields](#deprecated-fields)
+    - [YAML file example](#yaml-file-example)
+- [Cluster Mode](#cluster-mode)
+  - [Prerequisites for Cluster Mode](#prerequisites-for-cluster-mode)
+  - [Cluster mode methodologies](#cluster-mode-methodologies)
+  - [Cluster mode advanced configuration](#cluster-mode-advanced-configuration)
+    - [Defining `cluster_opts` in the service configuration](#defining-clusteropts-in-the-service-configuration)
+    - [cluster.conf](#clusterconf)
+- [Demo (video)](#demo-video)
+- [Automatically restarting a service if it fails](#automatically-restarting-a-service-if-it-fails)
+- [Testimonials](#testimonials)
+- [STRTCPSVR Integration](#strtcpsvr-integration)
+  - [Running two or more STRTCPSVR commands simultaneously](#running-two-or-more-strtcpsvr-commands-simultaneously)
+  - [Using with ADDJOBSCDE](#using-with-addjobscde)
+  - [Important Notes about AUTOSTART(*YES)](#important-notes-about-autostartyes)
+  - [Special groups used by STRTCPSVR/ENDTCPSVR](#special-groups-used-by-strtcpsvrendtcpsvr)
+
+</details>
+
+# Introduction
+
 A utility for unifying the daunting task of managing various services and applications running on IBM i. Its objective is to provide an intuitive, easy-to-use command line interface for managing services or jobs. It also provides integration with `STRTCPSVR`.
 
 This tool can be used to manage a number of services, for instance:
@@ -142,7 +190,8 @@ launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn 
 you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
 
 
-**Specifying options in environment variables**
+## Specifying options in environment variables
+
 If you would like to set some of the tool's options via environment variable, you may do so with one of the following:
 
 - `SC_TCPSVR_OPTIONS`, which will be processed when invoked via the `STRTCPSVR`/`ENDTCPSVR` commands
@@ -384,18 +433,18 @@ sc start myservice.yml
 See the [samples](https://github.com/ThePrez/ServiceCommander-IBMi/tree/main/samples) directory for some sample service definitions. 
 The following attributes may be specified in the service definition (`.yaml`) file:
 
-**Required fields**
+#### Required fields
 
 - `start_cmd`: the command used to start the service
 - `check_alive`: How to check whether the service is alove or not. This can be a port number, or a job name in either the the format "jobname" or "subsystem/jobname". It can also be specified in `PGM-____` format to check for jobs running a certain program from the main thread. To specify
 multiple criteria, just use a comma-separated list or a YAML String array. 
 
-**Optional fields that are often needed/wanted**
+#### Optional fields that are often needed/wanted
 
 - `name`: A "friendly" name of the service
 - `dir`: The working directory in which to run the startup/shutdown commands
 
-**Other optional fields**
+#### Other optional fields
 
 - `stop_cmd`: The service shutdown command. If unspecified, the service will be located by port number or job name.
 - `startup_wait_time`: The wait time, in seconds, to wait for the service to start up (the default is 60 seconds if unspecified)
@@ -409,7 +458,7 @@ multiple criteria, just use a comma-separated list or a YAML String array.
 - `service_dependencies`: An array of services that this service depends on. This is the simple name of the service (for instance, if the dependency is defined as "myservice", then it is expected to be defined in a file named `myservice.yaml`), not the "friendly" name of the service.
 - `groups`: Custom groups that this service belongs to. Groups can be used to start and stop sets of services in a single operation. Specify as an array of strings.
 
-**Deprecated fields**
+#### Deprecated fields
 - `check_alive_criteria`: (Deprecated)The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname". It can also be specified in `PGM-____` format to check for jobs running a certain program from the main thread. This field is deprecated. As of v1.0.0, the `check_alive` field handles both port numbers and job names (or a list containing both).
 
 ### YAML file example
@@ -493,10 +542,10 @@ There are two methodologies that can be used for the load-balancing activity:
 
 More advanced configuration can be achieved in one of two ways:
 
-**Defining `cluster_opts` in the service configuration** 
+#### Defining `cluster_opts` in the service configuration
 _NOT YET SUPPORTED_
 
-**cluster.conf**
+### cluster.conf
 When a service is first started in cluster mode, a `cluster.conf` file is created in the service's working directory. Cluster mode is built on top of nginx,
 and this file is the nginx configuration file. Once `cluster.conf` is created, you can feel free to edit it in any way that is supported by nginx.
 For instance, this example:
@@ -584,7 +633,7 @@ After doing so, you can run the `*SC` TCP server commands, specifying the simple
 STRTCPSVR SERVER(*SC) INSTANCE('kafka')
 ```
 
-**Running two or more STRTCPSVR commands simultaneously**
+## Running two or more STRTCPSVR commands simultaneously
 
 Be aware that running two or more STRTCPSVR commands at the same time in different jobs can cause the command to fail with TCP1A11. This is because the system will only run one STRTCPSVR command at a time and uses an internal locking mechanism to control this. The wait time is 30 seconds, and if STRTCPSVR in job A is taking longer to start the service, the STRTCPSVR in job B and C etc. will time out when aquiring the lock.
 
@@ -606,13 +655,13 @@ running, every day at 01:00:
 ADDJOBSCDE JOB(SC) CMD(STRTCPSVR SERVER(*SC) INSTANCE('myapp')) FRQ(*WEEKLY) SCDDATE(*NONE) SCDDAY(*ALL) SCDTIME(010000)
 ```
 
-**Important Notes about AUTOSTART(*YES)**
+## Important Notes about AUTOSTART(*YES)
 
 You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user. Be are that adding QTCP to new group profiles or granting special authorities may represent a security exposure. Also, due to the highly-flexible nature of this tool, it is not good practice to run this command as an elevated user in an unattended fashion. 
 In summary, it is likely not a good idea to use `AUTOSTART(*YES)`.
 
 
-**Special groups used by STRTCPSVR/ENDTCPSVR**
+## Special groups used by STRTCPSVR/ENDTCPSVR
 There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
 
 - `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
