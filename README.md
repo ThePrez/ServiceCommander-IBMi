@@ -192,8 +192,7 @@ Usage: sc  [options] <operation> <service>
 ```
 
 The above usage assumes the program is installed with the above installation steps and is therefore
-launched with the `sc` script. Otherwise, if you've hand-built with maven (`mvn compile`),
-you can specify arguments in `exec.args` (for instance, `mvn exec:java -Dexec.args='start kafka'`).
+launched with the `sc` script.
 
 ### Specifying options in environment variables
 
