@@ -10,7 +10,7 @@
 - [Important differences from other service management tools](#important-differences-from-other-service-management-tools)
 - [Installation](#installation)
   - [System Requirements](#system-requirements)
-  - [Option 1: Binary distribution](#option-1:-binary-distribution)
+  - [Option 1: Binary distribution](#option-1-binary-distribution)
   - [Option 2: Build from source (for development or fix evaluation)](#option-2-build-from-source-for-development-or-fix-evaluation)
 - [Basic usage](#basic-usage)
   - [Specifying options in environment variables](#specifying-options-in-environment-variables)
