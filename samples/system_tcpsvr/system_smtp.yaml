@@ -2,7 +2,7 @@ name: System SMTP server
 start_cmd: system 'STRTCPSVR SERVER(*SMTP)'
 stop_cmd: system 'ENDTCPSVR SERVER(*SMTP)'
 
-check_alive: port:25
+check_alive: 25
 
 groups:
   - "tcp_servers"

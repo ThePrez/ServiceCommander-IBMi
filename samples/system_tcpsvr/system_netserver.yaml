@@ -2,8 +2,6 @@ name: System NetServer
 start_cmd: system 'STRTCPSVR SERVER(*NETSVR)'
 stop_cmd: system 'ENDTCPSVR SERVER(*NETSVR)'
 
-# Note: Until ServiceCommander support multiple ports
-# we are just checking the CIFS port 445.
 check_alive: 445,137,139
 
 groups:

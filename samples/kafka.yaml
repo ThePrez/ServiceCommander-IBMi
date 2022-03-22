@@ -3,8 +3,7 @@ dir: /home/JGORZINS/mykafka/kafka_2.13-2.6.0/config
 start_cmd: ../bin/kafka-server-start.sh server.properties
 stop_cmd: ../bin/kafka-server-stop.sh server.properties
 
-check_alive: port
-check_alive_criteria: 9092
+check_alive: 9092
 
 batch_mode: no
 sbmjob_jobname: Kafka
