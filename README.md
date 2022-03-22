@@ -64,6 +64,7 @@ This tool can be used to manage a number of services, for instance:
 ![logo](sc_logo.jpg)
 
 ## Current features
+
 Some of the features of the tool include:
 
 - The ability to specify dependencies (for instance, if one application or service dependds on another), and it will start any dependencies as needed
@@ -77,14 +78,17 @@ Some of the features of the tool include:
 - Ability to see what ports are currently open (have a job listening)
 
 ## Hands-on Exercise
+
 Want to walk through a quick exercise to get some basic "hands-on" experience with this tool? If so, please see [our very simple hands-on exercise](quickstart/HANDS_ON.md)
 
 ## Have feedback or want to contribute?
+
 Feel free to [open an issue](https://github.com/ThePrez/ServiceCommander-IBMi/issues/new/choose) with any questions, problems, or other comments. If you'd like to contribute to the project, see [CONTRIBUTING.md](https://github.com/ThePrez/ServiceCommander-IBMi/blob/main/CONTRIBUTING.md) for more information on how to get started. 
 
 In any event, we're glad to have you aboard in any capacity, whether as a user, spectator, or contributor!
 
 ## Important differences from other service management tools
+
 Service Commander's design is fundamentally different from other tools that accomplish similar tasks, like init.d, supervisord, and so on. Namely, the functions within Service Commander are intended to work regardless of:
 
 - Who else may start or stop the service
@@ -120,6 +124,7 @@ The performance information support (`perfinfo`) has additional requirements tha
 
 
 ### Option 1: Binary distribution
+
 You can install the binary distribution by installing the `service-commander` package:
 
 ```
@@ -129,6 +134,7 @@ yum install service-commander
 If you are not familiar with IBM i RPMs, see [this documentation](http://ibm.biz/ibmi-rpms) to get started.
 
 ### Option 2: Build from source (for development or fix evaluation)
+
 Feel free to build from the `main` branch to start making code contributions or to evaluate a fix/feature not yet publish. This process assumes your `PATH` environment variable is set up properly, otherwise:
 
 ```
@@ -203,6 +209,7 @@ ADDENVVAR ENVVAR(SC_OPTIONS) VALUE('-v') REPLACE(*YES)
 ```
 
 ### Special `system` group (hidden by default)
+
 Service Commander ships a handful of pre-made configurations for common system services. These include things like:
 
 - IBM i host servers
@@ -310,6 +317,7 @@ sc groups --ignore-globals
 ```
 
 ### Checking which ports are currently open
+
 As of version 0.7.x, Service Commander also comes with a utility, `scopenports` that allow you to see which ports are open.
 Usage is as follows:
 
@@ -374,6 +382,7 @@ sc_install_defaults --cleanupv0
 ```
 
 ### Using the 'scinit' tool
+
 You can use the `scinit` tool can be used to create the YAML configuration files for you. Basic usage of the tool is simply:
 
 ```
@@ -398,6 +407,7 @@ The `scinit` tool will ask you for a "short name" among other things. When done,
 name. So, for instance, if your short name is "my_node_app", you can run `sc start my_node_app`.
 
 ### Ad hoc service definition
+
 Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`. 
 In these instances, the operations will be performed on the specified jobs. This is determined by looking for
 jobs matching the given job name or listening on the given port. The job name can be specified either in
@@ -416,6 +426,7 @@ It is also useful for cases where you just want to find out who (if anyone) is u
 whatever job is running on port 8080.
 
 ### Directly creating/editing YAML configuration files
+
 This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
 
 - A global directory (/QOpenSys/etc/sc/services). This, of coures, requires you to have admin access (`*ALLOBJ` special authority).
@@ -430,6 +441,7 @@ sc start myservice.yml
 ```
 
 #### YAML File Format
+
 See the [samples](https://github.com/ThePrez/ServiceCommander-IBMi/tree/main/samples) directory for some sample service definitions. 
 The following attributes may be specified in the service definition (`.yaml`) file:
 
@@ -459,9 +471,11 @@ multiple criteria, just use a comma-separated list or a YAML String array.
 - `groups`: Custom groups that this service belongs to. Groups can be used to start and stop sets of services in a single operation. Specify as an array of strings.
 
 ##### Deprecated fields
+
 - `check_alive_criteria`: (Deprecated)The criteria used when checking whether the service is alive or not. If `check_alive` is set to "port", this is expected to be a port number. If `check_alive` is set to "jobname", this is expect to be be a job name, either in the format "jobname" or "subsystem/jobname". It can also be specified in `PGM-____` format to check for jobs running a certain program from the main thread. This field is deprecated. As of v1.0.0, the `check_alive` field handles both port numbers and job names (or a list containing both).
 
 #### YAML file example
+
 The following is an example of a simple configuration for a Node.js application that runs on port 80:
 
 ```yaml
@@ -476,6 +490,7 @@ environment_vars:
 ```
 
 ### Cluster Mode
+
 Service Commander allows for the automatic "clustering" of your applications. When utilizing "cluster mode":
 - Service Commander will start _n_ worker jobs, each running on a different port
 - Service Commander will manage the worker jobs when performing operations on the service
@@ -543,9 +558,11 @@ There are two methodologies that can be used for the load-balancing activity:
 More advanced configuration can be achieved in one of two ways:
 
 ##### Defining `cluster_opts` in the service configuration
+
 _NOT YET SUPPORTED_
 
 #### cluster.conf
+
 When a service is first started in cluster mode, a `cluster.conf` file is created in the service's working directory. Cluster mode is built on top of nginx,
 and this file is the nginx configuration file. Once `cluster.conf` is created, you can feel free to edit it in any way that is supported by nginx.
 For instance, this example:
@@ -583,9 +600,11 @@ http {
 ```
 
 ## Demo (video)
+
 [![asciicast](https://asciinema.org/a/459898.svg)](https://asciinema.org/a/459898)
 
 ## Automatically restarting a service if it fails
+
 Currently, this tool does not have built-in monitoring and restart capabilities. This may be a future enhancement. In the meantime, one can use simple scripting to accomplish a similar task. For instance, to check every 40 seconds and ensure that the `navigator` service is running, you could submit a job like this (replace the sleep time, service name, and submitted job name to match your use case):
 
 ```
@@ -599,6 +618,7 @@ This will result in several jobs that continuously check on the service and atte
 ```
 
 ## Testimonials
+
 > "I use this a lot for my own personal use. Might be useless for the rest of the world. I don't know, though."
 >
 > &nbsp; --[@ThePrez](https://github.com/ThePrez/), creator of Service Commander
@@ -662,6 +682,7 @@ In summary, it is likely not a good idea to use `AUTOSTART(*YES)`.
 
 
 ### Special groups used by STRTCPSVR/ENDTCPSVR
+
 There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
 
 - `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
