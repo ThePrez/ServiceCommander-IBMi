@@ -52,7 +52,7 @@ A utility for unifying the daunting task of managing various services and applic
 This tool can be used to manage a number of services, for instance:
 
 - IBM i host server jobs
-- IBM i standard TCP servers (\*TCP, \*SSHD, etc.)
+- IBM i standard TCP servers (\*FTP, \*SSHD, etc.)
 - Programs you wrote using open source technology (Node.js, Python, PHP, etc.)
 - Apache Tomcat instances
 - Apache Camel routes
@@ -97,7 +97,7 @@ Service Commander's design is fundamentally different from other tools that acco
 
 Also, this tool doesn't have the privilege of being the unified, integrated solution with the operating system that other tools may have. Therefore, Service Commander cannot take the liberty of assuming that it can keep track of the resources tied to the services that it manages. So, for example, this tool does not keep track of process IDs of launched processes. Similarly, it doesn't have special access to kernel data structures, etc.
 
-Instead, this tool makes strong assumptions based on checks for a particular job name or port usage (see `check_alive_criteria` in the file format documentation). A known limitation, therefore, is that Service Commander may mistake another job for a configured service based on one of these attributes. For example, if you configure a service that is supposed to be listening on port 80, Service Commander will assume that any job listening on port 80 is indeed that service.
+Instead, this tool makes strong assumptions based on checks for a particular job name or port usage (see `check_alive` in the file format documentation). A known limitation, therefore, is that Service Commander may mistake another job for a configured service based on one of these attributes. For example, if you configure a service that is supposed to be listening on port 80, Service Commander will assume that any job listening on port 80 is indeed that service.
 
 Service Commander's unique design is intended to offer a great deal of flexibility and ease of management through the use of simple `.yaml` files.
 
