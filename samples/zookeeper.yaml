@@ -3,8 +3,7 @@ dir: /home/JGORZINS/mykafka/kafka_2.13-2.6.0/config
 start_cmd: ../bin/zookeeper-server-start.sh zookeeper.properties
 stop_cmd: ../bin/zookeeper-server-stop.sh zookeeper.properties
 
-check_alive: jobname
-check_alive_criteria: zookeeper
+check_alive: zookeeper
 
 batch_mode: yes
 sbmjob_jobname: zookeeper

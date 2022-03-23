@@ -2,8 +2,7 @@ name: System FTP server
 start_cmd: system 'strtcpsvr *FTP'
 stop_cmd: system 'endtcpsvr *FTP'
 
-check_alive: port
-check_alive_criteria: 21
+check_alive: 21
 
 groups:
   - "tcp_servers"

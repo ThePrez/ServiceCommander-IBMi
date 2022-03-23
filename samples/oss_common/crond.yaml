@@ -6,7 +6,7 @@ only_if_executable: /QOpenSys/pkgs/bin/crond
 check_alive: PGM-crond
 
 batch_mode: yes
-sbmjob_jobname: crond
+sbmjob_jobname: CROND
 sbmjob_opts: JOBQ(QUSRNOMAX)
 
 groups:
