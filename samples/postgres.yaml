@@ -1,18 +1,24 @@
+# This configuration is based on a PostgreSQL setup as documented in
+# https://ibmi-oss-docs.readthedocs.io/en/latest/postgresql.html.
+#
+# If you use a different setup, please change this config (eg. PGDATA, user etc)!
+
 name: PostgreSQL Server
 start_cmd: /QOpenSys/pkgs/bin/pg_ctl start
 stop_cmd: /QOpenSys/pkgs/bin/pg_ctl stop
 only_if_executable: /QOpenSys/pkgs/bin/pg_ctl
 
-check_alive: port
 # default port is 5432
-check_alive_criteria: 5432
+check_alive: 5432
 
-# Submit job to batch under POSTGRES user
+# Submit job POSTGRES to subsystem QUSRWRK under POSTGRES user
 batch_mode: yes
-sbmjob_opts: "USER(POSTGRES)"
+sbmjob_jobname: "POSTGRES"
+sbmjob_opts: "USER(POSTGRES) JOBQ(QUSRNOMAX) JOBD(QGPL/QDFTSVR)"
 
 environment_vars:
 # Path to the database configuration files
-#  Example if data directory is in /postgres
-# - PGDATA=/postgres
-- PGDATA=/path/to/datadir
+#  Example if data directory is in /home/postgres
+#  - PGDATA=/home/postgres
+#  
+- PGDATA=/home/postgres
