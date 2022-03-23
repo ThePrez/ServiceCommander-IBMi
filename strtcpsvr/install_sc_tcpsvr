@@ -32,7 +32,7 @@ DIR=$(/QOpenSys/pkgs/bin/readlink -f $(dirname $0))
 /QOpenSys/usr/bin/system -Kkpiebv "CHGOBJOWN OBJ(${SCTARGET}/SC) OBJTYPE(*PGM) NEWOWN(QSYS) CUROWNAUT(*REVOKE)" || oopsies
 /QOpenSys/usr/bin/system -Kkpiebv "CHGAUT OBJ('/qsys.lib/${SCTARGET}.lib/sc.pgm') USER(*PUBLIC) DTAAUT(*EXCLUDE) OBJAUT(*NONE)" || oopsies
 /QOpenSys/usr/bin/system -Kkpiebv "CHGAUT OBJ('/qsys.lib/${SCTARGET}.lib/sc.pgm') USER(QTCP) DTAAUT(*X) OBJAUT(*NONE)" || oopsies
-/QOpenSys/usr/bin/system -Kkpiebv "ADDTCPSVR SVRSPCVAL(*SC) PGM(${SCTARGET}/SC) SVRNAME(SC) SVRTYPE(SC) TEXT('Service Commander')" || oopsies
+/QOpenSys/usr/bin/system -Kkpiebv "ADDTCPSVR SVRSPCVAL(*SC) PGM(${SCTARGET}/SC) SVRNAME(SC) SVRTYPE(SC) AUTOSTART(*YES) TEXT('Service Commander')" || oopsies
 
 # Add a README source file in the library
 /QOpenSys/usr/bin/system -Kkpiebv "CRTSRCPF FILE(${SCTARGET}/README) RCDLEN(92) MBR(README)" || oopsies

@@ -4,11 +4,12 @@
 # If you use a different setup, please change this config (eg. PGDATA, user etc)!
 
 name: PostgreSQL Server
-start_cmd: pg_ctl start
-stop_cmd: pg_ctl stop
+start_cmd: /QOpenSys/pkgs/bin/pg_ctl start
+stop_cmd: /QOpenSys/pkgs/bin/pg_ctl stop
+only_if_executable: /QOpenSys/pkgs/bin/pg_ctl
 
-check_alive: 5432
 # default port is 5432
+check_alive: 5432
 
 # Submit job POSTGRES to subsystem QUSRWRK under POSTGRES user
 batch_mode: yes

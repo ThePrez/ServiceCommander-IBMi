@@ -65,6 +65,7 @@ fi
 %dir %{_sysconfdir}/sc/
 %dir %{_sysconfdir}/sc/services/
 %config(noreplace) %{_sysconfdir}/sc/services/system/*
+%config(noreplace) %{_sysconfdir}/sc/services/oss_common/*
 %{_mandir}/man1/sc.1*
 %{_mandir}/man1/scopenports.1*
 %{_mandir}/man1/scinit.*
@@ -99,7 +100,7 @@ fi
 - feature: Several new options for 'sc_install_defaults'
 - feature: New '--ignore-groups' option for 'sc'
 - feature: Allow service path names to be relative
-- feature: preinstall common system services
+- feature: preinstall crond, MariaDB, and Zend DBi
 - enhancement: hide system services by default
 - enhancement: sort services alphabetically on 'sc check'
 - enhancement: add man pages for all utilities
