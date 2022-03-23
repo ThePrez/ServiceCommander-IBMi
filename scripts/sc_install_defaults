@@ -117,8 +117,6 @@ if [ "1" == "$DO_CLEANUP" ]; then
     cleanup
 fi
 
-install_if_executable /QOpenSys/pkgs/bin/pg_ctl postgres.yaml
-
 cd /qsys.lib/qusrsys.lib/qatmhinstc.file
 
 if [ "1" == "$DO_APACHE" ]; then
