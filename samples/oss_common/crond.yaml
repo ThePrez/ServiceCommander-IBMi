@@ -3,8 +3,7 @@ start_cmd: /QOpenSys/pkgs/bin/crond -n
 
 only_if_executable: /QOpenSys/pkgs/bin/crond
 
-check_alive: jobname 
-check_alive_criteria: PGM-crond
+check_alive: PGM-crond
 
 batch_mode: yes
 sbmjob_jobname: CROND
