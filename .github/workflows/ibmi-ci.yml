@@ -3,8 +3,8 @@ name: IBM i CI
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  pull_request_target:
+    types: [assigned, opened, synchronize, reopened, edited, ready_for_review]
 env:
   ssh_command: ssh ${{ secrets.IBMI_BUILD_USRPRF }}@${{ secrets.IBMI_BUILD_SYS }}
   scp_dist_command: scp -r ${{ secrets.IBMI_BUILD_USRPRF }}@${{ secrets.IBMI_BUILD_SYS }}:/home/${{ secrets.IBMI_BUILD_USRPRF }}/build/${{ github.sha }}/rpmbuild/RPMS/ppc64/ .
