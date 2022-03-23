@@ -1,5 +1,5 @@
 
-SC_VERSION := "Development Version (built with Make)"
+SC_VERSION := "Development Build (built with Make)"
 
 target/sc.jar: FORCE /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/bin/mvn
 	JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11 /QOpenSys/pkgs/bin/mvn -Dsc.version=${SC_VERSION} package
