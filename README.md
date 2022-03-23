@@ -588,7 +588,7 @@ STRTCPSVR SERVER(*SC) INSTANCE('kafka')
 **Important Note: As of Service Commander v1.2.x, the TCP server is set to `AUTOSTART(*YES)` by default. If this
 is not the desired behavior, change it with the CHGTCPSVR command. For instance:**
 ```bash
-CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)
+CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*NO)
 ```
 
 ### Special groups used by STRTCPSVR/ENDTCPSVR**
