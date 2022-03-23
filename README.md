@@ -33,14 +33,14 @@
     - [Prerequisites for Cluster Mode](#prerequisites-for-cluster-mode)
     - [Cluster mode methodologies](#cluster-mode-methodologies)
     - [Cluster mode advanced configuration](#cluster-mode-advanced-configuration)
-      - [Defining `cluster_opts` in the service configuration](#defining-clusteropts-in-the-service-configuration)
+      - [Defining `cluster_opts` in the service configuration](#defining-cluster_opts-in-the-service-configuration)
       - [cluster.conf](#clusterconf)
   - [Automatically restarting a service if it fails](#automatically-restarting-a-service-if-it-fails)
-  - [STRTCPSVR Integration](#strtcpsvr-integration)
-    - [Running two or more STRTCPSVR commands simultaneously](#running-two-or-more-strtcpsvr-commands-simultaneously)
-    - [Using with ADDJOBSCDE](#using-with-addjobscde)
-    - [Important Notes about AUTOSTART(*YES)](#important-notes-about-autostartyes)
-    - [Special groups used by STRTCPSVR/ENDTCPSVR](#special-groups-used-by-strtcpsvrendtcpsvr)
+- [STRTCPSVR Integration](#strtcpsvr-integration)
+  - [Special groups used by STRTCPSVR/ENDTCPSVR](#special-groups-used-by-strtcpsvrendtcpsvr)
+  - [Running two or more STRTCPSVR commands simultaneously](#running-two-or-more-strtcpsvr-commands-simultaneously)
+  - [Using with ADDJOBSCDE](#using-with-addjobscde)
+  - [Special groups used by STRTCPSVR/ENDTCPSVR](#special-groups-used-by-strtcpsvrendtcpsvr-1)
 - [Demo (video)](#demo-video)
 - [Have feedback or want to contribute?](#have-feedback-or-want-to-contribute)
 - [Testimonials](#testimonials)
@@ -499,9 +499,9 @@ environment_vars:
 - PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/ccs/bin:/QOpenSys/usr/bin/X11:/usr/sbin:.:/usr/bin
 ```
 
-### Advanced usage
+## Advanced usage
 
-#### Cluster Mode
+### Cluster Mode
 
 Service Commander allows for the automatic "clustering" of your applications. When utilizing "cluster mode":
 
@@ -537,7 +537,7 @@ The application is still expected to run on 9333, so in the case of a web server
 `http://<system_name>:9333`. Service Commander will run four backend worker jobs, running on ports 9334, 9335,
 9336, and 9337.
 
-##### Prerequisites for Cluster Mode
+#### Prerequisites for Cluster Mode
 
 In order for cluster mode to work correctly, your application must honor the `PORT` environment variable. If the
 technology has the ability to run on dynamically-defined ports but cannot recognize `PORT`, then the program startup
@@ -560,18 +560,18 @@ backend worker jobs, which can then be used to run the different components of t
 To avoid collusions with other backend worker jobs, leave the necessary gaps between ports. For instance, if your application
 uses three ports, specify the backend worker jobs 3 ports apart. For instance, `cluster: 8000, 8003, 8006, 8009`.
 
-##### Cluster mode methodologies
+#### Cluster mode methodologies
 
 There are two methodologies that can be used for the load-balancing activity:
 
 1. **http**: This methodology has more customization options (for instance, microcaching, handling http headers, "sticky" sessions, etc) but only works with the http protocol. To enable, you must manually edit the "cluster.conf" file that is created when your service is first started.
 2. **stream** _(default)_: This methodology has less overhead than 'http', but also has fewer configuration options. However, it works with most protocols.
 
-##### Cluster mode advanced configuration
+#### Cluster mode advanced configuration
 
 More advanced configuration can be achieved in one of two ways:
 
-###### Defining `cluster_opts` in the service configuration
+##### Defining `cluster_opts` in the service configuration
 
 This is _NOT YET SUPPORTED_
 
@@ -628,7 +628,7 @@ This will result in several jobs that continuously check on the service and atte
  WRKACTJOB JOB(NAVMON)
 ```
 
-### STRTCPSVR Integration
+## STRTCPSVR Integration
 
 Service Commander now has integration with system STRTCPSVR and ENDTCPSVR commands. This feature is experimental and may be removed
 if too problematic.
@@ -658,7 +658,20 @@ After install, you can run the `*SC` TCP server commands, specifying the simple 
 STRTCPSVR SERVER(*SC) INSTANCE('kafka')
 ```
 
-#### Running two or more STRTCPSVR commands simultaneously
+**Important Note: As of Service Commander v1.2.x, the TCP server is set to `AUTOSTART(*YES)` by default. If this
+is not the desired behavior, change it with the CHGTCPSVR command. For instance:**
+```bash
+CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*NO)
+```
+
+### Special groups used by STRTCPSVR/ENDTCPSVR
+
+There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
+
+- `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
+- `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
+
+### Running two or more STRTCPSVR commands simultaneously
 
 Be aware that running two or more STRTCPSVR commands at the same time in different jobs can cause the command to fail with TCP1A11. This is because the system will only run one STRTCPSVR command at a time and uses an internal locking mechanism to control this. The wait time is 30 seconds, and if STRTCPSVR in job A is taking longer to start the service, the STRTCPSVR in job B and C etc. will time out when aquiring the lock.
 
@@ -670,7 +683,7 @@ ADDENVVAR ENVVAR(SC_TCPSVR_SUBMIT) VALUE('Y') LEVEL(*SYS) REPLACE(*YES)
 
 When STRTCPSVR detects the environment variable having the value 'Y', it will submit a job to start the service instead of starting the service in the job running the STRTCPSVR command, thus shortening the lock time significantly and allow the same command in other jobs to run and not time out.
 
-#### Using with ADDJOBSCDE
+### Using with ADDJOBSCDE
 
 It may be desired to start, stop, or ensure the liveliness of services on a particular schedule. This is most easily accomplished once the `STRTCPSVR`
 integration is leveraged. This makes it easier to create job scheduler entries. For instance, to ensure that the `myapp` service is
@@ -680,12 +693,7 @@ running, every day at 01:00:
 ADDJOBSCDE JOB(SC) CMD(STRTCPSVR SERVER(*SC) INSTANCE('myapp')) FRQ(*WEEKLY) SCDDATE(*NONE) SCDDAY(*ALL) SCDTIME(010000)
 ```
 
-#### Important Notes about AUTOSTART(*YES)
-
-You can set the `*SC` server to autostart via `CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*YES)`. However, great care must be taken in order for this to work properly and not create a security exposure. When STRTCPSVR runs at IPL time, the task will run under the QTCP user profile. This user profile does not have `*ALLOBJ` authority, nor does it have authority to submit jobs as other user profiles. Thus, in order for the autostart job to function properly, the QTCP user profile must have access to run the commands needed to start the service, and the service must not submit jobs to batch as a specific user. Be are that adding QTCP to new group profiles or granting special authorities may represent a security exposure. Also, due to the highly-flexible nature of this tool, it is not good practice to run this command as an elevated user in an unattended fashion.
-In summary, it is likely not a good idea to use `AUTOSTART(*YES)`.
-
-#### Special groups used by STRTCPSVR/ENDTCPSVR
+### Special groups used by STRTCPSVR/ENDTCPSVR
 
 There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
 
