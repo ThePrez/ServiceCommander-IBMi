@@ -15,6 +15,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.compiler.version>11</java.compiler.version>
     <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
+    <sc.version>Development Build (built with mvn)</sc.version>
   </properties>
 
 
@@ -57,7 +58,7 @@
             <replacements>
                 <replacement>
                     <token>@scversion@</token>
-                    <value>${project.sc_version}</value>
+                    <value>${sc.version}</value>
                 </replacement>
 
                 <replacement>

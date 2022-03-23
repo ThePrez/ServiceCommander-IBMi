@@ -1,8 +1,8 @@
 
-
+SC_VERSION := "Development Build (built with Make)"
 
 target/sc.jar: FORCE /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/bin/mvn
-	JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11 /QOpenSys/pkgs/bin/mvn -Dproject.sc_version=${SC_VERSION} package
+	JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11 /QOpenSys/pkgs/bin/mvn -Dsc.version=${SC_VERSION} package
 	cp target/sc-*-with-dependencies.jar target/sc.jar
 
 FORCE:
