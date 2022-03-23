@@ -33,13 +33,15 @@ public class YamlServiceDef extends ServiceDefinition {
     private final List<String> m_envVars;
     private final String m_friendlyName;
     private final List<String> m_groups;
+    private boolean m_isEnabled;
     private final boolean m_isInherintingEnvVars;
     private final AppLogger m_logger;
     private final String m_name;
+    private String m_onlyIfExecutable;
     private final String m_sbmJobOpts;
+
     private final File m_source;
     private final String m_startCmd;
-
     private final int m_startupWaitTime;
     private final String m_stopCmd;
     private final int m_stopWaitTime;
@@ -118,6 +120,9 @@ public class YamlServiceDef extends ServiceDefinition {
             m_groups = (List<String>) yamlData.remove("groups");
 
             m_isInherintingEnvVars = getOptionalYamlBool(yamlData, "environment_is_inheriting_vars", true);
+
+            m_isEnabled = getOptionalYamlBool(yamlData, "enabled", true);
+            m_onlyIfExecutable = getOptionalYamlString(yamlData, "only_if_executable");
 
             final String batchMode = getOptionalYamlString(yamlData, "batch_mode");
             if (null == batchMode) {
@@ -354,6 +359,17 @@ public class YamlServiceDef extends ServiceDefinition {
     @Override
     public String getStopCommand() {
         return null == m_stopCmd ? super.getStopCommand() : m_stopCmd;
+    }
+
+    public boolean isIgnored() {
+        if (!m_isEnabled) {
+            return true;
+        }
+        if (StringUtils.isEmpty(m_onlyIfExecutable)) {
+            return false;
+        }
+        final File c = m_onlyIfExecutable.startsWith("/") ? new File(m_onlyIfExecutable) : new File(getEffectiveWorkingDirectory(), m_onlyIfExecutable);
+        return !c.canExecute();
     }
 
     @Override

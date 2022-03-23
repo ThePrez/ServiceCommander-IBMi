@@ -217,6 +217,8 @@ The following attributes may be specified in the service definition (\fB\fC\&.ya
 .IP \(bu 2
 \fB\fCenvironment_is_inheriting_vars\fR: Whether the service inherits environment variables from the current environment (default is true)
 .IP \(bu 2
+\fB\fConly_if_executable\fR: This configuration is ignored unless the specified file exists and is executable
+.IP \(bu 2
 \fB\fCenvironment_vars\fR: Custom environment variables to be set when launching the service. Specify as an array of strings in \fB\fC"KEY=VALUE"\fR format
 .IP \(bu 2
 \fB\fCservice_dependencies\fR: An array of services that this service depends on. This is the simple name of the service (for instance, if the dependency is defined as "myservice", then it is expected to be defined in a file named \fB\fCmyservice.yaml\fR), not the "friendly" name of the service.

@@ -42,6 +42,7 @@ public class YamlServiceDefLoader {
         final File[] files = _dir.listFiles();
         if (null == files) {
             _logger.printfln_warn_verbose("Unable to read from directory '%s'", "" + _dir);
+            return ret;
         }
         for (final File f : files) {
             if (f.isDirectory()) {
@@ -55,7 +56,10 @@ public class YamlServiceDefLoader {
             }
             final String serviceName = m.group(1);
             try {
-                ret.put(new YamlServiceDef(serviceName, f, _logger));
+                final YamlServiceDef def = new YamlServiceDef(serviceName, f, _logger);
+                if (!def.isIgnored()) {
+                    ret.put(def);
+                }
             } catch (final SCException e) {
                 _logger.println_warn("WARNING: Ignoring file due to load errors: " + f.getAbsolutePath());
             }
@@ -71,6 +75,7 @@ public class YamlServiceDefLoader {
             final File globalDir = AppDirectories.conf.getGlobalServicesDirOrNull();
             ret.putAll(loadFromDirectory(globalDir, _logger));
             ret.putAll(loadFromDirectory(new File(globalDir, "system"), _logger));
+            ret.putAll(loadFromDirectory(new File(globalDir, "oss_common"), _logger));
 
         }
         ret.putAll(loadFromDirectory(AppDirectories.conf.getUserServicesDirOrNull(), _logger));

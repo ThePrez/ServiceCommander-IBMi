@@ -27,6 +27,8 @@ function print_usage {
     echo "        --global      : install for all users"
     echo "        --user        : install for current user (default)"
     echo ""
+    echo "   NOTE: The current version of this tool only installs apache configs"
+    echo ""
     exit 0
 }
 function cleanup_v0 {
@@ -81,7 +83,7 @@ function install_apache {
 
 DO_CLEANUPV0="1"
 DO_CLEANUP="1"
-DO_APACHE="0"
+DO_APACHE="1"
 for i in "$@"; do
     case $i in
     -h|--help)
@@ -126,12 +128,6 @@ fi
 if [ "1" == "$DO_CLEANUP" ]; then
     cleanup
 fi
-
-cd /QOpenSys/pkgs/lib/sc/samples
-
-install_if_executable /QOpenSys/pkgs/bin/mysqld mariadb.yaml
-install_if_executable /usr/local/mariadb/bin/mysqld zenddbi.yaml
-install_if_executable /QOpenSys/pkgs/bin/crond crond.yaml
 
 cd /qsys.lib/qusrsys.lib/qatmhinstc.file
 
