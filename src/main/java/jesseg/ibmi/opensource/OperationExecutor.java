@@ -18,6 +18,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.SortedMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.github.theprez.jcmdutils.AppLogger;
 import com.github.theprez.jcmdutils.ConsoleQuestionAsker;
@@ -136,6 +138,8 @@ public class OperationExecutor {
     static final String PROP_BATCHOUTPUT_SPLF = "sc.batchoutput.splf";
 
     static final String PROP_SAMPLE_TIME = "sc.perfsamplingtime";
+
+    private final static Pattern s_userNameInClPattern = Pattern.compile("^.*user\\s*\\(\\s*([a-z0-9$#@]+)\\s*\\).*$", Pattern.CASE_INSENSITIVE);
 
     private static boolean isEnvvarProhibitedFromInheritance(final String _var) {
         final List<String> prohibited = Arrays.asList("LIBPATH", "LD_LIBRARY_PATH", "JAVA_HOME", "SSH_TTY", "SSH_CLIENT", "SSH_CONNECTION", "SHELL", "SHLVL");
@@ -284,6 +288,20 @@ public class OperationExecutor {
         } catch (final NumberFormatException nfe) {
             throw new SCException(m_logger, nfe, FailureType.INVALID_SERVICE_CONFIG, "Invalid data for port number or job name criteria for service '%s': %s", m_mainService.getFriendlyName(), m_mainService.getCheckAlivesHumanReadable());
         }
+    }
+
+    private String getBatchUser() {
+        if (!m_mainService.getBatchMode().isBatch()) {
+            return null;
+        }
+        final String sbmJobOpts = m_mainService.getSbmJobOpts();
+        // based on doc at https://www.ibm.com/docs/en/i/7.4?topic=version-user-profile-name-considerations
+        final Pattern p = s_userNameInClPattern;
+        final Matcher m = p.matcher(sbmJobOpts);
+        if (!m.find()) {
+            return null;
+        }
+        return m.group(1);
     }
 
     private String getLogSuffix() {
@@ -603,6 +621,9 @@ public class OperationExecutor {
     }
 
     private void startService(final File _logFile) throws InterruptedException, IOException, SCException {
+
+        // If running in batch, double-check that we're not running as a non-existent user
+        verifyBatchUser();
 
         // Start all dependencies before starting this one
         for (final String dependencyName : m_mainService.getDependencies()) {
@@ -934,5 +955,16 @@ public class OperationExecutor {
             throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "Invalid custom job name '%s' specified", _jobName);
         }
         return _jobName;
+    }
+
+    private void verifyBatchUser() throws SCException {
+        final String batchUser = getBatchUser();
+        if (StringUtils.isEmpty(batchUser)) {
+            return;
+        }
+        final File usrprfChecker = new File("/qsys.lib/" + batchUser + ".usrprf");
+        if (!usrprfChecker.exists()) {
+            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "ERROR: Service '%s' is configured to run as non-existent user %s!!", m_mainService.getName(), batchUser);
+        }
     }
 }
