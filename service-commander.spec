@@ -65,6 +65,7 @@ fi
 %dir %{_sysconfdir}/sc/
 %dir %{_sysconfdir}/sc/services/
 %config(noreplace) %{_sysconfdir}/sc/services/system/*
+%config(noreplace) %{_sysconfdir}/sc/services/oss_common/*
 %{_mandir}/man1/sc.1*
 %{_mandir}/man1/scopenports.1*
 %{_mandir}/man1/scinit.*
