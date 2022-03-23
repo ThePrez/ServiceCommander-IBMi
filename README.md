@@ -36,11 +36,11 @@
       - [Defining `cluster_opts` in the service configuration](#defining-cluster_opts-in-the-service-configuration)
       - [cluster.conf](#clusterconf)
   - [Automatically restarting a service if it fails](#automatically-restarting-a-service-if-it-fails)
-- [STRTCPSVR Integration](#strtcpsvr-integration)
-  - [Special groups used by STRTCPSVR/ENDTCPSVR](#special-groups-used-by-strtcpsvrendtcpsvr)
-  - [Running two or more STRTCPSVR commands simultaneously](#running-two-or-more-strtcpsvr-commands-simultaneously)
-  - [Using with ADDJOBSCDE](#using-with-addjobscde)
-  - [Special groups used by STRTCPSVR/ENDTCPSVR](#special-groups-used-by-strtcpsvrendtcpsvr-1)
+  - [STRTCPSVR Integration](#strtcpsvr-integration)
+    - [Special groups used by STRTCPSVR/ENDTCPSVR](#special-groups-used-by-strtcpsvrendtcpsvr)
+    - [Running two or more STRTCPSVR commands simultaneously](#running-two-or-more-strtcpsvr-commands-simultaneously)
+    - [Using with ADDJOBSCDE](#using-with-addjobscde)
+    - [Special groups used by STRTCPSVR/ENDTCPSVR](#special-groups-used-by-strtcpsvrendtcpsvr-1)
 - [Demo (video)](#demo-video)
 - [Have feedback or want to contribute?](#have-feedback-or-want-to-contribute)
 - [Testimonials](#testimonials)
@@ -629,7 +629,7 @@ This will result in several jobs that continuously check on the service and atte
  WRKACTJOB JOB(NAVMON)
 ```
 
-## STRTCPSVR Integration
+### STRTCPSVR Integration
 
 Service Commander now has integration with system STRTCPSVR and ENDTCPSVR commands. This feature is experimental and may be removed
 if too problematic.
@@ -665,14 +665,14 @@ is not the desired behavior, change it with the CHGTCPSVR command. For instance:
 CHGTCPSVR SVRSPCVAL(*SC) AUTOSTART(*NO)
 ```
 
-### Special groups used by STRTCPSVR/ENDTCPSVR
+#### Special groups used by STRTCPSVR/ENDTCPSVR
 
 There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
 
 - `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
 - `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
 
-### Running two or more STRTCPSVR commands simultaneously
+#### Running two or more STRTCPSVR commands simultaneously
 
 Be aware that running two or more STRTCPSVR commands at the same time in different jobs can cause the command to fail with TCP1A11. This is because the system will only run one STRTCPSVR command at a time and uses an internal locking mechanism to control this. The wait time is 30 seconds, and if STRTCPSVR in job A is taking longer to start the service, the STRTCPSVR in job B and C etc. will time out when aquiring the lock.
 
@@ -684,7 +684,7 @@ ADDENVVAR ENVVAR(SC_TCPSVR_SUBMIT) VALUE('Y') LEVEL(*SYS) REPLACE(*YES)
 
 When STRTCPSVR detects the environment variable having the value 'Y', it will submit a job to start the service instead of starting the service in the job running the STRTCPSVR command, thus shortening the lock time significantly and allow the same command in other jobs to run and not time out.
 
-### Using with ADDJOBSCDE
+#### Using with ADDJOBSCDE
 
 It may be desired to start, stop, or ensure the liveliness of services on a particular schedule. This is most easily accomplished once the `STRTCPSVR`
 integration is leveraged. This makes it easier to create job scheduler entries. For instance, to ensure that the `myapp` service is
@@ -694,7 +694,7 @@ running, every day at 01:00:
 ADDJOBSCDE JOB(SC) CMD(STRTCPSVR SERVER(*SC) INSTANCE('myapp')) FRQ(*WEEKLY) SCDDATE(*NONE) SCDDAY(*ALL) SCDTIME(010000)
 ```
 
-### Special groups used by STRTCPSVR/ENDTCPSVR
+#### Special groups used by STRTCPSVR/ENDTCPSVR
 
 There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
 
