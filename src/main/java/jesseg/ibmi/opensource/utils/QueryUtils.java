@@ -52,6 +52,10 @@ public class QueryUtils {
 
     public static SortedMap<String, String> getJobPerfInfo(final String _job, final AppLogger _logger, final float _sampleTime) throws IOException, SCException {
         _logger.println_verbose("Getting performance info for job " + _job);
+        if(_job.startsWith("*")) { // Some services, like telnet, can have a job value of "*SIGNON" 
+            _logger.printfln_warn("Can't get performance info for job ", _job);
+            return new TreeMap<String, String>();
+        }
         final File pythonInterpreter = new File("/QOpenSys/pkgs/bin/python3.9");
         if (!pythonInterpreter.canExecute()) {
             throw new SCException(_logger, FailureType.UNSUPPORTED_OPERATION, "This operation requires Python 3.9 to be installed");

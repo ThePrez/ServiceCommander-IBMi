@@ -646,14 +646,14 @@ public class OperationExecutor {
             populateNginxConfFile(nginxConf);
             m_logger.printfln_verbose("Nginx configuration refreshed");
 
+            // If running cluster mode, stop all the backend jobs (concurrently)
+            final AsyncOperationSet backendKillers = new AsyncOperationSet(m_logger);
             for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
-                m_logger.printf("Attempting to start backend job '%s'...\n", backend.getFriendlyName());
-                try {
-                    new OperationExecutor(Operation.START, backend.getName(), m_serviceDefs, m_logger).execute();
-                } catch (final Exception e) {
-                    throw new SCException(m_logger, e, FailureType.ERROR_STARTING_DEPENDENCY, "ERROR: Could not start backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
-                }
+                m_logger.printf("Attempting to asynchronously start backend job '%s'...\n", backend.getFriendlyName());
+                final String exceptionMsg = String.format("ERROR: Could not start backend job '%s' for cluster mode", backend.getFriendlyName());
+                backendKillers.start(Operation.START, backend.getName(), m_serviceDefs, exceptionMsg);
             }
+            backendKillers.join();
         }
 
         final ServiceStatusInfo currentStatus = getServiceStatus();
@@ -790,16 +790,14 @@ public class OperationExecutor {
             }
         }
 
-        // If running cluster mode, stop all the backend jobs
+        // If running cluster mode, stop all the backend jobs (concurrently)
+        final AsyncOperationSet backendKillers = new AsyncOperationSet(m_logger);
         for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
-            m_logger.printf("Attempting to stop backend job '%s'...\n", backend.getFriendlyName());
-            try {
-                m_serviceDefs.put(backend);
-                new OperationExecutor(Operation.STOP, backend.getName(), m_serviceDefs, m_logger).execute();
-            } catch (final Exception e) {
-                throw new SCException(m_logger, e, FailureType.ERROR_STOPPING_DEPENDENT, "ERROR: Could not stop backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
-            }
+            m_logger.printf("Attempting to asynchronously stop backend job '%s'...\n", backend.getFriendlyName());
+            final String exceptionMsg = String.format("ERROR: Could not stop backend job '%s' for cluster mode", backend.getFriendlyName());
+            backendKillers.start(Operation.STOP, backend.getName(), m_serviceDefs, exceptionMsg);
         }
+        backendKillers.join();
 
         // If the service is already stopped, hey, we're done! WOOHOO!!
         if (getServiceStatus().isStopped()) {
@@ -940,7 +938,7 @@ public class OperationExecutor {
                 command += endjob;
             }
             command += end_qcmdexc;
-            m_logger.println("Ending job with: " + db2util + " " + db2util_opts + " " + command);
+            m_logger.println_verbose("Ending job with: " + db2util + " " + db2util_opts + " " + command);
             final Process p = Runtime.getRuntime().exec(new String[] { db2util, "-o", "space", command });
             try {
                 p.waitFor();

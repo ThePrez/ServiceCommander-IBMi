@@ -3,16 +3,12 @@ package jesseg.ibmi.opensource;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Stack;
 import java.util.TreeSet;
 
 import com.github.theprez.jcmdutils.AppLogger;
-import com.github.theprez.jcmdutils.AppLogger.DeferredLogger;
 import com.github.theprez.jcmdutils.StringUtils;
 import com.github.theprez.jcmdutils.StringUtils.TerminalColor;
 
@@ -281,7 +277,6 @@ public class ServiceCommander {
     }
 
     private static void performOperationsOnServices(final Operation _op, final Set<String> _services, final ServiceDefinitionCollection _serviceDefs, final AppLogger _logger) throws SCException {
-        final Stack<SCException> exceptions = new Stack<SCException>();
         if (!_op.isChangingSystemState()) {
             if (10 < _services.size()) {
                 QueryUtils.setCaching(true);
@@ -289,48 +284,22 @@ public class ServiceCommander {
             if (Operation.PERFINFO == _op) { // this one's treated special because it might take a very long time.f
                 _logger.println("Gathering performance information...");
             }
-            final LinkedHashMap<Thread, AppLogger.DeferredLogger> outputList = new LinkedHashMap<Thread, AppLogger.DeferredLogger>();
-            _logger.println_verbose("gonna start worker threads");
+            final AsyncOperationSet outputList = new AsyncOperationSet(_logger);
             for (final String service : _services) {
                 final ServiceDefinition svcDef = _serviceDefs.get(service);
                 if (Operation.LIST == _op && (null != svcDef && svcDef.isClusterBackend())) {
                     continue;
                 }
-                final DeferredLogger deferredLogger = new DeferredLogger(_logger);
-                deferredLogger.printf_verbose("Performing operation '%s' on service '%s'\n", _op.name(), service);
-                final Thread t = new Thread((Runnable) () -> {
-                    try {
-                        new OperationExecutor(_op, service, _serviceDefs, deferredLogger).execute();
-                    } catch (final SCException e) {
-                        exceptions.push(e);
-                    }
-                }, "PerfInfoThread-" + service);
-                outputList.put(t, deferredLogger);
-                t.start();
+                outputList.start(_op, service, _serviceDefs, null);
             }
-            _logger.println_verbose("Worker threads have all been started");
-            for (final Entry<Thread, DeferredLogger> output : outputList.entrySet()) {
-                try {
-                    output.getKey().join();
-                    output.getValue().close();
-                } catch (final Exception e) {
-                    exceptions.push(SCException.fromException(e, _logger));
-                }
-            }
+            outputList.join();
         } else {
             _serviceDefs.validateNoCircularDependencies(_logger);
             for (final String service : _services) {
                 _logger.printf("Performing operation '%s' on service '%s'\n", _op.name(), service);
-                try {
-                    final OperationExecutor executioner = new OperationExecutor(_op, service, _serviceDefs, _logger);
-                    executioner.execute();
-                } catch (final SCException e) {
-                    exceptions.push(e);
-                }
+                final OperationExecutor executioner = new OperationExecutor(_op, service, _serviceDefs, _logger);
+                executioner.execute();
             }
-        }
-        if (!exceptions.isEmpty()) {
-            throw exceptions.pop();
         }
     }
 
