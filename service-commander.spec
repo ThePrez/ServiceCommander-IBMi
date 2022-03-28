@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 1.2.0
+Version: 1.2.1
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -73,7 +73,7 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
-* Mon Mar 14 2022 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.2.0
+* Mon Mar 14 2022 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.2.1
 - feature(major): cluster mode (experimental)
 - feature: new 'sc groups' operation to list groups
 - feature: Support '--version' command line option
