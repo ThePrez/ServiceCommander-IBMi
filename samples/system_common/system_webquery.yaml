@@ -1,6 +1,7 @@
 name: Db2 WebQuery
 start_cmd: system "STRWEBQRY"
 stop_cmd: system "ENDWEBQRY"
+startup_wait_time: 150
 
 check_alive: 12331,12332,12333,12334,12335,12336, 12338,12339
 
