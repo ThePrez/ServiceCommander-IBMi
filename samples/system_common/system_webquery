@@ -1,0 +1,8 @@
+name: Db2 WebQuery
+start_cmd: system "STRWEBQRY"
+stop_cmd: system "ENDWEBQRY"
+
+check_alive: 12331,12332,12333,12334,12335,12336, 12338,12339
+
+groups:
+  - "system"
