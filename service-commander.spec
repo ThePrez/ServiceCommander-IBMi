@@ -74,7 +74,7 @@ fi
 
 %changelog
 * Mon Mar 14 2022 Jesse Gorzinski <jgorzins@us.ibm.com> - 1.2.0
-- feature(major): cluster mode
+- feature(major): cluster mode (experimental)
 - feature: new 'sc groups' operation to list groups
 - feature: Support '--version' command line option
 - feature: sc_install_defaults recognizes Apache virtual hosts
