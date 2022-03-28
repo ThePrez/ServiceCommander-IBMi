@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
     {
         memset(command_printf_fmt, 0x00, sizeof(command));
         to_job_ccsid(command_printf_fmt, sizeof(command_printf_fmt) - 1,
-                     "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' 'exec /QOpenSys/pkgs/bin/sc %s %s %s 2>&1 | cat'))");
+                     "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' 'exec /QOpenSys/pkgs/bin/sc -a %s %s %s 2>&1 | cat'))");
         snprintf(command, sizeof(command), command_printf_fmt, sc_options, sc_operation, instance);
         Qp0zLprintf("Running command: 'sc %s %s %s'\n", sc_options, sc_operation, instance);
         Qp0zLprintf("Check spooled file output for progress\n");
@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
     child_argv[2] = "-l";
     child_argv[3] = "-c";
     char sc_cmd[1024];
-    snprintf(sc_cmd, sizeof(sc_cmd), "/QOpenSys/pkgs/bin/sc %s %s %s 2>&1", sc_options, sc_operation, instance);
+    snprintf(sc_cmd, sizeof(sc_cmd), "/QOpenSys/pkgs/bin/sc -a %s %s %s 2>&1", sc_options, sc_operation, instance);
     child_argv[4] = sc_cmd;
     child_argv[5] = NULL;
 
