@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
     close(stdoutFds[1]);
     if(is_it_batch)
     {
-        Qp0zLprintf("Submitted command: %s\n", sc_cmd);
+        //Qp0zLprintf("Submitted command: %s\n", sc_cmd);
         Qp0zLprintf("Check spooled file output for progress\n");
         close(stdoutFds[0]);
         return 255;
