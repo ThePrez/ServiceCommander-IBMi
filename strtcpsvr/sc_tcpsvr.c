@@ -181,19 +181,6 @@ int main(int argc, char *argv[])
         parm->rc = RC_FAILED;
         return -1;
     }
-    if (0 != is_batch())
-    {
-        memset(command_printf_fmt, 0x00, sizeof(command));
-        to_job_ccsid(command_printf_fmt, sizeof(command_printf_fmt) - 1,
-                     "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' 'exec /QOpenSys/pkgs/bin/sc -a %s %s %s 2>&1 | cat'))");
-        snprintf(command, sizeof(command), command_printf_fmt, sc_options, sc_operation, instance);
-        Qp0zLprintf("Running command: 'sc %s %s %s'\n", sc_options, sc_operation, instance);
-        Qp0zLprintf("Check spooled file output for progress\n");
-        rc = system(command);
-        rc = rc == 0 ? RC_OK : RC_FAILED;
-        parm->rc = rc;
-        return rc;
-    }
     // To run interactively and still reliably get output displayed on the
     // 5250 screen, we need to explicitly set up piped descriptors, spawn
     // a shell, read the 'sc' output, and print it in this job. This is a
@@ -208,8 +195,10 @@ int main(int argc, char *argv[])
     child_argv[1] = "/QOpenSys/pkgs/bin/bash";
     child_argv[2] = "-l";
     child_argv[3] = "-c";
+    int is_it_batch = is_batch();
+    char* batch_prefix_string = (0 == is_it_batch) ? "exec" : "/QOpenSys/usr/bin/nohup";
     char sc_cmd[1024];
-    snprintf(sc_cmd, sizeof(sc_cmd), "/QOpenSys/pkgs/bin/sc -a %s %s %s 2>&1", sc_options, sc_operation, instance);
+    snprintf(sc_cmd, sizeof(sc_cmd), "%s /QOpenSys/pkgs/bin/sc -a %s %s %s 2>&1", batch_prefix_string, sc_options, sc_operation, instance);
     child_argv[4] = sc_cmd;
     child_argv[5] = NULL;
 
@@ -217,7 +206,7 @@ int main(int argc, char *argv[])
     char *envp[10];
     envp[0] = "QIBM_MULTI_THREADED=Y";
     envp[1] = "PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin";
-    envp[2] = "QIBM_USE_DESCRIPTOR_STDIO=Y";
+    envp[2] = is_it_batch? "QIBM_USE_DESCRIPTOR_STDIO=N": "QIBM_USE_DESCRIPTOR_STDIO=Y";
     envp[3] = "PASE_STDIO_ISATTY=N";
     struct passwd *pd;
     char logname[20];
@@ -265,6 +254,13 @@ int main(int argc, char *argv[])
     }
     // We don't need to talk to the child's stdin, so let's close it.
     close(stdoutFds[1]);
+    if(is_it_batch)
+    {
+        Qp0zLprintf("Submitted command: %s\n", sc_cmd);
+        Qp0zLprintf("Check spooled file output for progress\n");
+        close(stdoutFds[0]);
+        return 255;
+    }
 
     // Now, let's read the output from the child process and print it here.
     char line[1024 * 4];
