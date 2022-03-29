@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 1.2.2
+Version: 1.3.0
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -73,6 +73,9 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
+* Tue Mar 29 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.3.0
+- bugfix: STRTCPSVR now uses adopted authority on IPL
+
 * Mon Mar 28 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.2.2
 - bugfix: stop issuing warnings about .rpmnew files
 - improvement: more lenient wait time for Db2 WebQuery
