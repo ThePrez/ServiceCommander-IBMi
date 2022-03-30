@@ -35,6 +35,7 @@
 #include <qusrjobi.h>
 #include <spawn.h>
 #include <errno.h>
+#include <fcntl.h>
 #pragma convert(37)
 #define START "*START    "
 #define END "*END      "
@@ -196,7 +197,7 @@ int main(int argc, char *argv[])
     child_argv[2] = "-l";
     child_argv[3] = "-c";
     int is_it_batch = is_batch();
-    char* batch_prefix_string = (0 == is_it_batch) ? "exec" : "/QOpenSys/usr/bin/nohup";
+    char* batch_prefix_string = (0 == is_it_batch) ? "exec" : "/QOpenSys/pkgs/bin/nohup";
     char sc_cmd[1024];
     snprintf(sc_cmd, sizeof(sc_cmd), "%s /QOpenSys/pkgs/bin/sc -a %s %s %s 2>&1", batch_prefix_string, sc_options, sc_operation, instance);
     child_argv[4] = sc_cmd;
@@ -206,7 +207,7 @@ int main(int argc, char *argv[])
     char *envp[10];
     envp[0] = "QIBM_MULTI_THREADED=Y";
     envp[1] = "PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin";
-    envp[2] = is_it_batch? "QIBM_USE_DESCRIPTOR_STDIO=N": "QIBM_USE_DESCRIPTOR_STDIO=Y";
+    envp[2] = is_it_batch? "QIBM_USE_DESCRIPTOR_STDIO=N" : "QIBM_USE_DESCRIPTOR_STDIO=Y";
     envp[3] = "PASE_STDIO_ISATTY=N";
     struct passwd *pd;
     char logname[20];
@@ -228,7 +229,7 @@ int main(int argc, char *argv[])
         return 1;
     }
     int fd_map[3];
-    fd_map[0] = stdoutFds[1];
+    fd_map[0] = open("/dev/null", O_RDONLY);
     fd_map[1] = stdoutFds[1];
     fd_map[2] = stdoutFds[1];
 
@@ -236,6 +237,7 @@ int main(int argc, char *argv[])
     struct inheritance inherit;
     memset(&inherit, 0, sizeof(inherit));
     inherit.flags = SPAWN_SETTHREAD_NP;
+    inherit.pgroup = SPAWN_NEWPGROUP;
 
     // ...and we can FINALLY run our command!
     // Qp0zLprintf("Running command: '%s'\n", sc_cmd);
@@ -259,7 +261,7 @@ int main(int argc, char *argv[])
         //Qp0zLprintf("Submitted command: %s\n", sc_cmd);
         Qp0zLprintf("Check spooled file output for progress\n");
         close(stdoutFds[0]);
-        return 255;
+        return parm->rc = 255;
     }
 
     // Now, let's read the output from the child process and print it here.
