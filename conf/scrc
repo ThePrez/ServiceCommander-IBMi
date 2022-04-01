@@ -8,4 +8,4 @@
 # As an example, uncomment the following line to use 10-second 
 # profiling time when gathering performance info:
 #
-# --sample-time=10
+# --sampletime=10
