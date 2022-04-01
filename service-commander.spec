@@ -79,8 +79,10 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
-* Tue Mar 29 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.3.0
-- bugfix: STRTCPSVR now uses adopted authority on IPL
+* Mon Apr 04 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.3.0
+- feature: Allow configuration by $HOME/.scrc file
+- feature: Allow configuration by /QOpenSys/etc/sc/conf/scrc
+- feature: Allow STRTCPSVR to run as different user on IPL
 
 * Mon Mar 28 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.2.2
 - bugfix: stop issuing warnings about .rpmnew files
