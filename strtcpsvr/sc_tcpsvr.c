@@ -242,6 +242,7 @@ int main(int argc, char *argv[])
     struct inheritance inherit;
     memset(&inherit, 0, sizeof(inherit));
     inherit.flags = SPAWN_SETTHREAD_NP;
+    inherit.pgroup = SPAWN_NEWPGROUP;
 
     // ...and we can FINALLY run our command!
     // Qp0zLprintf("Running command: '%s'\n", sc_cmd);
