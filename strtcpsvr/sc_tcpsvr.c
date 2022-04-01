@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
     }
     else if (ISINSTANCE("*AUTOSTART"))
     {
-        is_ipl = is_q_user();
+        is_ipl = is_qtcp();
         strcpy(instance, "group:autostart");
     }
     else if (parm->instance[0] == '*' || parm->instance[0] == '.')

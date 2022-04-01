@@ -6,6 +6,7 @@ SCTGTRLS=${SCTGTRLS:-*CURRENT}
 oopsies() {
   echo ''
   echo ''
+  exit 5
   echo '-------------------------------------------------------'
   echo 'Cleaning up from error...'  
   /QOpenSys/usr/bin/system -Kkpiebv "RMVTCPSVR SVRSPCVAL(*SC)" || echo "TCPSVR was not installed"
