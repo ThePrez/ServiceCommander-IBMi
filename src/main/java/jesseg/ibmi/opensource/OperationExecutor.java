@@ -962,7 +962,7 @@ public class OperationExecutor {
         }
         final File usrprfChecker = new File("/qsys.lib/" + batchUser + ".usrprf");
         if (!usrprfChecker.exists()) {
-            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "ERROR: Service '%s' is configured to run as non-existent user %s!!", m_mainService.getName(), batchUser);
+            throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "ERROR: Service '%s' is configured to run as user '%s' but that profile doesn't exist or you do not have sufficient authorities!!", m_mainService.getName(), batchUser);
         }
     }
 }

@@ -103,7 +103,7 @@ public class ServiceCommander {
     }
 
     private static List<? extends String> getOptionsFromConfigFiles() {
-        final File[] configFiles = new File[] { new File("/QOpenSys/etc/sc/scrc"), new File(new File(System.getProperty("user.home", "~")), ".scrc") };
+        final File[] configFiles = new File[] { new File("/QOpenSys/etc/sc/conf/scrc"), new File(new File(System.getProperty("user.home", "~")), ".scrc") };
         final LinkedList<String> ret = new LinkedList<String>();
         for (final File configFile : configFiles) {
             if (configFile.canRead() && configFile.isFile()) {
@@ -205,6 +205,9 @@ public class ServiceCommander {
         if (args.isEmpty() && isDashV) {
             printVersion();
             System.exit(0);
+        }
+        if("qtcp".equalsIgnoreCase(System.getProperty("user.name", ""))) {
+            logger.println_warn("WARNING: You are running as QTCP, which may not have sufficient authority! If you need more authority, try submitting the work as a different user by changing the configuration in /QOpenSys/etc/sc/conf/strtcpsvr.conf");
         }
         for (final String remainingArg : args) {
             if (remainingArg.startsWith("--sampletime=")) {
