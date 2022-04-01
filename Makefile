@@ -69,6 +69,7 @@ install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man
 	cp -n samples/host_servers/* ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
 	cp -n samples/oss_common/* ${INSTALL_ROOT}/QOpenSys/etc/sc/services/oss_common
 	cp -n conf/* ${INSTALL_ROOT}/QOpenSys/etc/sc/conf
+	setccsid 819 ${INSTALL_ROOT}/QOpenSys/etc/sc/conf/*
 	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/etc/sc/ -type f -print -exec chmod 644 {} \;
 	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/etc/sc/ -type l -print -exec chmod 644 {} \;
 	/QOpenSys/usr/bin/find  ${INSTALL_ROOT}/QOpenSys/etc/sc/ -type f -print -exec chown qsys {} \;

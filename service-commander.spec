@@ -58,9 +58,9 @@ fi
 if [ -e %{_sysconfdir}/sc/conf ]; then
     chmod 755 %{_sysconfdir}/sc/conf
     /QOpenSys/usr/bin/find  %{_sysconfdir}/sc/conf/ -type f -exec chmod 644 {} \;
+    /QOpenSys/usr/bin/find  %{_sysconfdir}/sc/conf/ -type f -exec setccsid 819 {} \;
     /QOpenSys/usr/bin/find  %{_sysconfdir}/sc/conf/ -type l -exec chmod 644 {} \;
 fi
-
 
 %files
 %defattr(-, qsys, *none)
