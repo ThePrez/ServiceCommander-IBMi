@@ -46,14 +46,19 @@ to batch, and more
 # to fix up scenarios where an older version of sc was used and a user created
 # the directories manually with incorrect permissions/ownership.
 if [ -e %{_sysconfdir}/sc ]; then
-    chown qsys %{_sysconfdir}/sc
+    chown -R qsys %{_sysconfdir}/sc
     chmod 755 %{_sysconfdir}/sc
 fi
 if [ -e %{_sysconfdir}/sc/services ]; then
-    chown qsys %{_sysconfdir}/sc/services
     chmod 755 %{_sysconfdir}/sc/services
     /QOpenSys/usr/bin/find  %{_sysconfdir}/sc/services/ -type f -exec chmod 644 {} \;
     /QOpenSys/usr/bin/find  %{_sysconfdir}/sc/services/ -type l -exec chmod 644 {} \;
+fi
+
+if [ -e %{_sysconfdir}/sc/conf ]; then
+    chmod 755 %{_sysconfdir}/sc/conf
+    /QOpenSys/usr/bin/find  %{_sysconfdir}/sc/conf/ -type f -exec chmod 644 {} \;
+    /QOpenSys/usr/bin/find  %{_sysconfdir}/sc/conf/ -type l -exec chmod 644 {} \;
 fi
 
 
@@ -64,6 +69,7 @@ fi
 %{_libdir}/sc
 %dir %{_sysconfdir}/sc/
 %dir %{_sysconfdir}/sc/services/
+%config(noreplace) %{_sysconfdir}/sc/conf/*
 %config(noreplace) %{_sysconfdir}/sc/services/system/*
 %config(noreplace) %{_sysconfdir}/sc/services/oss_common/*
 %{_mandir}/man1/sc.1*
