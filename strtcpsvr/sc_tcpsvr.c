@@ -57,8 +57,13 @@ typedef _Packed struct
 
 size_t unpad_length(const char *padded, size_t length)
 {
-    for (; padded[length - 1] == ' '; --length)
-        ; // empty body
+    for (int i=0; i<length; ++i)
+    {
+        if (padded[i] == '\0' || padded[i] == ' ') 
+        {
+            return i;
+        }
+    }
 
     return length;
 }
@@ -197,7 +202,7 @@ int main(int argc, char *argv[])
     child_argv[2] = "-l";
     child_argv[3] = "-c";
     int is_it_batch = is_batch();
-    char* batch_prefix_string = (0 == is_it_batch) ? "exec" : "/QOpenSys/pkgs/bin/nohup";
+    char* batch_prefix_string = (0 == is_it_batch) ? "exec" : "";
     char sc_cmd[1024];
     snprintf(sc_cmd, sizeof(sc_cmd), "%s /QOpenSys/pkgs/bin/sc -a %s %s %s 2>&1", batch_prefix_string, sc_options, sc_operation, instance);
     child_argv[4] = sc_cmd;
@@ -237,7 +242,6 @@ int main(int argc, char *argv[])
     struct inheritance inherit;
     memset(&inherit, 0, sizeof(inherit));
     inherit.flags = SPAWN_SETTHREAD_NP;
-    inherit.pgroup = SPAWN_NEWPGROUP;
 
     // ...and we can FINALLY run our command!
     // Qp0zLprintf("Running command: '%s'\n", sc_cmd);
@@ -258,7 +262,7 @@ int main(int argc, char *argv[])
     close(stdoutFds[1]);
     if(is_it_batch)
     {
-        //Qp0zLprintf("Submitted command: %s\n", sc_cmd);
+        Qp0zLprintf("Submitted command: '%s'\n", sc_cmd);
         Qp0zLprintf("Check spooled file output for progress\n");
         close(stdoutFds[0]);
         return parm->rc = 255;
