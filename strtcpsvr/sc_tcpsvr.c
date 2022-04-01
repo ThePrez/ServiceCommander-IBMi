@@ -35,7 +35,10 @@
 #include <qusrjobi.h>
 #include <spawn.h>
 #include <errno.h>
+#include <fcntl.h>
 #pragma convert(37)
+#define TRUE 1
+#define FALSE 0
 #define START "*START    "
 #define END "*END      "
 enum
@@ -56,14 +59,13 @@ typedef _Packed struct
 
 size_t unpad_length(const char *padded, size_t length)
 {
-    for (int i=0; i<length; ++i)
+    for (int i = 0; i < length; ++i)
     {
-        if (padded[i] == '\0' || padded[i] == ' ') 
+        if (padded[i] == '\0' || padded[i] == ' ')
         {
             return i;
         }
     }
-
     return length;
 }
 
@@ -92,6 +94,60 @@ void to_job_ccsid(char *out, size_t out_len, char *in)
     iconv_close(cd);
 }
 
+char *opt_from_config(char *opt)
+{
+    int max_line_len = 1024;
+    char line[max_line_len];
+    char *buf = malloc(1 + max_line_len);
+    strcpy(buf, "");
+    int fd = open("/QOpenSys/etc/sc/conf/strtcpsvr.conf", O_RDONLY | O_TEXTDATA);
+    if (fd == -1)
+    {
+        Qp0zLprintf("Error opening /QOpenSys/etc/sc/conf/strtcpsvr.conf: %s\n", strerror(errno));
+        return buf;
+    }
+    memset(line, 0, sizeof(line));
+    int opt_len = strlen(opt);
+    int bytesRead = -1;
+    char *linePtr = line;
+    int rc = -1;
+    while ((rc = read(fd, linePtr, 1)) > 0)
+    {
+        int pos = linePtr - line;
+        if (*linePtr == '\n' || pos >= (sizeof(line) - 1))
+        {
+            *linePtr = '\0';
+            Qp0zLprintf("read line: '%s'\n", line);
+            if (strncmp(line, opt, opt_len) == 0)
+            {
+                strcpy(buf, line + opt_len);
+            }
+            linePtr = line;
+            memset(line, 0, sizeof(line));
+        }
+        else
+        {
+            linePtr++;
+        }
+    }
+    close(fd);
+    if (strncmp(line, opt, opt_len) == 0)
+    {
+        strcpy(buf, line + opt_len);
+    }
+    return buf;
+}
+
+int is_qtcp()
+{
+    struct passwd *pd;
+    if (NULL != (pd = getpwuid(getuid())))
+    {
+        return (0 == strcmp("QTCP", pd->pw_name));
+    }
+    return FALSE;
+}
+
 int is_batch()
 {
     char buffer[128];
@@ -103,12 +159,9 @@ int is_batch()
 
     // Run in batch mode if user profile starts with 'Q'
     struct passwd *pd;
-    if (NULL != (pd = getpwuid(getuid())))
+    if (0 != is_qtcp())
     {
-        if (pd->pw_name[0] == 'Q')
-        {
-            is_batch = 1;
-        }
+        is_batch = TRUE;
     }
 
     // .. or override with SC_TCPSVR_SUBMIT environment variable
@@ -119,11 +172,11 @@ int is_batch()
     }
     if (0 == memcmp(sc_submit, "Y", 1))
     {
-        is_batch = 1;
+        is_batch = TRUE;
     }
     else if (0 == memcmp(sc_submit, "N", 1))
     {
-        is_batch = 0;
+        is_batch = FALSE;
     }
     return is_batch;
 }
@@ -141,7 +194,7 @@ int main(int argc, char *argv[])
     {
         instance[i] = tolower(instance[i]);
     }
-
+    int is_ipl = FALSE;
 #define ISINSTANCE(name) (instance_len == sizeof(name) - 1 && memcmp(parm->instance, name, instance_len) == 0)
     if (ISINSTANCE("*DFT"))
     {
@@ -153,6 +206,7 @@ int main(int argc, char *argv[])
     }
     else if (ISINSTANCE("*AUTOSTART"))
     {
+        is_ipl = is_q_user();
         strcpy(instance, "group:autostart");
     }
     else if (parm->instance[0] == '*' || parm->instance[0] == '.')
@@ -189,11 +243,14 @@ int main(int argc, char *argv[])
     if (0 != is_batch())
     {
         memset(command_printf_fmt, 0x00, sizeof(command));
+        char *sbmjob_opts = is_ipl ? opt_from_config("ipl_sbmjob_opts:") : opt_from_config("sbmjob_opts:");
         to_job_ccsid(command_printf_fmt, sizeof(command_printf_fmt) - 1,
-                     "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' 'exec /QOpenSys/pkgs/bin/sc -a %s %s %s 2>&1 | cat'))");
-        snprintf(command, sizeof(command), command_printf_fmt, sc_options, sc_operation, instance);
-        Qp0zLprintf("Running command: 'sc %s %s %s'\n", sc_options, sc_operation, instance);
+                     "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' '/QOpenSys/pkgs/bin/sc -v -a %s %s %s > $HOME/strtcpsvr.log 2>&1')) %s");
+        snprintf(command, sizeof(command), command_printf_fmt, sc_options, sc_operation, instance, sbmjob_opts);
+        Qp0zLprintf("Running command: > %s <'\n", command);
         Qp0zLprintf("Check spooled file output for progress\n");
+        free(sbmjob_opts);
+
         rc = system(command);
         rc = rc == 0 ? RC_OK : RC_FAILED;
         parm->rc = rc;
@@ -230,7 +287,8 @@ int main(int argc, char *argv[])
     {
         sprintf(logname, "LOGNAME=%s", pd->pw_name);
     }
-    else {
+    else
+    {
         sprintf(logname, "LOGNAME=%s", getenv("LOGNAME"));
     }
     envp[4] = logname;
