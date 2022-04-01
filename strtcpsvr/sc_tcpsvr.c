@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
         memset(command_printf_fmt, 0x00, sizeof(command));
         char *sbmjob_opts = is_ipl ? opt_from_config("ipl_sbmjob_opts:") : opt_from_config("sbmjob_opts:");
         to_job_ccsid(command_printf_fmt, sizeof(command_printf_fmt) - 1,
-                     "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' '/QOpenSys/pkgs/bin/sc -v -a %s %s %s > $HOME/strtcpsvr.log 2>&1')) %s");
+                     "SBMJOB JOBQ(QSYS/QUSRNOMAX) ALWMLTTHD(*YES) CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/pkgs/bin/bash' '-l' '-c' '/QOpenSys/pkgs/bin/sc -a %s %s %s 2>&1')) %s");
         snprintf(command, sizeof(command), command_printf_fmt, sc_options, sc_operation, instance, sbmjob_opts);
         Qp0zLprintf("Running command: > %s <'\n", command);
         Qp0zLprintf("Check spooled file output for progress\n");
