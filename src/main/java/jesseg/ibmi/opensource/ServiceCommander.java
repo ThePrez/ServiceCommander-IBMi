@@ -1,6 +1,9 @@
 package jesseg.ibmi.opensource;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -99,6 +102,26 @@ public class ServiceCommander {
 
     }
 
+    private static List<? extends String> getOptionsFromConfigFiles() {
+        final File[] configFiles = new File[] { new File("/QOpenSys/etc/sc/scrc"), new File(new File(System.getProperty("user.home", "~")), ".scrc") };
+        final LinkedList<String> ret = new LinkedList<String>();
+        for (final File configFile : configFiles) {
+            if (configFile.canRead() && configFile.isFile()) {
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(configFile), "UTF-8"))) {
+                    String line = null;
+                    while (null != (line = in.readLine())) {
+                        line = line.trim();
+                        if (StringUtils.isNonEmpty(line) && !line.startsWith("#") && !line.startsWith("//")) {
+                            ret.add(line);
+                        }
+                    }
+                } catch (final Exception e) {
+                }
+            }
+        }
+        return ret;
+    }
+
     public static void listOpenPorts(final AppLogger _logger, final LinkedList<String> _args) throws SCException {
         try {
             final ServiceDefinitionCollection serviceDefs = new YamlServiceDefLoader().loadFromYamlFiles(_logger, false);
@@ -154,6 +177,7 @@ public class ServiceCommander {
         }
 
         final LinkedList<String> args = new LinkedList<String>();
+        args.addAll(getOptionsFromConfigFiles());
         final String optsEnvVar = System.getenv("SC_OPTIONS");
         if (!StringUtils.isEmpty(optsEnvVar)) {
             args.addAll(Arrays.asList(optsEnvVar.trim().split("\\s+")));
