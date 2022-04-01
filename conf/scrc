@@ -1,0 +1,11 @@
+# Put command-line options for service commander in this file
+# Here, they will take effect for all users on the system. 
+# To tweak settings for a single user only, modify $HOME/.scrc
+#
+# You can specify things here just as you would on the command line,
+# separating each argument with a new line. 
+#
+# As an example, uncomment the following line to use 10-second 
+# profiling time when gathering performance info:
+#
+# --sample-time=10
