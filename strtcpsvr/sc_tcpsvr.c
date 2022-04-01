@@ -117,7 +117,6 @@ char *opt_from_config(char *opt)
         if (*linePtr == '\n' || pos >= (sizeof(line) - 1))
         {
             *linePtr = '\0';
-            Qp0zLprintf("read line: '%s'\n", line);
             if (strncmp(line, opt, opt_len) == 0)
             {
                 strcpy(buf, line + opt_len);
