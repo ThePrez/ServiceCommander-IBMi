@@ -83,6 +83,7 @@ fi
 - feature: Allow configuration by $HOME/.scrc file
 - feature: Allow configuration by /QOpenSys/etc/sc/conf/scrc
 - feature: Allow STRTCPSVR to run as different user on IPL
+- feature: 'sc_install_defaults' now scans IWS configs
 
 * Mon Mar 28 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.2.2
 - bugfix: stop issuing warnings about .rpmnew files
