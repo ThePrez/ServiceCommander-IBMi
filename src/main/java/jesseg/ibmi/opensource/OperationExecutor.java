@@ -25,7 +25,6 @@ import java.util.regex.Pattern;
 
 import com.github.theprez.jcmdutils.AppLogger;
 import com.github.theprez.jcmdutils.ConsoleQuestionAsker;
-import com.github.theprez.jcmdutils.ProcessLauncher;
 import com.github.theprez.jcmdutils.StringUtils;
 import com.github.theprez.jcmdutils.StringUtils.TerminalColor;
 
@@ -35,6 +34,7 @@ import jesseg.ibmi.opensource.ServiceDefinition.CheckAlive;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
 import jesseg.ibmi.opensource.nginx.NginxConf;
 import jesseg.ibmi.opensource.utils.ListUtils;
+import jesseg.ibmi.opensource.utils.ProcessLauncher;
 import jesseg.ibmi.opensource.utils.QueryUtils;
 import jesseg.ibmi.opensource.utils.SbmJobScript;
 
@@ -574,6 +574,7 @@ public class OperationExecutor {
                 m_logger.printExceptionStack_verbose(e);
             }
         }
+
         for (final String candidate : logFileCandidates) {
 
             final File logFile = new File(candidate);
@@ -585,7 +586,9 @@ public class OperationExecutor {
             }
         }
         if (!isAnythingFound) {
-            m_logger.printfln_err("%s: " + StringUtils.getShrugForOutput(), m_mainService.getName());
+            final ScLogFile f = new ScLogFile(m_logger, m_op, m_mainService, getRuntimeUser());
+            final String iDunno = StringUtils.getShrugForOutput() + " (try checking in log directory " + f.getParentFile().getAbsolutePath() + ")";
+            m_logger.printfln_err("%s: %s", m_mainService.getName(), iDunno);
         }
     }
 
@@ -743,6 +746,7 @@ public class OperationExecutor {
         }
 
         envp.add("SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
+        envp.add("ILE_SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
         envp.add("PASE_FORK_JOBNAME=" + m_mainService.getName().replaceAll("[^a-zA-Z]", ""));
 
         final String bashCommand;
