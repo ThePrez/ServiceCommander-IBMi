@@ -158,6 +158,7 @@ The following attributes may be specified in the service definition (`.yaml`) fi
 - `stop_cmd`: The service shutdown command. If unspecified, the service will be located by port number or job name.
 - `startup_wait_time`: The wait time, in seconds, to wait for the service to start up (the default is 60 seconds if unspecified)
 - `stop_wait_time`: The wait time, in seconds, to wait for the service to stop (the default is 45 seconds if unspecified)
+- `log_dir`: The directory for storing log files created by Service Commander
 - `cluster`: Enable cluster mode by providing a comma-separated list of ports (see "Cluster Mode," below)
 - `batch_mode`: Whether or not to submit the service to batch
 - `sbmjob_jobname`: If submitting to batch, the custom job name to be used for the batch job

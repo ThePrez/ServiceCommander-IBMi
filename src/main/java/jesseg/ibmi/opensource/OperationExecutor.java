@@ -46,7 +46,7 @@ import jesseg.ibmi.opensource.utils.SbmJobScript;
 public class OperationExecutor {
 
     public enum Operation {
-        CHECK(false), FILE(false), GROUPS(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), START(true), STOP(true), ENV(false);
+        CHECK(false), ENV(false), FILE(false), GROUPS(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), START(true), STOP(true);
         public static Operation valueOfWithAliasing(final String _opStr) {
             final String lookupStr = _opStr.trim().toUpperCase();
             if (lookupStr.equals("STATUS")) {
@@ -172,7 +172,9 @@ public class OperationExecutor {
 
     public ScLogFile execute() throws SCException {
         final ScLogFile logFile = new ScLogFile(m_logger, m_op, m_mainService, getRuntimeUser());
-        logFile.tail(m_logger);
+        if (m_logger.isVerbose()) {
+            logFile.tail(m_logger);
+        }
         try {
             switch (m_op) {
                 case START:
@@ -428,6 +430,28 @@ public class OperationExecutor {
         logsDir.setWritable(true);
     }
 
+    private void printEnv() throws SCException {
+        for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
+            m_logger.printf_verbose("Attempting to get env for backend job '%s'...\n", backend.getFriendlyName());
+            try {
+                new OperationExecutor(Operation.ENV, backend.getName(), m_serviceDefs, m_logger).execute();
+            } catch (final Exception e) {
+                throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "ERROR: Could not get env for backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
+            }
+        }
+        final List<String> jobs = getActiveJobsForService(false);
+        for (final String job : jobs) {
+            final Map<String, String> envMap = QueryUtils.getJobEnvvars(job, m_logger);
+            if (envMap.isEmpty()) {
+                m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName() + ": " + job, TerminalColor.CYAN) + ": " + StringUtils.colorizeForTerminal(StringUtils.getShrugForOutput(), TerminalColor.RED));
+            }
+            m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName() + ": " + job + ":", TerminalColor.CYAN));
+            for (final Entry<String, String> l : envMap.entrySet()) {
+                m_logger.printfln("    %s=%s", l.getKey(), l.getValue());
+            }
+        }
+    }
+
     private void printFile() {
         if (m_mainService.isAdHoc()) {
             return;
@@ -562,28 +586,6 @@ public class OperationExecutor {
         }
         if (!isAnythingFound) {
             m_logger.printfln_err("%s: " + StringUtils.getShrugForOutput(), m_mainService.getName());
-        }
-    }
-
-    private void printEnv() throws SCException {
-        for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
-            m_logger.printf_verbose("Attempting to get env for backend job '%s'...\n", backend.getFriendlyName());
-            try {
-                new OperationExecutor(Operation.ENV, backend.getName(), m_serviceDefs, m_logger).execute();
-            } catch (final Exception e) {
-                throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "ERROR: Could not get env for backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
-            }
-        }
-        final List<String> jobs = getActiveJobsForService(false);
-        for (final String job : jobs) {
-            Map<String, String> envMap = QueryUtils.getJobEnvvars(job, m_logger);
-            if(envMap.isEmpty()) {
-                m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName()+": "+job, TerminalColor.CYAN)+": "+StringUtils.colorizeForTerminal(StringUtils.getShrugForOutput(), TerminalColor.RED));
-            }
-            m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName()+": "+job+":", TerminalColor.CYAN));
-            for (Entry<String, String> l : envMap.entrySet()) {
-                m_logger.printfln("    %s=%s",l.getKey(),l.getValue());
-            }
         }
     }
 
@@ -741,8 +743,7 @@ public class OperationExecutor {
         }
 
         envp.add("SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
-        envp.add("PASE_SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
-        envp.add("ILE_SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
+        envp.add("PASE_FORK_JOBNAME=" + m_mainService.getName().replaceAll("[^a-zA-Z]", ""));
 
         final String bashCommand;
         if (BatchMode.NO_BATCH == m_mainService.getBatchMode()) {
