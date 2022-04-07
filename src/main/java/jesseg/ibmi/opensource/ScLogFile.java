@@ -68,6 +68,10 @@ public class ScLogFile {
         return m_file.getAbsolutePath();
     }
 
+    public File getParentFile() {
+        return m_file.getParentFile();
+    }
+
     public long length() {
         return m_file.length();
     }

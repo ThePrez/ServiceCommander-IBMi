@@ -21,12 +21,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.github.theprez.jcmdutils.AppLogger;
-import com.github.theprez.jcmdutils.ProcessLauncher;
-import com.github.theprez.jcmdutils.ProcessLauncher.ProcessResult;
 import com.github.theprez.jcmdutils.StringUtils;
 
 import jesseg.ibmi.opensource.SCException;
 import jesseg.ibmi.opensource.SCException.FailureType;
+import jesseg.ibmi.opensource.utils.ProcessLauncher.ProcessResult;
 
 /**
  * A class that uses the <tt>db2util</tt> utility to query the system. This is used for critical queries to check, for
@@ -249,6 +248,9 @@ public class QueryUtils {
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "csv", "SELECT JOB_NAME,SLIC_TASK_NAME from QSYS2.NETSTAT_JOB_INFO where LOCAL_PORT = " + _port });
         final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
         for (final String queryResult : queryResults) {
+            if (StringUtils.isEmpty(queryResult)) {
+                continue;
+            }
             final String[] jobAndTask = queryResult.replace("\"", "").trim().split(",", 2);
             final String job = jobAndTask[0];
             final String task = jobAndTask[1];
@@ -277,6 +279,9 @@ public class QueryUtils {
         final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
         final List<String> ret = new ArrayList<String>(queryResults.size());
         for (final String queryResult : queryResults) {
+            if (StringUtils.isEmpty(queryResult)) {
+                continue;
+            }
             final String[] split = queryResult.replace("\"", "").split(" ");
             ret.add(String.format("DSPSPLF FILE(%s) JOB(%s) SPLNBR(%s)", (Object[]) split));
         }
