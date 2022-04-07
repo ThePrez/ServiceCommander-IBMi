@@ -8,16 +8,21 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.github.theprez.jcmdutils.AppLogger;
 import com.github.theprez.jcmdutils.ProcessLauncher;
+import com.github.theprez.jcmdutils.ProcessLauncher.ProcessResult;
 import com.github.theprez.jcmdutils.StringUtils;
 
 import jesseg.ibmi.opensource.SCException;
@@ -36,6 +41,8 @@ public class QueryUtils {
     private static Object s_cacheLock = new ReentrantLock();
     private static boolean s_caching = false;
 
+    private static Pattern s_dspjobEnvvarPattern = Pattern.compile("^\\s*([a-z0-9_]+)\\s+'(.*)'\\s+[0-9]+\\s*$", Pattern.CASE_INSENSITIVE);
+
     private static List<String> deduplicate(final List<String> _in) {
         final HashSet<String> s = new HashSet<String>();
         s.addAll(_in);
@@ -50,9 +57,44 @@ public class QueryUtils {
         return firstLine;
     }
 
+    public static String getHomeDir(final String _user, final AppLogger _logger) {
+        try {
+            final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "space", "-p", _user.toUpperCase().trim(), "select HOME_DIRECTORY from qsys2.user_info where AUTHORIZATION_NAME = ?" });
+            final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
+            for (final String queryResult : queryResults) {
+                return queryResult.replace("\"", "");
+            }
+        } catch (final Exception e) {
+            _logger.printExceptionStack_verbose(e);
+        }
+        return String.format("/home/%s", _user.trim().toUpperCase());
+    }
+
+    public static Map<String, String> getJobEnvvars(final String _job, final AppLogger _logger) {
+        final LinkedHashMap<String, String> ret = new LinkedHashMap<String, String>();
+
+        try {
+            final ProcessResult res = ProcessLauncher.exec("/QOpenSys/usr/bin/system", "DSPJOB JOB(" + _job + ") OPTION(*ENVVAR)");
+            if (0 != res.getExitStatus()) {
+                final String reason = StringUtils.arrayToSpaceSeparatedString(res.getStderr().toArray(new String[0]));
+                throw new RuntimeException("DSPJOB failed. Reason: " + reason);
+            }
+            for (final String line : res.getStdout()) {
+                final Matcher m = s_dspjobEnvvarPattern.matcher(line);
+                if (m.find()) {
+                    ret.put(m.group(1), m.group(2));
+                }
+            }
+        } catch (final Exception e) {
+            _logger.printExceptionStack_verbose(e);
+            _logger.println_warn_verbose("WARNING: unable to retrieve environment variables for job " + _job);
+        }
+        return ret;
+    }
+
     public static SortedMap<String, String> getJobPerfInfo(final String _job, final AppLogger _logger, final float _sampleTime) throws IOException, SCException {
         _logger.println_verbose("Getting performance info for job " + _job);
-        if(_job.startsWith("*")) { // Some services, like telnet, can have a job value of "*SIGNON" 
+        if (_job.startsWith("*")) { // Some services, like telnet, can have a job value of "*SIGNON"
             _logger.printfln_warn("Can't get performance info for job ", _job);
             return new TreeMap<String, String>();
         }
@@ -224,6 +266,10 @@ public class QueryUtils {
 
     public static List<String> getListeningJobsByPort(final String _port, final AppLogger _logger) throws NumberFormatException, IOException, SCException {
         return getListeningJobsByPort(Integer.valueOf(_port), _logger);
+    }
+
+    public static String getLogfileForJob(final String _job, final AppLogger _logger) {
+        return getJobEnvvars(_job, _logger).get("SCOMMANDER_LOGFILE");
     }
 
     public static List<String> getSplfsForJob(final String _job, final AppLogger _logger) throws IOException {

@@ -9,14 +9,16 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,7 +46,7 @@ import jesseg.ibmi.opensource.utils.SbmJobScript;
 public class OperationExecutor {
 
     public enum Operation {
-        CHECK(false), FILE(false), GROUPS(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), START(true), STOP(true);
+        CHECK(false), FILE(false), GROUPS(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), START(true), STOP(true), ENV(false);
         public static Operation valueOfWithAliasing(final String _opStr) {
             final String lookupStr = _opStr.trim().toUpperCase();
             if (lookupStr.equals("STATUS")) {
@@ -168,19 +170,9 @@ public class OperationExecutor {
         }
     }
 
-    public File execute() throws SCException {
-        final File logDir = AppDirectories.conf.getLogsDirectory();
-        final String logFileName;
-        if (m_op.isChangingSystemState()) {
-            try {
-                logFileName = QueryUtils.getCurrentTime(m_logger) + getLogSuffix();
-            } catch (final IOException e1) {
-                throw new SCException(m_logger, e1, FailureType.GENERAL_ERROR, "Unable to determine current time");
-            }
-        } else {
-            logFileName = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).format(new Date()) + getLogSuffix(); // should be unused since we only use log files for state-changing stuff
-        }
-        final File logFile = new File(logDir.getAbsolutePath() + "/" + logFileName);
+    public ScLogFile execute() throws SCException {
+        final ScLogFile logFile = new ScLogFile(m_logger, m_op, m_mainService, getRuntimeUser());
+        logFile.tail(m_logger);
         try {
             switch (m_op) {
                 case START:
@@ -210,6 +202,9 @@ public class OperationExecutor {
                 case LOGINFO:
                     printLogInfo();
                     return null;
+                case ENV:
+                    printEnv();
+                    return null;
                 case RESTART:
                     stopService(logFile);
                     startService(logFile);
@@ -224,13 +219,8 @@ public class OperationExecutor {
             throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "A general error has occurred: %s", e.getLocalizedMessage());
         } finally {
             if (null != logFile) {
-                if (logFile.exists()) {
-                    if (0 >= logFile.length()) {
-                        logFile.delete();
-                        logFile.deleteOnExit();
-                    } else {
-                        m_logger.println("For details, see log file at: " + StringUtils.colorizeForTerminal(logFile.getAbsolutePath(), TerminalColor.CYAN));
-                    }
+                if (0 < logFile.length()) {
+                    m_logger.println("For details, see log file at: " + StringUtils.colorizeForTerminal(logFile.getAbsolutePath(), TerminalColor.CYAN));
                 }
             }
         }
@@ -304,14 +294,18 @@ public class OperationExecutor {
         return m.group(1);
     }
 
-    private String getLogSuffix() {
-        return "." + m_mainService.getName() + ".log";
+    private String getCurrentUser() throws SCException {
+        final String currentUser = System.getProperty("user.name");
+        if (StringUtils.isNonEmpty(currentUser)) {
+            return currentUser;
+        }
+        throw new SCException(m_logger, FailureType.GENERAL_ERROR, "ERROR: Unable to determine current user ID!");
     }
 
     public String getPossibleLogFile() {
         final File logDir = AppDirectories.conf.getLogsDirectory();
         File latest = null;
-        for (final File logFile : logDir.listFiles((FilenameFilter) (dir, name) -> name.endsWith(getLogSuffix()))) {
+        for (final File logFile : logDir.listFiles((FilenameFilter) (dir, name) -> name.endsWith(".log"))) {
             if (null == latest) {
                 latest = logFile;
             } else {
@@ -322,6 +316,14 @@ public class OperationExecutor {
         }
         m_logger.printf_verbose("possible log file is %s\n", null == latest ? "<null>" : latest.getAbsolutePath());
         return null == latest ? null : latest.getAbsolutePath();
+    }
+
+    private String getRuntimeUser() throws SCException {
+        final String batchUser = getBatchUser();
+        if (StringUtils.isNonEmpty(batchUser)) {
+            return batchUser;
+        }
+        return getCurrentUser();
     }
 
     private String getSbmJobOptsForStopping() {
@@ -377,7 +379,11 @@ public class OperationExecutor {
     }
 
     private boolean isLikelyRunningAsAnotherUser() {
-        return m_mainService.getBatchMode().isBatch() && m_mainService.getSbmJobOpts().toUpperCase().contains("USER(");
+        final String batchUser = getBatchUser();
+        if (StringUtils.isEmpty(batchUser)) {
+            return false;
+        }
+        return !batchUser.trim().equalsIgnoreCase(System.getProperty("user.name"));
     }
 
     private void populateNginxConfFile(final File _nginxConf) throws UnsupportedEncodingException, FileNotFoundException, IOException {
@@ -505,15 +511,24 @@ public class OperationExecutor {
             try {
                 new OperationExecutor(Operation.JOBINFO, backend.getName(), m_serviceDefs, m_logger).execute();
             } catch (final Exception e) {
-                throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "ERROR: Could not get job info forF backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
+                throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "ERROR: Could not get job info for backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
             }
         }
     }
 
     private void printLogInfo() throws SCException {
-        final String possibleLogFile = getPossibleLogFile();
+
+        for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
+            m_logger.printf_verbose("Attempting to get loginfo for backend job '%s'...\n", backend.getFriendlyName());
+            try {
+                new OperationExecutor(Operation.LOGINFO, backend.getName(), m_serviceDefs, m_logger).execute();
+            } catch (final Exception e) {
+                throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "ERROR: Could not get log info for backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
+            }
+        }
         boolean isAnythingFound = false;
-        for (final String job : getActiveJobsForService(false)) {
+        final List<String> jobs = getActiveJobsForService(false);
+        for (final String job : jobs) {
             try {
                 for (final String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
                     m_logger.println(m_mainService.getName() + ": " + StringUtils.colorizeForTerminal(splf, TerminalColor.CYAN));
@@ -523,32 +538,52 @@ public class OperationExecutor {
                 m_logger.printExceptionStack_verbose(e);
             }
         }
-        if (null != possibleLogFile) {
-            if (!isAnythingFound) {
-                for (final String job : getActiveJobsForService(false)) {
-                    try {
-                        final long fileTs = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).parse(new File(possibleLogFile).getName().substring(0, QueryUtils.DB_TIMESTAMP_FORMAT.length())).getTime();
-                        final String jobStartDate = QueryUtils.getJobStartTime(job, m_logger);
-                        m_logger.printf_verbose("Job start time is %s\n", jobStartDate.toString());
-                        final long jobStartTs = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).parse(jobStartDate).getTime();
-
-                        final long tsDelta = Math.abs(jobStartTs - fileTs);
-                        m_logger.printf_verbose("fileTs = %d, jobStart = %d, delta = %d\n", fileTs, jobStartTs, tsDelta);
-                        if (tsDelta < 45500) {
-                            m_logger.printfln("%s: " + StringUtils.colorizeForTerminal("tail -f " + possibleLogFile, TerminalColor.CYAN), m_mainService.getName());
-                            isAnythingFound = true;
-                            break;
-                        }
-                    } catch (final Exception e) {
-                        // This could be files that aren't in our expected date format, or an issue getting the job start time. No need to throw here.
-                        m_logger.printExceptionStack_verbose(e);
-                    }
+        final Set<String> logFileCandidates = new HashSet<String>();
+        for (final String job : jobs) {
+            try {
+                final String logFilePath = QueryUtils.getLogfileForJob(job, m_logger);
+                if (StringUtils.isNonEmpty(logFilePath)) {
+                    logFileCandidates.add(logFilePath);
+                    isAnythingFound = true;
                 }
+            } catch (final Exception e) {
+                m_logger.printExceptionStack_verbose(e);
             }
         }
+        for (final String candidate : logFileCandidates) {
 
+            final File logFile = new File(candidate);
+            if (0 < logFile.length()) {
+                m_logger.println(m_mainService.getName() + ": " + StringUtils.colorizeForTerminal(candidate, TerminalColor.CYAN));
+                isAnythingFound = true;
+            } else {
+                m_logger.println(m_mainService.getName() + ": " + StringUtils.colorizeForTerminal(candidate, TerminalColor.CYAN) + StringUtils.colorizeForTerminal(" (no data)", TerminalColor.YELLOW));
+            }
+        }
         if (!isAnythingFound) {
             m_logger.printfln_err("%s: " + StringUtils.getShrugForOutput(), m_mainService.getName());
+        }
+    }
+
+    private void printEnv() throws SCException {
+        for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
+            m_logger.printf_verbose("Attempting to get env for backend job '%s'...\n", backend.getFriendlyName());
+            try {
+                new OperationExecutor(Operation.ENV, backend.getName(), m_serviceDefs, m_logger).execute();
+            } catch (final Exception e) {
+                throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "ERROR: Could not get env for backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
+            }
+        }
+        final List<String> jobs = getActiveJobsForService(false);
+        for (final String job : jobs) {
+            Map<String, String> envMap = QueryUtils.getJobEnvvars(job, m_logger);
+            if(envMap.isEmpty()) {
+                m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName()+": "+job, TerminalColor.CYAN)+": "+StringUtils.colorizeForTerminal(StringUtils.getShrugForOutput(), TerminalColor.RED));
+            }
+            m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName()+": "+job+":", TerminalColor.CYAN));
+            for (Entry<String, String> l : envMap.entrySet()) {
+                m_logger.printfln("    %s=%s",l.getKey(),l.getValue());
+            }
         }
     }
 
@@ -620,7 +655,7 @@ public class OperationExecutor {
         return isLikelyRunningAsAnotherUser();
     }
 
-    private void startService(final File _logFile) throws InterruptedException, IOException, SCException {
+    private void startService(final ScLogFile _logFile) throws InterruptedException, IOException, SCException {
 
         // If running in batch, double-check that we're not running as a non-existent user
         verifyBatchUser();
@@ -705,6 +740,10 @@ public class OperationExecutor {
             }
         }
 
+        envp.add("SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
+        envp.add("PASE_SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
+        envp.add("ILE_SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
+
         final String bashCommand;
         if (BatchMode.NO_BATCH == m_mainService.getBatchMode()) {
             // If we're not submitting to batch, it's a simple nohup and redirect to our log file.
@@ -778,7 +817,7 @@ public class OperationExecutor {
         }
     }
 
-    private void stopService(final File _logFile) throws IOException, InterruptedException, NumberFormatException, SCException {
+    private void stopService(final ScLogFile logFile) throws IOException, InterruptedException, NumberFormatException, SCException {
 
         // Stop all dependent services before stopping this one.
         for (final ServiceDefinition dependentService : findKnownDependents()) {
@@ -837,7 +876,7 @@ public class OperationExecutor {
             final String bashCommand;
             if (BatchMode.NO_BATCH == m_mainService.getBatchMode()) {
                 m_logger.println_verbose("running command: " + command);
-                bashCommand = command + " >> " + _logFile.getAbsolutePath() + " 2>&1";
+                bashCommand = command + " >> " + logFile.getAbsolutePath() + " 2>&1";
             } else {
                 // If we submitted to batch with custom batch options, let's try ending the job the same way.
                 // The "stop" command may need to run in a similar environment as the start command, most commonly
@@ -853,7 +892,7 @@ public class OperationExecutor {
                     bashCommand = ("exec " + SbmJobScript.getQp2() + " " + quoteChar + command + quoteChar);
                 } else {
                     final char quoteChar = command.contains("'") ? '\"' : '\'';
-                    bashCommand = ("exec " + SbmJobScript.getQp2() + " " + quoteChar + command + " >> " + _logFile.getAbsolutePath() + " 2>&1" + quoteChar);
+                    bashCommand = ("exec " + SbmJobScript.getQp2() + " " + quoteChar + command + " >> " + logFile.getAbsolutePath() + " 2>&1" + quoteChar);
                 }
             }
             final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/bash", "-c", bashCommand }, envp.toArray(new String[0]), directory);

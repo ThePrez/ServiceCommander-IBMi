@@ -1,6 +1,12 @@
 package jesseg.ibmi.opensource;
 
 import java.io.File;
+import java.io.IOException;
+
+import com.github.theprez.jcmdutils.AppLogger;
+
+import jesseg.ibmi.opensource.SCException.FailureType;
+import jesseg.ibmi.opensource.utils.QueryUtils;
 
 /**
  * Just a place to keep track of where various directories are that the application uses.
@@ -22,6 +28,10 @@ public enum AppDirectories {
     private static File s_globalServicesDir = new File("/QOpenSys/etc/sc/services");
     private static File s_userServicesDir = new File(System.getProperty("user.home", "~") + "/.sc/services");
 
+    private static int quickExec(final String... _cmd) throws InterruptedException, IOException { // TODO: move into JCmdUtils
+        return Runtime.getRuntime().exec(_cmd).waitFor();
+    }
+
     public File getCustomServicesDirOrNull() {
         final String servicesDir = System.getProperty("services.dir", null);
         if (null == servicesDir) {
@@ -36,6 +46,32 @@ public enum AppDirectories {
 
     public File getGlobalServicesDirOrNull() {
         return validateDir(s_globalServicesDir);
+    }
+
+    public File getLogDirectoryForUser(final String _user, final AppLogger _logger) throws SCException {
+        if (_user.equalsIgnoreCase(System.getProperty("user.name"))) {
+            return getLogsDirectory();
+        }
+
+        final File homeDir = new File(QueryUtils.getHomeDir(_user, _logger));
+        final File logsDir = new File(homeDir.getAbsolutePath() + "/.sc/logs");
+        if (logsDir.isDirectory()) {
+            _logger.printfln_verbose("Using directory '%s' for logs for user '%s'", logsDir.getAbsolutePath(), _user);
+            return logsDir;
+        }
+        final File tmpLogsDir = new File(System.getProperty("java.io.tmpdir", "/tmp") + "/.sc_logs_" + _user.trim().toLowerCase());
+        _logger.printfln_verbose("Using temporary directory '%s' for logs for user '%s'", tmpLogsDir.getAbsolutePath(), _user);
+        if (!tmpLogsDir.mkdir()) {
+            throw new SCException(_logger, FailureType.GENERAL_ERROR, "ERROR: Unable to create log dir '%s'", tmpLogsDir.getAbsolutePath());
+        }
+        try {
+            if (0 != quickExec("/QOpenSys/usr/bin/chown", _user.toLowerCase().trim(), tmpLogsDir.getAbsolutePath())) {
+                throw new SCException(_logger, FailureType.GENERAL_ERROR, "ERROR: Unable to change ownership of log dir '%s'", tmpLogsDir.getAbsolutePath());
+            }
+        } catch (final Exception e) {
+            throw e instanceof SCException ? (SCException) e : new SCException(_logger, FailureType.GENERAL_ERROR, "ERROR: Runtime error attempting to change ownership of log dir '%s'", tmpLogsDir.getAbsolutePath());
+        }
+        return tmpLogsDir;
     }
 
     public File getLogsDirectory() {
