@@ -115,7 +115,7 @@
     <dependency>
     	<groupId>io.github.theprez</groupId>
     	<artifactId>jcmdutils</artifactId>
-      <version>0.1.2</version>
+      <version>0.1.5</version>
     </dependency>
   </dependencies>
 </project>
