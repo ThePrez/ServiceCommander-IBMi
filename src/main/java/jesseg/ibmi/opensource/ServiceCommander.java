@@ -206,7 +206,8 @@ public class ServiceCommander {
             printVersion();
             System.exit(0);
         }
-        if("qtcp".equalsIgnoreCase(System.getProperty("user.name", ""))) {
+        logger.println_verbose("Arguments list: " + args);
+        if ("qtcp".equalsIgnoreCase(System.getProperty("user.name", ""))) {
             logger.println_warn("WARNING: You are running as QTCP, which may not have sufficient authority! If you need more authority, try submitting the work as a different user by changing the configuration in /QOpenSys/etc/sc/conf/strtcpsvr.conf");
         }
         for (final String remainingArg : args) {

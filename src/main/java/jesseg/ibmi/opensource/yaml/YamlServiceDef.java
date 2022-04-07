@@ -221,18 +221,18 @@ public class YamlServiceDef extends ServiceDefinition {
             final String backendStartCommand = getStartCommand();
           //@formatter:off
           final ServiceDefinition backendDef = new ServiceDefinition() {
+                @Override public String getBatchJobName()           { return YamlServiceDef.this.getBatchJobName(); }
+                @Override public BatchMode getBatchMode()           { return YamlServiceDef.this.getBatchMode(); }
                 @Override public List<CheckAlive> getCheckAlives()  { return Collections.singletonList(backend); }
                 @Override public String getConfiguredWorkingDirectory() { return YamlServiceDef.this.getConfiguredWorkingDirectory();  }
                 @Override public String getEffectiveWorkingDirectory() { return YamlServiceDef.this.getEffectiveWorkingDirectory();  }
                 @Override public List<String> getEnvironmentVars()  { return envvars;              }
                 @Override public String getFriendlyName()           { return friendlyName; }
                 @Override public String getName()                   { return shortName;    }
+                @Override public String getSbmJobOpts()             { return YamlServiceDef.this.getSbmJobOpts(); }
                 @Override public String getSource()                 { return "<backend>";   }
                 @Override public String getStartCommand()           { return backendStartCommand;     }
                 @Override public boolean isClusterBackend()         { return true;   }
-                @Override public String getBatchJobName()           { return YamlServiceDef.this.getBatchJobName(); }
-                @Override public BatchMode getBatchMode()           { return YamlServiceDef.this.getBatchMode(); }
-                @Override public String getSbmJobOpts()             { return YamlServiceDef.this.getSbmJobOpts(); }
             };
           //@formatter:on
             ret.add(backendDef);
