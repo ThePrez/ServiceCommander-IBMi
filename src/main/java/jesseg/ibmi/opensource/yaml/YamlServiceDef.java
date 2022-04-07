@@ -46,6 +46,7 @@ public class YamlServiceDef extends ServiceDefinition {
     private final String m_stopCmd;
     private final int m_stopWaitTime;
     private final String m_workingDir;
+    private String m_logDir;
 
     @SuppressWarnings("unchecked")
     public YamlServiceDef(final String _name, final File _file, final AppLogger _logger) throws SCException {
@@ -104,6 +105,8 @@ public class YamlServiceDef extends ServiceDefinition {
 
             m_sbmJobOpts = getOptionalYamlString(yamlData, "sbmjob_opts");
             m_batchJobName = getOptionalYamlString(yamlData, "sbmjob_jobname");
+
+            m_logDir = getOptionalYamlString(yamlData, "log_dir");
 
             m_envVars = (List<String>) yamlData.remove("environment_vars");
             m_dependencies = (List<String>) yamlData.remove("service_dependencies");
@@ -224,6 +227,8 @@ public class YamlServiceDef extends ServiceDefinition {
                 @Override public String getBatchJobName()           { return YamlServiceDef.this.getBatchJobName(); }
                 @Override public BatchMode getBatchMode()           { return YamlServiceDef.this.getBatchMode(); }
                 @Override public List<CheckAlive> getCheckAlives()  { return Collections.singletonList(backend); }
+                @Override public String getConfiguredLogDirectory() { return YamlServiceDef.this.getConfiguredLogDirectory();  }
+                @Override public String getEffectiveLogDirectory()  { return YamlServiceDef.this.getEffectiveLogDirectory();  }
                 @Override public String getConfiguredWorkingDirectory() { return YamlServiceDef.this.getConfiguredWorkingDirectory();  }
                 @Override public String getEffectiveWorkingDirectory() { return YamlServiceDef.this.getEffectiveWorkingDirectory();  }
                 @Override public List<String> getEnvironmentVars()  { return envvars;              }
@@ -382,5 +387,22 @@ public class YamlServiceDef extends ServiceDefinition {
     @Override
     public boolean isInheritingEnvironmentVars() {
         return m_isInherintingEnvVars;
+    }
+
+    @Override
+    public String getConfiguredLogDirectory() {
+        return m_logDir;
+    }
+
+    @Override
+    public String getEffectiveLogDirectory() {
+        if (StringUtils.isEmpty(m_logDir)) {
+            return null;
+        }
+        File logDirFile = new File(m_logDir);
+        if (logDirFile.isAbsolute())
+            return logDirFile.getAbsolutePath();
+        return new File(getEffectiveWorkingDirectory(), m_logDir).getAbsolutePath();
+
     }
 }

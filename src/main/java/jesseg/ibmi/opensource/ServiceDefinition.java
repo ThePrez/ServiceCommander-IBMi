@@ -285,4 +285,13 @@ public abstract class ServiceDefinition {
     public boolean isInheritingEnvironmentVars() {
         return true;
     }
+
+    public String getConfiguredLogDirectory() {
+        return null;
+    }
+
+    public String getEffectiveLogDirectory() {
+return null;
+    }
+
 }

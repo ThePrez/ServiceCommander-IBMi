@@ -7,6 +7,7 @@ import java.util.Date;
 
 import com.github.theprez.jcmdutils.AppLogger;
 import com.github.theprez.jcmdutils.ProcessLauncher;
+import com.github.theprez.jcmdutils.StringUtils;
 
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
@@ -34,17 +35,28 @@ public class ScLogFile {
         } else {
             logFileName = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).format(new Date()) + getLogSuffix(_op, _def); // should be unused since we only use log files for state-changing stuff
         }
-        final File logDir = AppDirectories.conf.getLogDirectoryForUser(_runtimeUser, _logger);
-        m_file = new File(logDir, logFileName);
+        String serviceLogDir = _def.getEffectiveLogDirectory();
+        if (StringUtils.isEmpty(serviceLogDir)) {
+            final File logDir = AppDirectories.conf.getLogDirectoryForUser(_runtimeUser, _logger);
+            m_file = new File(logDir, logFileName);
+        } else {
+            File logDir = new File(serviceLogDir);
+            if (!logDir.exists()) {
+                logDir.mkdirs();
+                if (!logDir.isDirectory()) {
+                    logDir = AppDirectories.conf.getLogDirectoryForUser(_runtimeUser, _logger);
+                }
+            }
+
+            m_file = new File(logDir, logFileName);
+        }
     }
 
     public boolean delete() {
-        System.out.println("deleting file " + m_file.getAbsolutePath() + " of size " + m_file.length());
         return m_file.delete();
     }
 
     public void deleteOnExit() {
-        System.out.println("deleting file on exit " + m_file.getAbsolutePath() + " of size " + m_file.length());
         m_file.deleteOnExit();
     }
 
@@ -82,6 +94,7 @@ public class ScLogFile {
         try {
             final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/usr/bin/tail", "-f", m_file.getAbsolutePath() });
             ProcessLauncher.pipeStreamsToCurrentProcess(m_file.getName(), p, _logger);
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> p.destroy()));
         } catch (final Exception e) {
             _logger.printExceptionStack_verbose(e);
         }
