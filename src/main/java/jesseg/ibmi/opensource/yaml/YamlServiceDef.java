@@ -35,18 +35,18 @@ public class YamlServiceDef extends ServiceDefinition {
     private final List<String> m_groups;
     private boolean m_isEnabled;
     private final boolean m_isInherintingEnvVars;
+    private String m_logDir;
     private final AppLogger m_logger;
     private final String m_name;
     private String m_onlyIfExecutable;
-    private final String m_sbmJobOpts;
 
+    private final String m_sbmJobOpts;
     private final File m_source;
     private final String m_startCmd;
     private final int m_startupWaitTime;
     private final String m_stopCmd;
     private final int m_stopWaitTime;
     private final String m_workingDir;
-    private String m_logDir;
 
     @SuppressWarnings("unchecked")
     public YamlServiceDef(final String _name, final File _file, final AppLogger _logger) throws SCException {
@@ -228,8 +228,8 @@ public class YamlServiceDef extends ServiceDefinition {
                 @Override public BatchMode getBatchMode()           { return YamlServiceDef.this.getBatchMode(); }
                 @Override public List<CheckAlive> getCheckAlives()  { return Collections.singletonList(backend); }
                 @Override public String getConfiguredLogDirectory() { return YamlServiceDef.this.getConfiguredLogDirectory();  }
-                @Override public String getEffectiveLogDirectory()  { return YamlServiceDef.this.getEffectiveLogDirectory();  }
                 @Override public String getConfiguredWorkingDirectory() { return YamlServiceDef.this.getConfiguredWorkingDirectory();  }
+                @Override public String getEffectiveLogDirectory()  { return YamlServiceDef.this.getEffectiveLogDirectory();  }
                 @Override public String getEffectiveWorkingDirectory() { return YamlServiceDef.this.getEffectiveWorkingDirectory();  }
                 @Override public List<String> getEnvironmentVars()  { return envvars;              }
                 @Override public String getFriendlyName()           { return friendlyName; }
@@ -247,6 +247,11 @@ public class YamlServiceDef extends ServiceDefinition {
     }
 
     @Override
+    public String getConfiguredLogDirectory() {
+        return m_logDir;
+    }
+
+    @Override
     public String getConfiguredWorkingDirectory() {
         return null == m_workingDir ? super.getConfiguredWorkingDirectory() : m_workingDir;
     }
@@ -254,6 +259,19 @@ public class YamlServiceDef extends ServiceDefinition {
     @Override
     public List<String> getDependencies() {
         return null == m_dependencies ? super.getDependencies() : m_dependencies;
+    }
+
+    @Override
+    public String getEffectiveLogDirectory() {
+        if (StringUtils.isEmpty(m_logDir)) {
+            return null;
+        }
+        final File logDirFile = new File(m_logDir);
+        if (logDirFile.isAbsolute()) {
+            return logDirFile.getAbsolutePath();
+        }
+        return new File(getEffectiveWorkingDirectory(), m_logDir).getAbsolutePath();
+
     }
 
     @Override
@@ -387,22 +405,5 @@ public class YamlServiceDef extends ServiceDefinition {
     @Override
     public boolean isInheritingEnvironmentVars() {
         return m_isInherintingEnvVars;
-    }
-
-    @Override
-    public String getConfiguredLogDirectory() {
-        return m_logDir;
-    }
-
-    @Override
-    public String getEffectiveLogDirectory() {
-        if (StringUtils.isEmpty(m_logDir)) {
-            return null;
-        }
-        File logDirFile = new File(m_logDir);
-        if (logDirFile.isAbsolute())
-            return logDirFile.getAbsolutePath();
-        return new File(getEffectiveWorkingDirectory(), m_logDir).getAbsolutePath();
-
     }
 }

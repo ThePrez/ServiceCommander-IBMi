@@ -144,6 +144,10 @@ public abstract class ServiceDefinition {
         return new LinkedList<ServiceDefinition>();
     }
 
+    public String getConfiguredLogDirectory() {
+        return null;
+    }
+
     /**
      * Get the working directory that is configured to be used for starting and stopping the service, or <tt>null</tt> if unset
      *
@@ -160,6 +164,10 @@ public abstract class ServiceDefinition {
      */
     public List<String> getDependencies() {
         return new LinkedList<String>();
+    }
+
+    public String getEffectiveLogDirectory() {
+        return null;
     }
 
     /**
@@ -284,14 +292,6 @@ public abstract class ServiceDefinition {
      */
     public boolean isInheritingEnvironmentVars() {
         return true;
-    }
-
-    public String getConfiguredLogDirectory() {
-        return null;
-    }
-
-    public String getEffectiveLogDirectory() {
-return null;
     }
 
 }
