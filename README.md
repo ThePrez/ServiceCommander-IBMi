@@ -44,6 +44,7 @@
 - [Demo (video)](#demo-video)
 - [Have feedback or want to contribute?](#have-feedback-or-want-to-contribute)
 - [Testimonials](#testimonials)
+- [Contributors](#contributors)
 
 </details>
 
@@ -710,6 +711,15 @@ There are a couple special groups used by the TCP server support. You can define
 Feel free to [open an issue](https://github.com/ThePrez/ServiceCommander-IBMi/issues/new/choose) with any questions, problems, or other comments. If you'd like to contribute to the project, see [CONTRIBUTING.md](https://github.com/ThePrez/ServiceCommander-IBMi/blob/main/CONTRIBUTING.md) for more information on how to get started.
 
 In any event, we're glad to have you aboard in any capacity, whether as a user, spectator, or contributor!
+
+Thanks to everybody who has contributed so far!
+
+
+<a href="https://github.com/ThePrez/ServiceCommander-IBMi/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ThePrez/ServiceCommander-IBMi" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
 
 ## Testimonials
 
