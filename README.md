@@ -711,6 +711,15 @@ Feel free to [open an issue](https://github.com/ThePrez/ServiceCommander-IBMi/is
 
 In any event, we're glad to have you aboard in any capacity, whether as a user, spectator, or contributor!
 
+Thanks to everybody who has contributed so far!
+
+
+<a href="https://github.com/ThePrez/ServiceCommander-IBMi/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ThePrez/ServiceCommander-IBMi" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
+
 ## Testimonials
 
 > "I use this a lot for my own personal use. Might be useless for the rest of the world. I don't know, though."
