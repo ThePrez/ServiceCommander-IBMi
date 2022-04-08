@@ -44,7 +44,6 @@
 - [Demo (video)](#demo-video)
 - [Have feedback or want to contribute?](#have-feedback-or-want-to-contribute)
 - [Testimonials](#testimonials)
-- [Contributors](#contributors)
 
 </details>
 
