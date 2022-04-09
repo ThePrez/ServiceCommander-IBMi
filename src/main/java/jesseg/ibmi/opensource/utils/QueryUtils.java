@@ -7,6 +7,7 @@ import java.io.UnsupportedEncodingException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -44,9 +45,7 @@ public class QueryUtils {
     private static Pattern s_dspjobDottedPagePattern = Pattern.compile("^\\s{0,3}([\\p{L} 0-9]*[\\p{L}0-9])\\s*(\\. )*:\\s+([a-z]+)?\\s{0,16}([^\\s]+)??$",Pattern.CASE_INSENSITIVE);
 
     private static List<String> deduplicate(final List<String> _in) {
-        final HashSet<String> s = new HashSet<String>();
-        s.addAll(_in);
-        return Arrays.asList(s.toArray(new String[0]));
+        return new LinkedList<String>(new LinkedHashSet<String>(_in));
     }
 
     public static String getCurrentTime(final AppLogger _logger) throws IOException {
