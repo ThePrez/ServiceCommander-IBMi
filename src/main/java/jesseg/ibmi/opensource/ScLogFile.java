@@ -34,7 +34,7 @@ public class ScLogFile {
                 throw new SCException(_logger, e1, FailureType.GENERAL_ERROR, "Unable to determine current time");
             }
         } else {
-            logFileName = (m_timestamp=new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).format(new Date())) + getLogSuffix(_op, _def); // should be unused since we only use log files for state-changing stuff
+            logFileName = (m_timestamp = new SimpleDateFormat(QueryUtils.DB_TIMESTAMP_FORMAT).format(new Date())) + getLogSuffix(_op, _def); // should be unused since we only use log files for state-changing stuff
         }
         final String serviceLogDir = _def.getEffectiveLogDirectory();
         if (StringUtils.isEmpty(serviceLogDir)) {
@@ -73,6 +73,10 @@ public class ScLogFile {
         return m_file.getParentFile();
     }
 
+    public String getTimestamp() {
+        return m_timestamp;
+    }
+
     public long length() {
         return m_file.length();
     }
@@ -103,9 +107,6 @@ public class ScLogFile {
         } catch (final Exception e) {
             _logger.printExceptionStack_verbose(e);
         }
-    }
-    public String getTimestamp() { 
-        return m_timestamp;
     }
 
 }
