@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import jesseg.ibmi.opensource.nginx.NginxConf;
 import jesseg.ibmi.opensource.utils.ListUtils;
 import jesseg.ibmi.opensource.utils.ProcessLauncher;
 import jesseg.ibmi.opensource.utils.QueryUtils;
+import jesseg.ibmi.opensource.utils.QueryUtils.DspJobDottedAttr;
 import jesseg.ibmi.opensource.utils.SbmJobScript;
 
 /**
@@ -71,7 +73,7 @@ public class OperationExecutor {
         private final String m_eyecatcher;
         private final String m_job;
         private final AppLogger m_logger;
-        protected SortedMap<String, String> m_res = null;
+        protected LinkedHashMap<String, String> m_res = new LinkedHashMap<String, String>();
         private final float m_sampleTime;
 
         public PerfInfoFetcher(final String _job, final String _eyecatcher, final AppLogger _logger, final float _sampleTime) {
@@ -83,7 +85,7 @@ public class OperationExecutor {
             start();
         }
 
-        public SortedMap<String, String> getResults() throws SCException {
+        public Map<String, String> getResults() throws SCException {
             try {
                 join();
             } catch (final InterruptedException e) {
@@ -98,9 +100,24 @@ public class OperationExecutor {
         @Override
         public void run() {
             try {
-                m_res = QueryUtils.getJobPerfInfo(m_job, m_logger, m_sampleTime);
+                for (DspJobDottedAttr l : QueryUtils.getJobDspJobDotted(m_job, "*RUNA", m_logger)) {
+                    final String key;
+                    if (StringUtils.isEmpty(l.getKeyword())) {
+                        key = l.getDescription();
+                    } else {
+                        key = String.format("%s (%s)", l.getDescription(), l.getKeyword());
+                    }
+                    String value = (StringUtils.isEmpty(l.getValue())) ? "":l.getValue();
+                    m_res.put(key, value);
+                }
             } catch (final Exception e) {
                 m_exc = SCException.fromException(e, m_logger);
+            }
+            try {
+                m_res.putAll(QueryUtils.getJobPerfInfo(m_job, m_logger, m_sampleTime));
+            } catch (final Exception e) {
+                m_logger.println_warn("Could not gather all performance info (Job no longer exists or requisites not installed?)");
+                m_logger.printExceptionStack_verbose(e);
             }
         }
     }
@@ -627,7 +644,7 @@ public class OperationExecutor {
             }
             for (final PerfInfoFetcher dataFetcherThread : dataFetcherThreads) {
                 m_logger.println(StringUtils.colorizeForTerminal(dataFetcherThread.m_eyecatcher + ": " + dataFetcherThread.m_job, TerminalColor.CYAN));
-                final SortedMap<String, String> perfInfo = dataFetcherThread.getResults();
+                final Map<String, String> perfInfo = dataFetcherThread.getResults();
                 for (final Entry<String, String> pi : perfInfo.entrySet()) {
                     m_logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), TerminalColor.CYAN) + ": " + pi.getValue());
                 }
