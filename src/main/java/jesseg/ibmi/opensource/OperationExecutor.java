@@ -283,7 +283,7 @@ public class OperationExecutor {
     }
 
     private String getBash() {
-        String scbash = "/QOpenSys/pkgs/lib/sc/native/scbash";
+        final String scbash = "/QOpenSys/pkgs/lib/sc/native/scbash";
         if (new File(scbash).canExecute()) {
             return scbash;
         }
@@ -760,12 +760,12 @@ public class OperationExecutor {
         if (!shouldOutputGoToSplf()) {
             envp.add("SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
         }
-        envp.add("SCOMMANDER_TIMESTAMP="+ _logFile.getTimestamp());
-        envp.add("SCOMMANDER_SUBMITTER="+ System.getProperty("user.name"));
-        envp.add("SCOMMANDER_SVC="+ m_mainService.getName());
-        envp.add("SCOMMANDER_SVC_FRIENDLY="+ m_mainService.getFriendlyName());
-        envp.add("SCOMMANDER_SVC_SRC="+ m_mainService.getSource());
-        
+        envp.add("SCOMMANDER_TIMESTAMP=" + _logFile.getTimestamp());
+        envp.add("SCOMMANDER_SUBMITTER=" + System.getProperty("user.name"));
+        envp.add("SCOMMANDER_SVC=" + m_mainService.getName());
+        envp.add("SCOMMANDER_SVC_FRIENDLY=" + m_mainService.getFriendlyName());
+        envp.add("SCOMMANDER_SVC_SRC=" + m_mainService.getSource());
+
         envp.add("PASE_FORK_JOBNAME=" + m_mainService.getName().replaceAll("[^a-zA-Z0-9]", ""));
 
         final String bashCommand;
