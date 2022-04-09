@@ -283,12 +283,12 @@ public class OperationExecutor {
     }
 
     private String getBash() {
-        // String scbash = "/QOpenSys/pkgs/lib/sc/native/scbash";
-        // if (new File(scbash).canExecute()) {
-        // m_logger.println_warn("U------> using scbash");
-        // return scbash;
-        // }
-        // m_logger.println_warn_verbose("WARNING: cannot find 'scbash' utility");
+        String scbash = "/QOpenSys/pkgs/lib/sc/native/scbash";
+        if (new File(scbash).canExecute()) {
+            m_logger.println_warn("UUU------> using scbash");
+            return scbash;
+        }
+        m_logger.println_warn_verbose("WARNING: cannot find 'scbash' utility");
         return "/QOpenSys/pkgs/bin/bash";
     }
 
@@ -755,15 +755,23 @@ public class OperationExecutor {
             }
         }
 
+        // A set of "eyecatchers" that will show up in DSPJOB (helps us for tracking down
+        // log files with sc, and seeing other stuff manually in DSPJOB). Must start with
+        // "SCOMMANDER_" as that will cause the "scbash" executable to set them.
         if (!shouldOutputGoToSplf()) {
             envp.add("SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
         }
+        envp.add("SCOMMANDER_SUBMITTER="+ System.getProperty("user.name"));
+        envp.add("SCOMMANDER_SVC="+ m_mainService.getName());
+        envp.add("SCOMMANDER_SVC_FRIENDLY="+ m_mainService.getFriendlyName());
+        envp.add("SCOMMANDER_SVC_SRC="+ m_mainService.getSource());
+        
         envp.add("PASE_FORK_JOBNAME=" + m_mainService.getName().replaceAll("[^a-zA-Z0-9]", ""));
 
         final String bashCommand;
         if (BatchMode.NO_BATCH == m_mainService.getBatchMode()) {
             // If we're not submitting to batch, it's a simple nohup and redirect to our log file.
-            bashCommand = "cl -q \"ADDENVVAR ENVVAR(SCOMMANDER_LOGFILE) VALUE('" + _logFile.getAbsolutePath() + "')\"; " + command + " >> " + _logFile.getAbsolutePath() + " 2>&1";
+            bashCommand = command + " >> " + _logFile.getAbsolutePath() + " 2>&1";
         } else {
             // Submitting to batch, which means we will go to the SBMJOB command, which means....
             command = command.replace("'", "''");

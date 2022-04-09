@@ -7,7 +7,11 @@ target/sc.jar: FORCE /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/b
 
 FORCE:
 
-all: target/sc.jar
+target/scbash: native/scbash.c
+	mkdir -p target
+	gcc -o target/scbash native/scbash.c
+
+all: target/sc.jar target/scbash
 
 uninstall: clean
 	rm -r ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/pkgs/bin/sc
@@ -53,8 +57,9 @@ man/%.1: man/%.md
 man/%.1.gz: man/%.1
 	gzip $^
 
-install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man/sc.1 man/scopenports.1 man/scedit.1 man/sc_install_defaults.1 man/scinit.1
+install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar target/scbash man/sc.1 man/scopenports.1 man/scedit.1 man/sc_install_defaults.1 man/scinit.1
 	install -m 755 -o qsys -D -d ${INSTALL_ROOT}/QOpenSys/pkgs/bin ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc ${INSTALL_ROOT}/QOpenSys/etc/sc  ${INSTALL_ROOT}/QOpenSys/etc/sc/conf ${INSTALL_ROOT}/QOpenSys/etc/sc/services ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system ${INSTALL_ROOT}/QOpenSys/etc/sc/services/oss_common ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/
+	install -m 755 -o qsys -D -d ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/native
 	chmod 755 ${INSTALL_ROOT}/QOpenSys/etc/sc ${INSTALL_ROOT}/QOpenSys/etc/sc/conf ${INSTALL_ROOT}/QOpenSys/etc/sc/services ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system ${INSTALL_ROOT}/QOpenSys/etc/sc/services/oss_common ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/
 	chown -R qsys ${INSTALL_ROOT}/QOpenSys/etc/sc
 	chown -R qsys ${INSTALL_ROOT}/QOpenSys/pkgs/share/man/man1/
@@ -64,6 +69,7 @@ install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar man
 	install -m 555 -o qsys scripts/scopenports ${INSTALL_ROOT}/QOpenSys/pkgs/bin/
 	install -m 555 -o qsys scripts/sc_install_defaults ${INSTALL_ROOT}/QOpenSys/pkgs/bin/
 	install -m 444 -o qsys target/sc.jar ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/sc.jar
+	install -m 555 -o qsys target/scbash ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/native/scbash
 	cp -n samples/system_tcpsvr/* ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
 	cp -n samples/system_common/* ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
 	cp -n samples/host_servers/* ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
