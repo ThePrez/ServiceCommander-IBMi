@@ -762,9 +762,9 @@ public class OperationExecutor {
         }
         envp.add("SCOMMANDER_TIMESTAMP=" + _logFile.getTimestamp());
         envp.add("SCOMMANDER_SUBMITTER=" + System.getProperty("user.name"));
-        envp.add("SCOMMANDER_SVC=" + m_mainService.getName());
-        envp.add("SCOMMANDER_SVC_FRIENDLY=" + m_mainService.getFriendlyName());
-        envp.add("SCOMMANDER_SVC_SRC=" + m_mainService.getSource());
+        envp.add("SCOMMANDER_NAME=" + m_mainService.getName());
+        envp.add("SCOMMANDER_FRIENDLY_NAME=" + m_mainService.getFriendlyName());
+        envp.add("SCOMMANDER_DEFINED_AT=" + m_mainService.getSource());
 
         envp.add("PASE_FORK_JOBNAME=" + m_mainService.getName().replaceAll("[^a-zA-Z0-9]", ""));
 
@@ -882,7 +882,7 @@ public class OperationExecutor {
         }
         if (StringUtils.isEmpty(command)) {
             // If the user doesn't provide a custom stop command, that's OK. We go directly to ENDJOB.
-            knownJobList.addAll(stopViaEndJob(m_mainService.getShutdownWaitTime()));
+            knownJobList.addAll(stopViaEndJob(m_mainService.getShutdownWaitTime(), StringUtils.isNonEmpty(m_mainService.getStopCommand())));
         } else {
             // If the user provided a custom stop command, let's go try to execute it.
             final File directory = new File(m_mainService.getEffectiveWorkingDirectory());
@@ -947,7 +947,7 @@ public class OperationExecutor {
                     m_logger.printf_warn("WARNING: Timed out waiting for service '%s' to stop. Will try harder\n", m_mainService.getFriendlyName());
                     hasEndJobImmedBeenTried = true;
                     if (knownJobList.isEmpty()) {
-                        stopViaEndJob(0);
+                        stopViaEndJob(0, StringUtils.isNonEmpty(m_mainService.getStopCommand()));
                     } else {
                         stopViaEndJob(knownJobList, 0);
                     }
@@ -962,7 +962,7 @@ public class OperationExecutor {
         }
     }
 
-    private List<String> stopViaEndJob(final int _waitTime) throws IOException, NumberFormatException, SCException {
+    private List<String> stopViaEndJob(final int _waitTime, boolean _showUserEndjob) throws IOException, NumberFormatException, SCException {
         final List<String> jobs = getActiveJobsForService(false);
         if (jobs.isEmpty()) {
             throw new SCException(m_logger, FailureType.GENERAL_ERROR, "Unable to determine job");
@@ -979,6 +979,7 @@ public class OperationExecutor {
                 throw new SCException(m_logger, FailureType.GENERAL_ERROR, "Too many jobs found");
             }
         }
+        if(_showUserEndjob)
         m_logger.println("Stopping via endjob");
         stopViaEndJob(jobs, _waitTime);
         return jobs;
