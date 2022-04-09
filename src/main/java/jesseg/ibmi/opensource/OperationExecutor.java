@@ -282,6 +282,16 @@ public class OperationExecutor {
         }
     }
 
+    private String getBash() {
+        // String scbash = "/QOpenSys/pkgs/lib/sc/native/scbash";
+        // if (new File(scbash).canExecute()) {
+        // m_logger.println_warn("U------> using scbash");
+        // return scbash;
+        // }
+        // m_logger.println_warn_verbose("WARNING: cannot find 'scbash' utility");
+        return "/QOpenSys/pkgs/bin/bash";
+    }
+
     private String getBatchUser() {
         if (!m_mainService.getBatchMode().isBatch()) {
             return null;
@@ -821,16 +831,6 @@ public class OperationExecutor {
                 m_logger.exception(e);
             }
         }
-    }
-
-    private String getBash() {
-//        String scbash = "/QOpenSys/pkgs/lib/sc/native/scbash";
-//        if (new File(scbash).canExecute()) {
-//            m_logger.println_warn("U------> using scbash");
-//            return scbash;
-//        }
-//        m_logger.println_warn_verbose("WARNING: cannot find 'scbash' utility");
-        return "/QOpenSys/pkgs/bin/bash";
     }
 
     private void stopService(final ScLogFile logFile) throws IOException, InterruptedException, NumberFormatException, SCException {
