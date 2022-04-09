@@ -46,7 +46,7 @@ import jesseg.ibmi.opensource.utils.SbmJobScript;
 public class OperationExecutor {
 
     public enum Operation {
-        CHECK(false), ENV(false), FILE(false), GROUPS(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), START(true), STOP(true);
+        CHECK(false), RUNATTRS(false), FILE(false), GROUPS(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), START(true), STOP(true);
         public static Operation valueOfWithAliasing(final String _opStr) {
             final String lookupStr = _opStr.trim().toUpperCase();
             if (lookupStr.equals("STATUS")) {
@@ -204,8 +204,8 @@ public class OperationExecutor {
                 case LOGINFO:
                     printLogInfo();
                     return null;
-                case ENV:
-                    printEnv();
+                case RUNATTRS:
+                    printRunAttrs();
                     return null;
                 case RESTART:
                     stopService(logFile);
@@ -439,24 +439,31 @@ public class OperationExecutor {
         logsDir.setWritable(true);
     }
 
-    private void printEnv() throws SCException {
+    private void printRunAttrs() throws SCException {
         for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
             m_logger.printf_verbose("Attempting to get env for backend job '%s'...\n", backend.getFriendlyName());
             try {
-                new OperationExecutor(Operation.ENV, backend.getName(), m_serviceDefs, m_logger).execute();
+                new OperationExecutor(Operation.RUNATTRS, backend.getName(), m_serviceDefs, m_logger).execute();
             } catch (final Exception e) {
                 throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "ERROR: Could not get env for backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
             }
         }
         final List<String> jobs = getActiveJobsForService(false);
+        if (jobs.isEmpty()) {
+            throw new SCException(m_logger, FailureType.GENERAL_ERROR, "ERROR: No running jobs for service '%s'", m_mainService.getName());
+        }
         for (final String job : jobs) {
             final Map<String, String> envMap = QueryUtils.getJobEnvvars(job, m_logger);
-            if (envMap.isEmpty()) {
-                m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName() + ": " + job, TerminalColor.CYAN) + ": " + StringUtils.colorizeForTerminal(StringUtils.getShrugForOutput(), TerminalColor.RED));
-            }
             m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName() + ": " + job + ":", TerminalColor.CYAN));
+            boolean isAnyFound = false;
             for (final Entry<String, String> l : envMap.entrySet()) {
-                m_logger.printfln("    %s=%s", l.getKey(), l.getValue());
+                if (l.getKey().startsWith("SCOMMANDER_")) {
+                    m_logger.printfln("    %s: %s", l.getKey().replaceFirst("^SCOMMANDER_", "").replace('_', ' ').toLowerCase(), l.getValue());
+                    isAnyFound = true;
+                }
+            }
+            if (!isAnyFound) {
+                m_logger.printfln_err("    %s", StringUtils.getShrugForOutput());
             }
         }
     }
@@ -979,8 +986,8 @@ public class OperationExecutor {
                 throw new SCException(m_logger, FailureType.GENERAL_ERROR, "Too many jobs found");
             }
         }
-        if(_showUserEndjob)
-        m_logger.println("Stopping via endjob");
+        if (_showUserEndjob)
+            m_logger.println("Stopping via endjob");
         stopViaEndJob(jobs, _waitTime);
         return jobs;
     }
