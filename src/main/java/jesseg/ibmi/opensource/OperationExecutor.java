@@ -285,7 +285,6 @@ public class OperationExecutor {
     private String getBash() {
         String scbash = "/QOpenSys/pkgs/lib/sc/native/scbash";
         if (new File(scbash).canExecute()) {
-            m_logger.println_warn("UUU------> using scbash");
             return scbash;
         }
         m_logger.println_warn_verbose("WARNING: cannot find 'scbash' utility");
@@ -761,6 +760,7 @@ public class OperationExecutor {
         if (!shouldOutputGoToSplf()) {
             envp.add("SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
         }
+        envp.add("SCOMMANDER_TIMESTAMP="+ _logFile.getTimestamp());
         envp.add("SCOMMANDER_SUBMITTER="+ System.getProperty("user.name"));
         envp.add("SCOMMANDER_SVC="+ m_mainService.getName());
         envp.add("SCOMMANDER_SVC_FRIENDLY="+ m_mainService.getFriendlyName());
