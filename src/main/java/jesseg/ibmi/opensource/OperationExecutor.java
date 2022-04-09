@@ -745,14 +745,15 @@ public class OperationExecutor {
             }
         }
 
-        envp.add("SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
-        envp.add("ILE_SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
-        envp.add("PASE_FORK_JOBNAME=" + m_mainService.getName().replaceAll("[^a-zA-Z]", ""));
+        if (!shouldOutputGoToSplf()) {
+            envp.add("SCOMMANDER_LOGFILE=" + _logFile.getAbsolutePath());
+        }
+        envp.add("PASE_FORK_JOBNAME=" + m_mainService.getName().replaceAll("[^a-zA-Z0-9]", ""));
 
         final String bashCommand;
         if (BatchMode.NO_BATCH == m_mainService.getBatchMode()) {
             // If we're not submitting to batch, it's a simple nohup and redirect to our log file.
-            bashCommand = command + " >> " + _logFile.getAbsolutePath() + " 2>&1";
+            bashCommand = "cl -q \"ADDENVVAR ENVVAR(SCOMMANDER_LOGFILE) VALUE('" + _logFile.getAbsolutePath() + "')\"; " + command + " >> " + _logFile.getAbsolutePath() + " 2>&1";
         } else {
             // Submitting to batch, which means we will go to the SBMJOB command, which means....
             command = command.replace("'", "''");
@@ -784,7 +785,7 @@ public class OperationExecutor {
         // explicitly launching bash and nohup to let the user specify bashisms (for instance, multiple
         // semicolon-separated commands) in the start command for the service.
         m_logger.println_verbose("running command: " + bashCommand);
-        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/nohup", "/QOpenSys/pkgs/bin/bash", "-c", bashCommand }, envp.toArray(new String[0]), directory);
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/nohup", getBash(), "-c", bashCommand }, envp.toArray(new String[0]), directory);
         final long startTime = new Date().getTime();
         final OutputStream stdin = p.getOutputStream();
         ProcessLauncher.pipeStreamsToCurrentProcess(m_mainService.getName(), p, m_logger);
@@ -820,6 +821,16 @@ public class OperationExecutor {
                 m_logger.exception(e);
             }
         }
+    }
+
+    private String getBash() {
+//        String scbash = "/QOpenSys/pkgs/lib/sc/native/scbash";
+//        if (new File(scbash).canExecute()) {
+//            m_logger.println_warn("U------> using scbash");
+//            return scbash;
+//        }
+//        m_logger.println_warn_verbose("WARNING: cannot find 'scbash' utility");
+        return "/QOpenSys/pkgs/bin/bash";
     }
 
     private void stopService(final ScLogFile logFile) throws IOException, InterruptedException, NumberFormatException, SCException {
@@ -900,7 +911,7 @@ public class OperationExecutor {
                     bashCommand = ("exec " + SbmJobScript.getQp2() + " " + quoteChar + command + " >> " + logFile.getAbsolutePath() + " 2>&1" + quoteChar);
                 }
             }
-            final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/bash", "-c", bashCommand }, envp.toArray(new String[0]), directory);
+            final Process p = Runtime.getRuntime().exec(new String[] { getBash(), "-c", bashCommand }, envp.toArray(new String[0]), directory);
             final OutputStream stdin = p.getOutputStream();
             ProcessLauncher.pipeStreamsToCurrentProcess(m_mainService.getName(), p, m_logger);
             stdin.flush();
