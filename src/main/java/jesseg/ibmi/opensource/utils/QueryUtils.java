@@ -7,8 +7,6 @@ import java.io.UnsupportedEncodingException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -36,13 +34,40 @@ import jesseg.ibmi.opensource.utils.ProcessLauncher.ProcessResult;
  */
 public class QueryUtils {
 
+    public static class DspJobDottedAttr {
+
+        private final String m_description;
+        private final String m_keyword;
+        private final String m_value;
+
+        public DspJobDottedAttr(final String _description, final String _keyword, final String _value) {
+            m_description = _description;
+            m_keyword = (null == _keyword) ? "" : _keyword;
+            m_value = _value;
+        }
+
+        public String getDescription() {
+            return m_description;
+        }
+
+        public String getKeyword() {
+            return m_keyword;
+        }
+
+        public String getValue() {
+            return m_value;
+        }
+
+    }
+
     public static final String DB_TIMESTAMP_FORMAT = "yyyy-MM-dd-HH.mm.ss";
     private static Set<Integer> s_cachedOpenPorts = null;
     private static final Object s_cacheLock = new ReentrantLock();
+
     private static boolean s_caching = false;
+    private static Pattern s_dspjobDottedPagePattern = Pattern.compile("^\\s{0,3}([\\p{L} 0-9]*[\\p{L}0-9])\\s*(\\. )*:\\s+([a-z]+)?\\s{0,16}([^\\s]+)??$", Pattern.CASE_INSENSITIVE);
 
     private static Pattern s_dspjobEnvvarPattern = Pattern.compile("^\\s*([a-z0-9_]+)\\s+'(.*)'\\s+[0-9]+\\s*$", Pattern.CASE_INSENSITIVE);
-    private static Pattern s_dspjobDottedPagePattern = Pattern.compile("^\\s{0,3}([\\p{L} 0-9]*[\\p{L}0-9])\\s*(\\. )*:\\s+([a-z]+)?\\s{0,16}([^\\s]+)??$",Pattern.CASE_INSENSITIVE);
 
     private static List<String> deduplicate(final List<String> _in) {
         return new LinkedList<String>(new LinkedHashSet<String>(_in));
@@ -69,6 +94,31 @@ public class QueryUtils {
         return String.format("/home/%s", _user.trim().toUpperCase());
     }
 
+    public static List<DspJobDottedAttr> getJobDspJobDotted(final String _job, final String _opt, final AppLogger _logger) {
+        final List<DspJobDottedAttr> ret = new LinkedList<DspJobDottedAttr>();
+        try {
+            final ProcessResult res = ProcessLauncher.exec("/QOpenSys/usr/bin/system", "DSPJOB JOB(" + _job + ") OPTION(" + _opt + ")");
+            if (0 != res.getExitStatus()) {
+                final String reason = StringUtils.arrayToSpaceSeparatedString(res.getStderr().toArray(new String[0]));
+                throw new RuntimeException("DSPJOB failed. Reason: " + reason);
+            }
+            for (final String line : res.getStdout()) {
+                final Matcher m = s_dspjobDottedPagePattern.matcher(line);
+                if (m.find()) {
+                    final String description = m.group(1);
+                    final String keyword = m.group(3);
+                    final String value = m.group(4);
+
+                    ret.add(new DspJobDottedAttr(description, keyword, value));
+                }
+            }
+        } catch (final Exception e) {
+            _logger.printExceptionStack_verbose(e);
+            _logger.println_warn_verbose("WARNING: unable to retrieve environment variables for job " + _job);
+        }
+        return ret;
+    }
+
     public static Map<String, String> getJobEnvvars(final String _job, final AppLogger _logger) {
         final LinkedHashMap<String, String> ret = new LinkedHashMap<String, String>();
 
@@ -82,44 +132,6 @@ public class QueryUtils {
                 final Matcher m = s_dspjobEnvvarPattern.matcher(line);
                 if (m.find()) {
                     ret.put(m.group(1), m.group(2));
-                }
-            }
-        } catch (final Exception e) {
-            _logger.printExceptionStack_verbose(e);
-            _logger.println_warn_verbose("WARNING: unable to retrieve environment variables for job " + _job);
-        }
-        return ret;
-    }
-    public static class DspJobDottedAttr {
-
-        private String m_keyword;
-        private String m_description;
-        private String m_value;
-
-        public DspJobDottedAttr(String _description, String _keyword, String _value) {
-        m_description=_description;m_keyword= (null == _keyword) ? "" :_keyword;
-        m_value=_value;
-        }
-        public String getKeyword() { return m_keyword;}public String getDescription() {return m_description;}
-        public String getValue() {return m_value;}
-        
-    }
-    public static List<DspJobDottedAttr> getJobDspJobDotted(final String _job, final String _opt, final AppLogger _logger) {
-        final List<DspJobDottedAttr>  ret = new LinkedList<DspJobDottedAttr> ();
-        try {
-            final ProcessResult res = ProcessLauncher.exec("/QOpenSys/usr/bin/system", "DSPJOB JOB(" + _job + ") OPTION("+_opt+")");
-            if (0 != res.getExitStatus()) {
-                final String reason = StringUtils.arrayToSpaceSeparatedString(res.getStderr().toArray(new String[0]));
-                throw new RuntimeException("DSPJOB failed. Reason: " + reason);
-            }
-            for (final String line : res.getStdout()) {
-                final Matcher m = s_dspjobDottedPagePattern.matcher(line);
-                if (m.find()) {
-                    String description = m.group(1);
-                    String keyword = m.group(3);
-                    String value = m.group(4);
-                    
-                    ret.add(new DspJobDottedAttr(description,keyword,value));
                 }
             }
         } catch (final Exception e) {
@@ -179,11 +191,11 @@ public class QueryUtils {
         }
         final TreeMap<String, String> ret = new TreeMap<>();
         ret.put("->Sampling time (s)", queryResults.get(0));
-//        ret.put("Thread Count", queryResults.get(1));
+        // ret.put("Thread Count", queryResults.get(1));
         ret.put("Disk I/O operations during sampling time", queryResults.get(2));
         ret.put("Total Disk I/O operations", queryResults.get(3));
         ret.put("CPU Usage (%)", queryResults.get(4));
-//        ret.put("Temporary Storage (MB)", queryResults.get(5));
+        // ret.put("Temporary Storage (MB)", queryResults.get(5));
         ret.put("Job active since", queryResults.get(6));
         ret.put("Current User", queryResults.get(7));
         ret.put("Function", queryResults.get(8));

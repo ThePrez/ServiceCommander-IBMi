@@ -100,20 +100,20 @@ public class NginxConf {
         }
     }
 
-    public void writeData(final PrintWriter _ps, final int _i) {
-        m_root.writeData(_ps, _i);
-    }
-
-    public void remove(String... _path) {
+    public void remove(final String... _path) {
         try {
-            LinkedList<String> path = new LinkedList<String>(Arrays.asList(_path));
-            String removalNode = path.removeLast();
+            final LinkedList<String> path = new LinkedList<String>(Arrays.asList(_path));
+            final String removalNode = path.removeLast();
             final NginxConfNode node = getNode(path.toArray(new String[0]), false);
-            NginxConfNode child = getNode(_path, false);
+            final NginxConfNode child = getNode(_path, false);
             node.removeChild(child);
-        } catch (NoSuchElementException e) {
+        } catch (final NoSuchElementException e) {
             // nothing to remove
         }
 
+    }
+
+    public void writeData(final PrintWriter _ps, final int _i) {
+        m_root.writeData(_ps, _i);
     }
 }

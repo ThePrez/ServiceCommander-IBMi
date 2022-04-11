@@ -9,11 +9,11 @@ import jesseg.ibmi.opensource.yaml.YamlServiceDef;
 /**
  * Abstract class representing a definition of a service. Since currently only
  * .yaml files are supported, the commonly implementing class is {@link YamlServiceDef}.
- * Ad-hoc services can also be programmatically defined by extending this class. 
- * 
+ * Ad-hoc services can also be programmatically defined by extending this class.
+ *
  * Note that even though this class is abstract, it provides default implementations for
  * a number of the methods. If there is a new implementation in the future, it need not
- * implement all methods. 
+ * implement all methods.
  *
  * @author Jesse Gorzinski
  */

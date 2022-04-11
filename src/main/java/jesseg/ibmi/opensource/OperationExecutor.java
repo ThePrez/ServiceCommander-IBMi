@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,6 +33,7 @@ import jesseg.ibmi.opensource.ServiceDefinition.BatchMode;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAlive;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
 import jesseg.ibmi.opensource.nginx.NginxConf;
+import jesseg.ibmi.opensource.nginx.NginxConfNode;
 import jesseg.ibmi.opensource.utils.ListUtils;
 import jesseg.ibmi.opensource.utils.ProcessLauncher;
 import jesseg.ibmi.opensource.utils.QueryUtils;
@@ -48,7 +48,7 @@ import jesseg.ibmi.opensource.utils.SbmJobScript;
 public class OperationExecutor {
 
     public enum Operation {
-        CHECK(false), RUNATTRS(false), FILE(false), GROUPS(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), START(true), STOP(true);
+        CHECK(false), FILE(false), GROUPS(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), RUNATTRS(false), START(true), STOP(true);
         public static Operation valueOfWithAliasing(final String _opStr) {
             final String lookupStr = _opStr.trim().toUpperCase();
             if (lookupStr.equals("STATUS")) {
@@ -100,14 +100,14 @@ public class OperationExecutor {
         @Override
         public void run() {
             try {
-                for (DspJobDottedAttr l : QueryUtils.getJobDspJobDotted(m_job, "*RUNA", m_logger)) {
+                for (final DspJobDottedAttr l : QueryUtils.getJobDspJobDotted(m_job, "*RUNA", m_logger)) {
                     final String key;
                     if (StringUtils.isEmpty(l.getKeyword())) {
                         key = l.getDescription();
                     } else {
                         key = String.format("%s (%s)", l.getDescription(), l.getKeyword());
                     }
-                    String value = (StringUtils.isEmpty(l.getValue())) ? "" : l.getValue();
+                    final String value = (StringUtils.isEmpty(l.getValue())) ? "" : l.getValue();
                     m_res.put(key, value);
                 }
             } catch (final Exception e) {
@@ -322,6 +322,10 @@ public class OperationExecutor {
         return m.group(1);
     }
 
+    private String getClusterLocation() {
+        return "/";// TODO: make this configurable? Move code into ServiceDefinition?
+    }
+
     private String getCurrentUser() throws SCException {
         final String currentUser = System.getProperty("user.name");
         if (StringUtils.isNonEmpty(currentUser)) {
@@ -446,7 +450,7 @@ public class OperationExecutor {
         final String streamOrHttp = conf.getRoot().getChildren("stream").isEmpty() ? "http" : "stream";
         conf.overwrite(new String[] { streamOrHttp, "upstream sc_servers" }, "server", upstreams, true);
         if ("http".equals(streamOrHttp)) {
-            conf.overwrite(new String[] { "http", "server", "location /" }, "proxy_pass", Collections.singletonList("http://sc_servers"), true);
+            conf.overwrite(new String[] { "http", "server", "location " + getClusterLocation() }, "proxy_pass", Collections.singletonList("http://sc_servers"), true);
             conf.overwrite(new String[] { "http", "server", }, "proxy_pass", null, true);
             conf.remove("stream");
         } else {
@@ -454,7 +458,18 @@ public class OperationExecutor {
             conf.overwrite(new String[] { "stream", "server" }, "proxy_pass", Collections.singletonList("sc_servers"), true);
             conf.remove("http");
         }
-        conf.overwrite(new String[] { streamOrHttp, "server" }, "listen", Collections.singletonList("" + m_mainService.getCheckAlives().get(0).getValue() + "  backlog=8096"), true);
+        String portValue = m_mainService.getCheckAlives().get(0).getValue();
+        if ("http".equalsIgnoreCase(streamOrHttp)) {
+            try {
+                final List<NginxConfNode> l = conf.getRoot().getChild("http").getChildren("server");
+                if (1 < l.size()) {
+                    portValue = "localhost:" + portValue.trim();
+                }
+            } catch (final Exception e) {
+                m_logger.printExceptionStack_verbose(e);
+            }
+        }
+        conf.overwrite(new String[] { streamOrHttp, "server" }, "listen", Collections.singletonList("" + portValue + "  backlog=8096"), true);
 
         try (PrintWriter ps = new PrintWriter(_nginxConf, "UTF-8")) {
             conf.writeData(ps, 0);
@@ -465,35 +480,6 @@ public class OperationExecutor {
             throw new IOException("Could not create log dir");
         }
         logsDir.setWritable(true);
-    }
-
-    private void printRunAttrs() throws SCException {
-        for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
-            m_logger.printf_verbose("Attempting to get env for backend job '%s'...\n", backend.getFriendlyName());
-            try {
-                new OperationExecutor(Operation.RUNATTRS, backend.getName(), m_serviceDefs, m_logger).execute();
-            } catch (final Exception e) {
-                throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "ERROR: Could not get env for backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
-            }
-        }
-        final List<String> jobs = getActiveJobsForService(false);
-        if (jobs.isEmpty()) {
-            throw new SCException(m_logger, FailureType.GENERAL_ERROR, "ERROR: No running jobs for service '%s'", m_mainService.getName());
-        }
-        for (final String job : jobs) {
-            final Map<String, String> envMap = QueryUtils.getJobEnvvars(job, m_logger);
-            m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName() + ": " + job + ":", TerminalColor.CYAN));
-            boolean isAnyFound = false;
-            for (final Entry<String, String> l : envMap.entrySet()) {
-                if (l.getKey().startsWith("SCOMMANDER_")) {
-                    m_logger.printfln("    %s: %s", l.getKey().replaceFirst("^SCOMMANDER_", "").replace('_', ' ').toLowerCase(), l.getValue());
-                    isAnyFound = true;
-                }
-            }
-            if (!isAnyFound) {
-                m_logger.printfln_err("    %s", StringUtils.getShrugForOutput());
-            }
-        }
     }
 
     private void printFile() {
@@ -666,6 +652,35 @@ public class OperationExecutor {
         m_logger.println();
     }
 
+    private void printRunAttrs() throws SCException {
+        for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
+            m_logger.printf_verbose("Attempting to get env for backend job '%s'...\n", backend.getFriendlyName());
+            try {
+                new OperationExecutor(Operation.RUNATTRS, backend.getName(), m_serviceDefs, m_logger).execute();
+            } catch (final Exception e) {
+                throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "ERROR: Could not get env for backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
+            }
+        }
+        final List<String> jobs = getActiveJobsForService(false);
+        if (jobs.isEmpty()) {
+            throw new SCException(m_logger, FailureType.GENERAL_ERROR, "ERROR: No running jobs for service '%s'", m_mainService.getName());
+        }
+        for (final String job : jobs) {
+            final Map<String, String> envMap = QueryUtils.getJobEnvvars(job, m_logger);
+            m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName() + ": " + job + ":", TerminalColor.CYAN));
+            boolean isAnyFound = false;
+            for (final Entry<String, String> l : envMap.entrySet()) {
+                if (l.getKey().startsWith("SCOMMANDER_")) {
+                    m_logger.printfln("    %s: %s", l.getKey().replaceFirst("^SCOMMANDER_", "").replace('_', ' ').toLowerCase(), l.getValue());
+                    isAnyFound = true;
+                }
+            }
+            if (!isAnyFound) {
+                m_logger.printfln_err("    %s", StringUtils.getShrugForOutput());
+            }
+        }
+    }
+
     private void printServiceStatus() throws NumberFormatException, IOException, SCException {
         final ServiceStatusInfo status = getServiceStatus();
         final String paddedStatusString;
@@ -728,7 +743,7 @@ public class OperationExecutor {
             m_logger.printfln_verbose("Starting service '%s' in cluster mode", m_mainService.getFriendlyName());
             final File nginxConf = new File(m_mainService.getEffectiveWorkingDirectory(), "cluster.conf");
             populateNginxConfFile(nginxConf);
-            m_logger.printfln_verbose("Nginx configuration refreshed");
+            m_logger.printfln_verbose("Cluster configuration refreshed");
 
             // If running cluster mode, stop all the backend jobs (concurrently)
             final AsyncOperationSet backendKillers = new AsyncOperationSet(m_logger);
@@ -997,7 +1012,7 @@ public class OperationExecutor {
         }
     }
 
-    private List<String> stopViaEndJob(final int _waitTime, boolean _showUserEndjob) throws IOException, NumberFormatException, SCException {
+    private List<String> stopViaEndJob(final int _waitTime, final boolean _showUserEndjob) throws IOException, NumberFormatException, SCException {
         final List<String> jobs = getActiveJobsForService(false);
         if (jobs.isEmpty()) {
             throw new SCException(m_logger, FailureType.GENERAL_ERROR, "Unable to determine job");
@@ -1014,8 +1029,9 @@ public class OperationExecutor {
                 throw new SCException(m_logger, FailureType.GENERAL_ERROR, "Too many jobs found");
             }
         }
-        if (_showUserEndjob)
+        if (_showUserEndjob) {
             m_logger.println("Stopping via endjob");
+        }
         stopViaEndJob(jobs, _waitTime);
         return jobs;
     }

@@ -119,7 +119,7 @@ public class NginxConfNode {
         return ret;
     }
 
-    List<String> getPropertyValues(final String _prop) {
+    public List<String> getPropertyValues(final String _prop) {
         final LinkedList<String> ret = new LinkedList<String>();
         for (final Entry<String, String> e : m_properties) {
             if (_prop.equalsIgnoreCase(e.getKey())) {
@@ -142,6 +142,10 @@ public class NginxConfNode {
         }
         m_properties.removeAll(removals);
         return this;
+    }
+
+    public void removeChild(final NginxConfNode _child) {
+        final boolean hit = m_childNodes.remove(_child);
     }
 
     void writeData(final PrintWriter _writer, final int _indent) {
@@ -168,9 +172,5 @@ public class NginxConfNode {
                 _writer.println(indentStr + "}");
             }
         }
-    }
-
-    public void removeChild(NginxConfNode _child) {
-        boolean hit =m_childNodes.remove(_child);
     }
 }
