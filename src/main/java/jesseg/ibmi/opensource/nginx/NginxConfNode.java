@@ -169,4 +169,8 @@ public class NginxConfNode {
             }
         }
     }
+
+    public void removeChild(NginxConfNode _child) {
+        boolean hit =m_childNodes.remove(_child);
+    }
 }

@@ -107,7 +107,7 @@ public class OperationExecutor {
                     } else {
                         key = String.format("%s (%s)", l.getDescription(), l.getKeyword());
                     }
-                    String value = (StringUtils.isEmpty(l.getValue())) ? "":l.getValue();
+                    String value = (StringUtils.isEmpty(l.getValue())) ? "" : l.getValue();
                     m_res.put(key, value);
                 }
             } catch (final Exception e) {
@@ -434,15 +434,26 @@ public class OperationExecutor {
             }
         }
         final NginxConf conf = new NginxConf(_nginxConf);
-        final String streamOrHttp = conf.getRoot().getChildren("stream").isEmpty() ? "http" : "stream";
+
         final List<String> upstreams = new LinkedList<String>();
         for (final ServiceDefinition backendSvc : m_mainService.getClusterBackends()) {
             m_logger.println_verbose("Processing backend: " + backendSvc.getName());
             final String upstream = "127.0.0.1:" + backendSvc.getCheckAlives().get(0).getValue();
             m_logger.println_verbose("Adding upstream: " + upstream);
-            upstreams.add("http".equals(streamOrHttp) ? "http://" + upstream : upstream);
+            upstreams.add(upstream);
         }
+
+        final String streamOrHttp = conf.getRoot().getChildren("stream").isEmpty() ? "http" : "stream";
         conf.overwrite(new String[] { streamOrHttp, "upstream sc_servers" }, "server", upstreams, true);
+        if ("http".equals(streamOrHttp)) {
+            conf.overwrite(new String[] { "http", "server", "location /" }, "proxy_pass", Collections.singletonList("http://sc_servers"), true);
+            conf.overwrite(new String[] { "http", "server", }, "proxy_pass", null, true);
+            conf.remove("stream");
+        } else {
+            conf.remove("stream", "server", "location /");
+            conf.overwrite(new String[] { "stream", "server" }, "proxy_pass", Collections.singletonList("sc_servers"), true);
+            conf.remove("http");
+        }
         conf.overwrite(new String[] { streamOrHttp, "server" }, "listen", Collections.singletonList("" + m_mainService.getCheckAlives().get(0).getValue() + "  backlog=8096"), true);
 
         try (PrintWriter ps = new PrintWriter(_nginxConf, "UTF-8")) {
