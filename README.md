@@ -606,7 +606,7 @@ http {
     proxy_buffering on;
     listen 9333 backlog=8096;
     location / {
-      proxy_pass http://python_servers;
+      proxy_pass http://sc_servers;
     }
     location /tablesorter {
       autoindex on;
