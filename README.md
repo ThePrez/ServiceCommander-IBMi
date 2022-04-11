@@ -593,7 +593,7 @@ events {}
 http {
   error_log logs/error.log warn;
   proxy_cache_path /tmp/cache keys_zone=cache:10m levels=1:2 inactive=600s max_size=100m;
-  upstream python_servers {
+  upstream sc_servers {
     server 127.0.0.1:3341;
     server 127.0.0.1:3342;
   }
