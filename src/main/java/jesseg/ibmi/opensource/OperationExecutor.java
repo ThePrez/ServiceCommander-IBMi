@@ -803,6 +803,9 @@ public class OperationExecutor {
                 envp.add("PORT_PLUS_" + i + "=" + (checkAlivePort + i));
             }
         }
+        if(m_mainService.isClusterBackend()) {
+            envp.add("HOSTNAME=localhost");
+        }
 
         // A set of "eyecatchers" that will show up in DSPJOB (helps us for tracking down
         // log files with sc, and seeing other stuff manually in DSPJOB). Must start with
