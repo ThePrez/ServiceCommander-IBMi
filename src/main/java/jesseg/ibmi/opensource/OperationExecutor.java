@@ -466,7 +466,7 @@ public class OperationExecutor {
                 out.write(fileContents);
             }
         }
-        final NginxConf conf = new NginxConf(_nginxConf);
+        final NginxConf conf = new NginxConf(nginxConf);
         final List<String> upstreams = new LinkedList<String>();
         final List<ServiceDefinition> ignoredBackends = (null == _ignoredBackends) ? new LinkedList<ServiceDefinition>() : _ignoredBackends;
         for (final ServiceDefinition backendSvc : m_mainService.getClusterBackends()) {
