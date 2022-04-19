@@ -80,6 +80,12 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
+* Tue Apr 19 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.4.0
+- feature: 'reload' operation (preview, undocumented)
+- feature: 'scrunattrs' operation (preview, undocumented)
+- improvement: more 'perfinfo' metrics
+- improvement: better log management
+
 * Mon Apr 04 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.3.0
 - feature: Allow configuration by $HOME/.scrc file
 - feature: Allow configuration by /QOpenSys/etc/sc/conf/scrc
