@@ -48,7 +48,7 @@ import jesseg.ibmi.opensource.utils.SbmJobScript;
 public class OperationExecutor {
 
     public enum Operation {
-        CHECK(false), FILE(false), GROUPS(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), RUNATTRS(false), START(true), STOP(true);
+        CHECK(false), SCRUNATTRS(false), FILE(false), GROUPS(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), START(true), STOP(true), RELOAD(true);
         public static Operation valueOfWithAliasing(final String _opStr) {
             final String lookupStr = _opStr.trim().toUpperCase();
             if (lookupStr.equals("STATUS")) {
@@ -200,6 +200,9 @@ public class OperationExecutor {
                 case STOP:
                     stopService(logFile);
                     return logFile;
+                case RELOAD:
+                    reloadService(logFile);
+                    return logFile;
                 case CHECK:
                     printServiceStatus();
                     return null;
@@ -221,7 +224,7 @@ public class OperationExecutor {
                 case LOGINFO:
                     printLogInfo();
                     return null;
-                case RUNATTRS:
+                case SCRUNATTRS:
                     printRunAttrs();
                     return null;
                 case RESTART:
@@ -243,6 +246,30 @@ public class OperationExecutor {
                 }
             }
         }
+    }
+
+    private void reloadService(ScLogFile _logFile) throws SCException, UnsupportedEncodingException, FileNotFoundException, IOException, InterruptedException {
+        List<ServiceDefinition> backends = m_mainService.getClusterBackends();
+        if (2 > backends.size()) {
+            throw new SCException(m_logger, FailureType.GENERAL_ERROR, "ERROR: reload operation requires a cluster with at least two workers defined. Maybe you meant to do a 'restart'?");
+        }
+        try {
+            for (ServiceDefinition backend : backends) {
+                try {
+                    populateNginxConfFile(Collections.singletonList(backend), true);
+                } catch (Exception e) {
+                    throw new SCException(m_logger, FailureType.GENERAL_ERROR, "ERROR: could not reload nginx config", e);
+                }
+                new OperationExecutor(Operation.STOP, backend, m_serviceDefs, m_logger).execute();
+                new OperationExecutor(Operation.START, backend, m_serviceDefs, m_logger).execute();
+            }
+        } finally {
+            populateNginxConfFile(null, true);
+            if (!getServiceStatus().isRunning()) {
+                startService(_logFile);
+            }
+        }
+
     }
 
     private List<ServiceDefinition> findKnownDependents() {
@@ -418,9 +445,11 @@ public class OperationExecutor {
         return !batchUser.trim().equalsIgnoreCase(System.getProperty("user.name"));
     }
 
-    private void populateNginxConfFile(final File _nginxConf) throws UnsupportedEncodingException, FileNotFoundException, IOException {
-        if (!_nginxConf.canRead()) {
-            try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(_nginxConf), "UTF-8")) {
+    private void populateNginxConfFile(final List<ServiceDefinition> _ignoredBackends, boolean _callNginxReloadWhenDone) throws UnsupportedEncodingException, FileNotFoundException, IOException, InterruptedException {
+        // TODO: properly synchronize this method
+        final File nginxConf = new File(m_mainService.getEffectiveWorkingDirectory(), "cluster.conf");
+        if (!nginxConf.canRead()) {
+            try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(nginxConf), "UTF-8")) {
                 //@formatter:off
                 final String fileContents = String.format("pid nginx.pid;\n" +
                         "events {}\n" +
@@ -437,10 +466,14 @@ public class OperationExecutor {
                 out.write(fileContents);
             }
         }
-        final NginxConf conf = new NginxConf(_nginxConf);
-
+        final NginxConf conf = new NginxConf(nginxConf);
         final List<String> upstreams = new LinkedList<String>();
+        final List<ServiceDefinition> ignoredBackends = (null == _ignoredBackends) ? new LinkedList<ServiceDefinition>() : _ignoredBackends;
         for (final ServiceDefinition backendSvc : m_mainService.getClusterBackends()) {
+            if (ignoredBackends.contains(backendSvc)) {
+                m_logger.println_verbose("Ignoring backend: " + backendSvc.getName());
+                continue;
+            }
             m_logger.println_verbose("Processing backend: " + backendSvc.getName());
             final String upstream = "127.0.0.1:" + backendSvc.getCheckAlives().get(0).getValue();
             m_logger.println_verbose("Adding upstream: " + upstream);
@@ -471,15 +504,26 @@ public class OperationExecutor {
         }
         conf.overwrite(new String[] { streamOrHttp, "server" }, "listen", Collections.singletonList("" + portValue + "  backlog=8096"), true);
 
-        try (PrintWriter ps = new PrintWriter(_nginxConf, "UTF-8")) {
+        try (PrintWriter ps = new PrintWriter(nginxConf, "UTF-8")) {
             conf.writeData(ps, 0);
         }
-        final File logsDir = new File(_nginxConf.getParentFile(), "logs");
+        final File logsDir = new File(nginxConf.getParentFile(), "logs");
 
         if (!logsDir.isDirectory() && !logsDir.mkdir()) {
             throw new IOException("Could not create log dir");
         }
         logsDir.setWritable(true);
+        if (_callNginxReloadWhenDone) {
+            String reloadCmd = "/QOpenSys/pkgs/bin/nginx -p $(pwd) -c $(pwd)/cluster.conf -s reload";
+            final File directory = new File(m_mainService.getEffectiveWorkingDirectory());
+            final Process p = Runtime.getRuntime().exec(new String[] { getBash(), "-c", reloadCmd }, null, directory);
+            ProcessLauncher.pipeStreamsToCurrentProcess("nginx reload", p, m_logger);
+            int rc = p.waitFor();
+            if (0 != rc) {
+                throw new IOException("nginx command returned error");
+            }
+            m_logger.println("Cluster configuration refreshed");
+        }
     }
 
     private void printFile() {
@@ -656,7 +700,7 @@ public class OperationExecutor {
         for (final ServiceDefinition backend : m_mainService.getClusterBackends()) {
             m_logger.printf_verbose("Attempting to get env for backend job '%s'...\n", backend.getFriendlyName());
             try {
-                new OperationExecutor(Operation.RUNATTRS, backend.getName(), m_serviceDefs, m_logger).execute();
+                new OperationExecutor(Operation.SCRUNATTRS, backend.getName(), m_serviceDefs, m_logger).execute();
             } catch (final Exception e) {
                 throw new SCException(m_logger, e, FailureType.GENERAL_ERROR, "ERROR: Could not get env for backend job '%s' for cluster mode: %s", backend.getFriendlyName(), e.getLocalizedMessage());
             }
@@ -741,8 +785,7 @@ public class OperationExecutor {
         // If running cluster mode, dynamically configure nginx and start our cluster backends first
         if (m_mainService.isClusterMode()) {
             m_logger.printfln_verbose("Starting service '%s' in cluster mode", m_mainService.getFriendlyName());
-            final File nginxConf = new File(m_mainService.getEffectiveWorkingDirectory(), "cluster.conf");
-            populateNginxConfFile(nginxConf);
+            populateNginxConfFile(null, false);
             m_logger.printfln_verbose("Cluster configuration refreshed");
 
             // If running cluster mode, stop all the backend jobs (concurrently)
@@ -768,7 +811,7 @@ public class OperationExecutor {
             throw new SCException(m_logger, FailureType.INVALID_SERVICE_CONFIG, "No start command specified for service '%s'", m_mainService.getFriendlyName());
         }
         if (m_mainService.isClusterMode()) {
-            command = "nginx -p $(pwd) -c $(pwd)/cluster.conf";
+            command = "/QOpenSys/pkgs/bin/nginx -p $(pwd) -c $(pwd)/cluster.conf";
         }
 
         final File directory = new File(m_mainService.getEffectiveWorkingDirectory());
