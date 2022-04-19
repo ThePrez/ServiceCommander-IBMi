@@ -180,8 +180,8 @@ public class ProcessLauncher {
 
     private static List<String> getStreamDataFromProcess(final Process _p, final InputStream _stream) throws IOException {
         final List<String> ret = new LinkedList<String>();
-        
-        // You may be thinking, "I think some of the stream handling is convoluted and 
+
+        // You may be thinking, "I think some of the stream handling is convoluted and
         // there are more approbated patterns for this, and you'd be right! This mess is to work
         // around a suspected JDK bug. When the system is under stress, it exposed a timing window
         // whereby the BufferedReader.readLine() call waited to receive output from a process,
@@ -195,8 +195,8 @@ public class ProcessLauncher {
         //
         // This convoluted loop guarantees that BufferedReader.readLine() is only called when
         // One of the following is true:
-        //   - there is data already able to be consumed without blocking
-        //   - the process is already ended, avoiding the suspected bug and deadlock scenario
+        // - there is data already able to be consumed without blocking
+        // - the process is already ended, avoiding the suspected bug and deadlock scenario
         try (BufferedReader br = new BufferedReader(new InputStreamReader(_stream, "UTF-8"))) {
             while (true) {
                 if (!br.ready()) {

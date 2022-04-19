@@ -3,6 +3,7 @@ package jesseg.ibmi.opensource.nginx;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -91,9 +92,25 @@ public class NginxConf {
     public void overwrite(final String[] _path, final String _prop, final List<String> _values, final boolean _create) {
         final NginxConfNode node = getNode(_path, _create);
         node.purgeProperty(_prop);
+        if (null == _values) {
+            return;
+        }
         for (final String value : _values) {
             node.addProperty(_prop, value);
         }
+    }
+
+    public void remove(final String... _path) {
+        try {
+            final LinkedList<String> path = new LinkedList<String>(Arrays.asList(_path));
+            final String removalNode = path.removeLast();
+            final NginxConfNode node = getNode(path.toArray(new String[0]), false);
+            final NginxConfNode child = getNode(_path, false);
+            node.removeChild(child);
+        } catch (final NoSuchElementException e) {
+            // nothing to remove
+        }
+
     }
 
     public void writeData(final PrintWriter _ps, final int _i) {
