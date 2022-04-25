@@ -36,10 +36,10 @@ to batch, and more
 
 
 %prep
-%setup -n ServiceCommander-IBMi-%{version} SC_VERSION=%{version}
+%setup -n ServiceCommander-IBMi-%{version}
 
 %build
-%make_build all
+%make_build all SC_VERSION=%{version}
 
 
 %install
