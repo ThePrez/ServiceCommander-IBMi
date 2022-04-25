@@ -1,7 +1,7 @@
 
 SC_VERSION := "Development Build (built with Make)"
 
-target/sc.jar: FORCE /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/bin/mvn
+target/sc.jar: FORCE
 	JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11 /QOpenSys/pkgs/bin/mvn -Dsc.version=${SC_VERSION} package
 	cp target/sc-*-with-dependencies.jar target/sc.jar
 
@@ -46,7 +46,7 @@ cc/QOpenSys/pkgs/bin/nohup:
 /QOpenSys/pkgs/bin/md2man-roff: /QOpenSys/pkgs/bin/ruby /QOpenSys/pkgs/bin/cc /QOpenSys/pkgs/lib/libutil.so 
 	CC=gcc gem install md2man
 
-install_runtime_dependencies: /QOpenSys/pkgs/bin/db2util /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/bin/nohup
+install_runtime_dependencies: /QOpenSys/pkgs/bin/db2util /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java /QOpenSys/pkgs/bin/nohup /QOpenSys/pkgs/bin/mvn
 
 install_with_runtime_dependencies: install install_runtime_dependencies
 
