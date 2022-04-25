@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 1.4.2
+Version: 1.4.3
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -8,6 +8,12 @@ Url: https://github.com/ThePrez/ServiceCommander-IBMi
 
 Obsoletes: sc
 
+# Looks like ca-certificates-mozilla is required for maven to install dependencies
+# otherwise there won't be any certs in the trust store and maven will fail with:
+# Unexpected error: java.security.InvalidAlgorithmParameterException: the trustAnchors parameter must be non-empty
+# The maven package has been rebuilt to require this, but it's harmless to duplicate here
+# and enables successful builds without requiring the maven update
+BuildRequires: ca-certificates-mozilla
 BuildRequires: make-gnu
 BuildRequires: maven
 BuildRequires: openjdk-11
@@ -80,8 +86,8 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
-* Tue Apr 25 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.4.2
-- build: fixup broken chroot build
+* Tue Apr 25 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.4.3
+- build: fixup broken chroot build and other misc fixes
 
 * Tue Apr 19 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.4.0
 - feature: 'reload' operation (preview, undocumented)
