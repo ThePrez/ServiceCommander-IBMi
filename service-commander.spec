@@ -30,7 +30,7 @@ to batch, and more
 
 
 %prep
-%setup -n ServiceCommander-IBMi-%{version}
+%setup -n ServiceCommander-IBMi-%{version} SC_VERSION=%{version}
 
 %build
 %make_build all
