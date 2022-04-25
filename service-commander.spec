@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 1.4.1
+Version: 1.4.2
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -80,7 +80,7 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
-* Tue Apr 19 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.4.1
+* Tue Apr 25 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.4.2
 - build: fixup broken chroot build
 
 * Tue Apr 19 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.4.0
