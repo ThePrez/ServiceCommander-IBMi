@@ -48,7 +48,7 @@ import jesseg.ibmi.opensource.utils.SbmJobScript;
 public class OperationExecutor {
 
     public enum Operation {
-        CHECK(false), SCRUNATTRS(false), FILE(false), GROUPS(false), INFO(false), JOBINFO(false), LIST(false), LOGINFO(false), PERFINFO(false), RESTART(true), START(true), STOP(true), RELOAD(true);
+        CHECK(false), FILE(false), GROUPS(false), INFO(false), JOBINFO(false), KILL(true), LIST(false), LOGINFO(false), PERFINFO(false), RELOAD(true), RESTART(true), SCRUNATTRS(false), START(true), STOP(true);
         public static Operation valueOfWithAliasing(final String _opStr) {
             final String lookupStr = _opStr.trim().toUpperCase();
             if (lookupStr.equals("STATUS")) {
@@ -198,7 +198,11 @@ public class OperationExecutor {
                     startService(logFile);
                     return logFile;
                 case STOP:
-                    stopService(logFile);
+                    stopService(logFile, false);
+                    return logFile;
+
+                case KILL:
+                    stopService(logFile, true);
                     return logFile;
                 case RELOAD:
                     reloadService(logFile);
@@ -228,11 +232,11 @@ public class OperationExecutor {
                     printRunAttrs();
                     return null;
                 case RESTART:
-                    stopService(logFile);
+                    stopService(logFile, false);
                     startService(logFile);
                     return logFile;
                 default:
-                    return null;
+                    throw new SCException(m_logger, FailureType.UNSUPPORTED_OPERATION, "Unsupported operation %s", m_op.name());
             }
         } catch (final Exception e) {
             if (e instanceof SCException) {
@@ -246,30 +250,6 @@ public class OperationExecutor {
                 }
             }
         }
-    }
-
-    private void reloadService(ScLogFile _logFile) throws SCException, UnsupportedEncodingException, FileNotFoundException, IOException, InterruptedException {
-        List<ServiceDefinition> backends = m_mainService.getClusterBackends();
-        if (2 > backends.size()) {
-            throw new SCException(m_logger, FailureType.GENERAL_ERROR, "ERROR: reload operation requires a cluster with at least two workers defined. Maybe you meant to do a 'restart'?");
-        }
-        try {
-            for (ServiceDefinition backend : backends) {
-                try {
-                    populateNginxConfFile(Collections.singletonList(backend), true);
-                } catch (Exception e) {
-                    throw new SCException(m_logger, FailureType.GENERAL_ERROR, "ERROR: could not reload nginx config", e);
-                }
-                new OperationExecutor(Operation.STOP, backend, m_serviceDefs, m_logger).execute();
-                new OperationExecutor(Operation.START, backend, m_serviceDefs, m_logger).execute();
-            }
-        } finally {
-            populateNginxConfFile(null, true);
-            if (!getServiceStatus().isRunning()) {
-                startService(_logFile);
-            }
-        }
-
     }
 
     private List<ServiceDefinition> findKnownDependents() {
@@ -445,7 +425,7 @@ public class OperationExecutor {
         return !batchUser.trim().equalsIgnoreCase(System.getProperty("user.name"));
     }
 
-    private void populateNginxConfFile(final List<ServiceDefinition> _ignoredBackends, boolean _callNginxReloadWhenDone) throws UnsupportedEncodingException, FileNotFoundException, IOException, InterruptedException {
+    private void populateNginxConfFile(final List<ServiceDefinition> _ignoredBackends, final boolean _callNginxReloadWhenDone) throws UnsupportedEncodingException, FileNotFoundException, IOException, InterruptedException {
         // TODO: properly synchronize this method
         final File nginxConf = new File(m_mainService.getEffectiveWorkingDirectory(), "cluster.conf");
         if (!nginxConf.canRead()) {
@@ -514,11 +494,11 @@ public class OperationExecutor {
         }
         logsDir.setWritable(true);
         if (_callNginxReloadWhenDone) {
-            String reloadCmd = "/QOpenSys/pkgs/bin/nginx -p $(pwd) -c $(pwd)/cluster.conf -s reload";
+            final String reloadCmd = "/QOpenSys/pkgs/bin/nginx -p $(pwd) -c $(pwd)/cluster.conf -s reload";
             final File directory = new File(m_mainService.getEffectiveWorkingDirectory());
             final Process p = Runtime.getRuntime().exec(new String[] { getBash(), "-c", reloadCmd }, null, directory);
             ProcessLauncher.pipeStreamsToCurrentProcess("nginx reload", p, m_logger);
-            int rc = p.waitFor();
+            final int rc = p.waitFor();
             if (0 != rc) {
                 throw new IOException("nginx command returned error");
             }
@@ -750,6 +730,30 @@ public class OperationExecutor {
         m_logger.printfln("  %s | %s%s (%s) %s", paddedStatusString, indent, StringUtils.colorizeForTerminal(m_mainService.getName(), statusColor), m_mainService.getFriendlyName(), partialInfo);
     }
 
+    private void reloadService(final ScLogFile _logFile) throws SCException, UnsupportedEncodingException, FileNotFoundException, IOException, InterruptedException {
+        final List<ServiceDefinition> backends = m_mainService.getClusterBackends();
+        if (2 > backends.size()) {
+            throw new SCException(m_logger, FailureType.GENERAL_ERROR, "ERROR: reload operation requires a cluster with at least two workers defined. Maybe you meant to do a 'restart'?");
+        }
+        try {
+            for (final ServiceDefinition backend : backends) {
+                try {
+                    populateNginxConfFile(Collections.singletonList(backend), true);
+                } catch (final Exception e) {
+                    throw new SCException(m_logger, FailureType.GENERAL_ERROR, "ERROR: could not reload nginx config", e);
+                }
+                new OperationExecutor(Operation.STOP, backend, m_serviceDefs, m_logger).execute();
+                new OperationExecutor(Operation.START, backend, m_serviceDefs, m_logger).execute();
+            }
+        } finally {
+            populateNginxConfFile(null, true);
+            if (!getServiceStatus().isRunning()) {
+                startService(_logFile);
+            }
+        }
+
+    }
+
     private boolean shouldOutputGoToSplf() throws SCException {
         // User asked for it, so....
         if (m_mainService.getBatchMode().isBatch() && Boolean.getBoolean(PROP_BATCHOUTPUT_SPLF)) {
@@ -846,7 +850,7 @@ public class OperationExecutor {
                 envp.add("PORT_PLUS_" + i + "=" + (checkAlivePort + i));
             }
         }
-        if(m_mainService.isClusterBackend()) {
+        if (m_mainService.isClusterBackend()) {
             envp.add("HOSTNAME=localhost");
         }
 
@@ -937,13 +941,13 @@ public class OperationExecutor {
         }
     }
 
-    private void stopService(final ScLogFile logFile) throws IOException, InterruptedException, NumberFormatException, SCException {
+    private void stopService(final ScLogFile logFile, final boolean _isKillingForcefully) throws IOException, InterruptedException, NumberFormatException, SCException {
 
         // Stop all dependent services before stopping this one.
         for (final ServiceDefinition dependentService : findKnownDependents()) {
             m_logger.printf("Attempting to stop dependent service '%s'...\n", dependentService.getFriendlyName());
             try {
-                new OperationExecutor(Operation.STOP, dependentService.getName(), m_serviceDefs, m_logger).execute();
+                new OperationExecutor(_isKillingForcefully ? Operation.KILL : Operation.STOP, dependentService.getName(), m_serviceDefs, m_logger).execute();
             } catch (final Exception e) {
                 throw new SCException(m_logger, e, FailureType.ERROR_STOPPING_DEPENDENT, "ERROR: Could not stop dependent service '%s' in order to stop service '%s': %s", dependentService.getFriendlyName(), m_mainService.getFriendlyName(), e.getLocalizedMessage());
             }
@@ -976,8 +980,9 @@ public class OperationExecutor {
         } else if ("<backend".equals(m_mainService.getSource())) {
             command = "";
         }
-        if (StringUtils.isEmpty(command)) {
+        if (_isKillingForcefully || StringUtils.isEmpty(command)) {
             // If the user doesn't provide a custom stop command, that's OK. We go directly to ENDJOB.
+            // Same thing if doing the 'kill' operation. Straight to ENDJOB
             knownJobList.addAll(stopViaEndJob(m_mainService.getShutdownWaitTime(), StringUtils.isNonEmpty(m_mainService.getStopCommand())));
         } else {
             // If the user provided a custom stop command, let's go try to execute it.
