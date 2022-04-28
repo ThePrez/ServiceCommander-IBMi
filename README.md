@@ -166,12 +166,13 @@ Usage: sc  [options] <operation> <service>
     Valid operations include:
         start: start the service (and any dependencies)
         stop: stop the service (and dependent services)
+        kill: stop the service (and dependent services) forcefully
         restart: restart the service
         check: check status of the service
         info: print configuration info about the service
         jobinfo: print basic performance info about the service
         perfinfo: print basic performance info about the service
-        loginfo: get log file info for the service (best guess only)
+        loginfo: get log file info for the service (if running)
         list: print service short name and friendly name
         groups: print an overview of all groups
 

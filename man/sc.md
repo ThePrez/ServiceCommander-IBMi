@@ -318,6 +318,7 @@ Usage: sc  [options] <operation> <service>
     Valid operations include:
         start: start the service (and any dependencies)
         stop: stop the service (and dependent services)
+        kill: stop the service (and dependent services) forcefully
         restart: restart the service
         check: check status of the service
         info: print configuration info about the service
