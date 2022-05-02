@@ -1,3 +1,18 @@
 #!/QOpenSys/pkgs/bin/bash
-export LC_ALL=EN_US.UTF-8
+
+if [[ "$LC_ALL" != *UTF-8* ]]; then
+    # LC_ALL is not set. Set it to EN_US.UTF-8 if present
+    if [ -e /usr/lib/nls/loc/EN_US.UTF-8 ]; then
+        export LC_ALL=EN_US.UTF-8
+    else
+        # EN_US.UTF-8 is not present. Look for installed UTF-8 locale
+        INSTALLEDUTF8LOCALE=$(ls -b /usr/lib/nls/loc | grep -E '.UTF-8$' | tail -n 1)
+        if [[ "" = "$INSTALLEDUTF8LOCALE" ]]; then
+            >&2 echo "WARNING: Cannot find a UTF-8 locale installed on this system."
+        else
+            export LC_ALL=$INSTALLEDUTF8LOCALE
+        fi
+    fi
+fi
+
 exec /QOpenSys/pkgs/lib/jvm/openjdk-11/bin/java -cp $(dirname $(/QOpenSys/pkgs/bin/readlink -f $0))/../lib/sc/sc.jar jesseg.ibmi.opensource.ServiceInit $@
