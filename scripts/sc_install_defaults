@@ -176,7 +176,10 @@ fi
 
 if [ "1" == "$DO_IWS" ]; then
     for i in $(qsh -c "JAVA_TOOL_OPTIONS=-Dos400.stdio.convert=N /qibm/proddata/os/webservices/bin/listWebServicesServers.sh |cut -d' ' -f1"); do
-        install_iws $i
+        if [ "IWS00105I" != "$i" ];
+        then
+            install_iws $i
+        fi
     done
 fi
 
