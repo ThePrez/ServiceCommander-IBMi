@@ -38,7 +38,7 @@ jobs:
         echo "short_sha=$(echo ${{ github.sha }} | head -c 7)" >> $GITHUB_ENV
         cat $GITHUB_ENV
     - name: Perform remote build
-      run: $ssh_command "cd $remote_build_dir && mkdir ./rpmbuild && PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/bin time /QOpenSys/pkgs/bin/rpmbuild -bb --build-in-place --define '_topdir $remote_build_dir/rpmbuild' --define '_disable_source_fetch 1' service-commander.spec"
+      run: $ssh_command "cd $remote_build_dir && mkdir -p ./rpmbuild && PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/bin time /QOpenSys/pkgs/bin/rpmbuild -bb --build-in-place --define '_topdir $remote_build_dir/rpmbuild' --define '_disable_source_fetch 1' service-commander.spec"
     - name: list RPMs
       run: $ssh_command "find $remote_build_dir -name \*.rpm"
     - name: Retrieve artifact
