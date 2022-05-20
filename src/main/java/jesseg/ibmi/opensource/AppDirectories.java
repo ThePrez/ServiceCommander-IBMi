@@ -61,8 +61,10 @@ public enum AppDirectories {
         }
         final File tmpLogsDir = new File(System.getProperty("java.io.tmpdir", "/tmp") + "/.sc_logs_" + _user.trim().toLowerCase());
         _logger.printfln_verbose("Using temporary directory '%s' for logs for user '%s'", tmpLogsDir.getAbsolutePath(), _user);
-        if (!tmpLogsDir.mkdir()) {
-            throw new SCException(_logger, FailureType.GENERAL_ERROR, "ERROR: Unable to create log dir '%s'", tmpLogsDir.getAbsolutePath());
+        if (!tmpLogsDir.isDirectory()) {
+            if (!tmpLogsDir.mkdir()) {
+                throw new SCException(_logger, FailureType.GENERAL_ERROR, "ERROR: Unable to create log dir '%s'", tmpLogsDir.getAbsolutePath());
+            }
         }
         try {
             if (0 != quickExec("/QOpenSys/usr/bin/chown", _user.toLowerCase().trim(), tmpLogsDir.getAbsolutePath())) {
