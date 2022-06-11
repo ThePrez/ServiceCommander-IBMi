@@ -672,6 +672,7 @@ There are a couple special groups used by the TCP server support. You can define
 
 - `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
 - `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
+- `system`, which contains the system services and is used when invoked on anything but the `*ALL` instance. This makes it possible to start or stop a system service using ServiceCommander. E.g. to end the NetServer service, run `ENDTCPSVR SERVER(*SC) INSTANCE('system_netserver')`.
 
 #### Running two or more STRTCPSVR commands simultaneously
 
