@@ -40,7 +40,6 @@
     - [Special groups used by STRTCPSVR/ENDTCPSVR](#special-groups-used-by-strtcpsvrendtcpsvr)
     - [Running two or more STRTCPSVR commands simultaneously](#running-two-or-more-strtcpsvr-commands-simultaneously)
     - [Using with ADDJOBSCDE](#using-with-addjobscde)
-    - [Special groups used by STRTCPSVR/ENDTCPSVR](#special-groups-used-by-strtcpsvrendtcpsvr-1)
 - [Demo (video)](#demo-video)
 - [Have feedback or want to contribute?](#have-feedback-or-want-to-contribute)
 - [Testimonials](#testimonials)
@@ -673,6 +672,7 @@ There are a couple special groups used by the TCP server support. You can define
 
 - `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
 - `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
+- `system`, which contains the system services and is used when invoked on anything but the `*ALL` instance. This makes it possible to start or stop a system service using ServiceCommander. E.g. to end the NetServer service, run `ENDTCPSVR SERVER(*SC) INSTANCE('system_netserver')`.
 
 #### Running two or more STRTCPSVR commands simultaneously
 
@@ -695,13 +695,6 @@ running, every day at 01:00:
 ```cl
 ADDJOBSCDE JOB(SC) CMD(STRTCPSVR SERVER(*SC) INSTANCE('myapp')) FRQ(*WEEKLY) SCDDATE(*NONE) SCDDAY(*ALL) SCDTIME(010000)
 ```
-
-#### Special groups used by STRTCPSVR/ENDTCPSVR
-
-There are a couple special groups used by the TCP server support. You can define your services to be members of one or more of these groups:
-
-- `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
-- `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
 
 ## Demo (video)
 
