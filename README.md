@@ -51,7 +51,7 @@
 
 A utility for unifying the daunting task of managing various services and applications running on IBM i. Its objective is to provide an intuitive, easy-to-use command line interface for managing services or jobs. It also provides integration with `STRTCPSVR`.
 
-This tool can be used to manage a number of services, for instance:
+Service Commander can be used to manage a number of services, for instance:
 
 - IBM i host server jobs
 - IBM i standard TCP servers (\*FTP, \*SSHD, etc.)
@@ -69,7 +69,7 @@ This tool can be used to manage a number of services, for instance:
 
 Some of the features of the tool include:
 
-- The ability to specify dependencies (for instance, if one application or service dependds on another), and it will start any dependencies as needed
+- The ability to specify dependencies (for instance, if one application or service depends on another), and it will start any dependencies as needed
 - The ability to submit jobs to batch easily, even with custom batch settings (use your own job description or submit as another user, for instance)
 - The ability to check the "liveliness" of your service by either port status or job name
 - Customize the runtime environment variables of your job
@@ -87,9 +87,9 @@ Service Commander's design is fundamentally different from other tools that acco
 - What other tools may be used to start or stop the service. For instance, Service Commander may start/stop an IBM i host server, but so could the `STRHOSTSVR`/`ENDHOSTSVR` CL commands.
 - Whether the service runs in the initially spawned job or a secondary job
 
-Also, this tool doesn't have the privilege of being the unified, integrated solution with the operating system that other tools may have. Therefore, Service Commander cannot take the liberty of assuming that it can keep track of the resources tied to the services that it manages. So, for example, this tool does not keep track of process IDs of launched processes. Similarly, it doesn't have special access to kernel data structures, etc.
+Also, this tool doesn't have the privilege of being the unified, integrated solution with the operating system that other tools may have. Therefore, Service Commander cannot take the liberty of assuming that it can keep track of the resources tied to the services that it manages. So, for example, Service Commander does not keep track of process IDs of launched processes. Similarly, it doesn't have special access to kernel data structures, etc.
 
-Instead, this tool makes strong assumptions based on checks for a particular job name or port usage (see `check_alive` in the file format documentation). A known limitation, therefore, is that Service Commander may mistake another job for a configured service based on one of these attributes. For example, if you configure a service that is supposed to be listening on port 80, Service Commander will assume that any job listening on port 80 is indeed that service.
+Instead, Service Commander makes strong assumptions based on checks for a particular job name or port usage (see `check_alive` in the file format documentation). A known limitation, therefore, is that Service Commander may mistake another job for a configured service based on one of these attributes. For example, if you configure a service that is supposed to be listening on port 80, Service Commander will assume that any job listening on port 80 is indeed that service.
 
 Service Commander's unique design is intended to offer a great deal of flexibility and ease of management through the use of simple `.yaml` files.
 
@@ -97,7 +97,7 @@ Service Commander's unique design is intended to offer a great deal of flexibili
 
 ### System Requirements
 
-For most of the features of this tool, the following is required to be installed (the installation steps should handle these for you):
+For most of the features of Service Commander, the following is required to be installed (the installation steps should handle these for you):
 
 - db2util (`yum install db2util`)
 - OpenJDK (`yum install openjdk-11`)
@@ -126,7 +126,7 @@ If you are not familiar with IBM i RPMs, see [this documentation](http://ibm.biz
 
 ### Option 2: Build from source (for development or fix evaluation)
 
-Feel free to build from the `main` branch to start making code contributions or to evaluate a fix/feature not yet publish. This process assumes your `PATH` environment variable is set up properly, otherwise:
+Feel free to build from the `main` branch to start making code contributions or to evaluate a fix/feature not yet published. This process assumes your `PATH` environment variable is set up properly, otherwise:
 
 ```bash
 PATH=/QOpenSys/pkgs/bin:$PATH
@@ -400,6 +400,7 @@ The idea is that you would simply:
 1. `cd` to the directory where you'd normally start the service
 2. Run the command you'd normally use to start the service, prefixed by `scinit`
 3. Answer a series of questions about how you would like the service deployed
+
 In doing so, the `scinit` will create the YAML configuration file for you and also show you information about the newly-configured service.
 
 For instance, if you would normally launch a Node.js application from `/home/MYUSR/mydir` by running `node app.js`, you would run:
@@ -430,7 +431,7 @@ When activated, `scedit` will locate the YAML file for the service and open the 
 
 ### Ad hoc service definition
 
-Ad hoc services can be specified on the sc command line in the format `job:jobname` or `port:portname`.
+Ad hoc services can be specified on the `sc` command line in the format `job:jobname` or `port:portname`.
 In these instances, the operations will be performed on the specified jobs. This is determined by looking for
 jobs matching the given job name or listening on the given port. The job name can be specified either in
 `jobname` or `subsystem/jobname` format. It can also be specified in `PGM-____` format to check for jobs running
@@ -449,17 +450,18 @@ whatever job is running on port 8080.
 
 ### Directly creating/editing YAML configuration files
 
-This tool allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
+Service Commander allows you to define any services of interest in `.yaml` files. These files can be stored in any of the following locations:
 
 - A global directory (/QOpenSys/etc/sc/services). This, of course, requires you to have admin access (`*ALLOBJ` special authority).
 - A user-specific directory($HOME/.sc/services)
 - If defined, whatever the value of the `services.dir` system property is.
+
 The file name must be in the format of `service_name.yaml` (or `service_name.yml`), where "service_name" is the "simple name" of the service as to be used with this tool's CLI. The service name must consist of only lowercase letters, numbers, hyphens, and underscores.
 
-The file can also be located in any arbitrary directory, but it must be explicitly passed along to the `sc` command, for instance
+The file can also be located in any arbitrary directory, but it must be explicitly passed along to the `sc` command, for instance:
 
 ```bash
-sc start myservice.yml
+sc start /tmp/my_service.yml
 ```
 
 #### YAML File Format
@@ -484,7 +486,7 @@ multiple criteria, just use a comma-separated list or a YAML String array.
 - `startup_wait_time`: The wait time, in seconds, to wait for the service to start up (the default is 60 seconds if unspecified)
 - `stop_wait_time`: The wait time, in seconds, to wait for the service to stop (the default is 45 seconds if unspecified)
 - `log_dir`: The directory for storing log files created by Service Commander
-- `cluster`: Enable cluster mode by providing a comma-separated list of ports (see "Cluster Mode," below)
+- `cluster`: Enable cluster mode by providing a comma-separated list of ports (see [Cluster Mode](#cluster-mode) below)
 - `batch_mode`: Whether or not to submit the service to batch
 - `sbmjob_jobname`: If submitting to batch, the custom job name to be used for the batch job
 - `sbmjob_opts`: If submitting to batch, custom options for the SBMJOB command (for instance, a custom JOBD)
@@ -548,7 +550,7 @@ check_alive: 9333
 
 The application is still expected to run on 9333, so in the case of a web server, it would still run at
 `http://<system_name>:9333`. Service Commander will run four backend worker jobs, running on ports 9334, 9335,
-9336, and 9337.
+9336 and 9337.
 
 #### Prerequisites for Cluster Mode
 
@@ -590,8 +592,8 @@ This is _NOT YET SUPPORTED_
 
 ##### cluster.conf
 
-When a service is first started in cluster mode, a `cluster.conf` file is created in the service's working directory. Cluster mode is built on top of nginx,
-and this file is the nginx configuration file. Once `cluster.conf` is created, you can feel free to edit it in any way that is supported by nginx.
+When a service is first started in cluster mode, a `cluster.conf` file is created in the service's working directory. Cluster mode is built on top of `nginx`,
+and this file is the nginx configuration file. Once `cluster.conf` is created, you can feel free to edit it in any way that is supported by `nginx`.
 For instance, this example:
 
 - uses the **http** methodology for load balancing
@@ -629,7 +631,7 @@ http {
 
 ### Automatically restarting a service if it fails
 
-Currently, this tool does not have built-in monitoring and restart capabilities. This may be a future enhancement. In the meantime, one can use simple scripting to accomplish a similar task. For instance, to check every 40 seconds and ensure that the `navigator` service is running, you could submit a job like this (replace the sleep time, service name, and submitted job name to match your use case):
+Currently, Service Commander does not have built-in monitoring and restart capabilities. This may be a future enhancement. In the meantime, one can use simple scripting to accomplish a similar task. For instance, to check every 40 seconds and ensure that the `navigator` service is running, you could submit a job like this (replace the sleep time, service name, and submitted job name to match your use case):
 
 ```cl
 SBMJOB CMD(CALL PGM(QP2SHELL2) PARM('/QOpenSys/usr/bin/sh' '-c' 'while :; do sleep 40 && /QOpenSys/pkgs/bin/sc start navigator >/dev/null 2>&1 ; done')) JOB(NAVMON) JOBD(*USRPRF) JOBQ(QUSRNOMAX)
@@ -683,7 +685,7 @@ There are a couple special groups used by the TCP server support. You can define
 
 - `default`, which is what's started or ended if no instance is specified (i.e. `STRTCPSVR SERVER(*SC)`)
 - `autostart`, which is what's started when invoked on the `*AUTOSTART` instance (i.e. `STRTCPSVR SERVER(*SC) INSTANCE(*AUTOSTART)`)
-- `system`, which contains the system services and is used when invoked on anything but the `*ALL` instance. This makes it possible to start or stop a system service using ServiceCommander. E.g. to end the NetServer service, run `ENDTCPSVR SERVER(*SC) INSTANCE('system_netserver')`.
+- `system`, which contains the system services and is used when invoked on anything but the `*ALL` instance. This makes it possible to start or stop a system service using ServiceCommander. For instance, to end the NetServer service, run `ENDTCPSVR SERVER(*SC) INSTANCE('system_netserver')`.
 
 #### Running two or more STRTCPSVR commands simultaneously
 
