@@ -645,8 +645,7 @@ This will result in several jobs that continuously check on the service and atte
 
 ### STRTCPSVR Integration
 
-Service Commander now has integration with system STRTCPSVR and ENDTCPSVR commands. This feature is experimental and may be removed
-if too problematic.
+Service Commander now has integration with system STRTCPSVR and ENDTCPSVR commands.
 
 To integrate with the STRTCPSVR and ENDTCPSVR commands, you can run the following command as an admin user:
 
