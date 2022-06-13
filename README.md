@@ -10,6 +10,7 @@
   - [System Requirements](#system-requirements)
   - [Option 1: Binary distribution](#option-1-binary-distribution)
   - [Option 2: Build from source (for development or fix evaluation)](#option-2-build-from-source-for-development-or-fix-evaluation)
+  - [Option 3: Install from release on GitHub](#option-3-Install-from-release-on-GitHub)
 - [Hands-on Exercise](#hands-on-exercise)
 - [Basic usage](#basic-usage)
   - [Usage examples](#usage-examples)
@@ -140,6 +141,16 @@ git clone https://github.com/ThePrez/ServiceCommander-IBMi/
 cd ServiceCommander-IBMi
 make install_with_runtime_dependencies
 ```
+
+### Option 3: Install from release on GitHub
+
+If you need any binary distribution of Service Commander not yet in the IBM repository but available as a [release](https://github.com/ThePrez/ServiceCommander-IBMi/releases) on GitHub, you can install the release using `yum` and the URL of the RPM release file:
+
+```bash
+yum install https://github.com/ThePrez/ServiceCommander-IBMi/releases/download/v1.4.3/service-commander-1.4.3-0.ibmi7.2.ppc64.rpm
+```
+
+This will install release 1.4.3 from the RPM file on GitHub.
 
 ## Hands-on Exercise
 
