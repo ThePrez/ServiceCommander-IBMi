@@ -66,7 +66,7 @@ public enum AppDirectories {
         }
         try {
             if (0 != quickExec("/QOpenSys/usr/bin/chown", _user.toLowerCase().trim(), tmpLogsDir.getAbsolutePath())) {
-                throw new SCException(_logger, FailureType.GENERAL_ERROR, "ERROR: Unable to change ownership of log dir '%s'", tmpLogsDir.getAbsolutePath());
+                _logger.printfln_warn_verbose( "ERROR: Unable to change ownership of log dir '%s'", tmpLogsDir.getAbsolutePath());
             }
         } catch (final Exception e) {
             _logger.printfln_warn_verbose( "WARNING: Runtime error attempting to change ownership of log dir '%s'", tmpLogsDir.getAbsolutePath());
