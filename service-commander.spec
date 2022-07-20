@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 1.4.3
+Version: 1.5.0
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -86,6 +86,10 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
+* Wed Jul 20 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.5.0
+- feature: honor symlinking of .yaml files
+- misc bugfixes
+
 * Tue Apr 25 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.4.3
 - build: fixup broken chroot build and other misc fixes
 
