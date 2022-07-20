@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 1.5.0
+Version: 1.5.1
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -25,8 +25,8 @@ Requires: nginx >= 1.16.1-4
 Requires: openjdk-11
 Requires: python39-ibm_db
 
-Source0: https://github.com/ThePrez/ServiceCommander-IBMi/archive/v%{version}.tar.gz
-
+#Source0: https://github.com/ThePrez/ServiceCommander-IBMi/archive/v%{version}.tar.gz
+Source0: https://github.com/ThePrez/ServiceCommander-IBMi/archive/refs/tags/%{version}.tar.gz
 
 %description
 A utility for unifying the daunting task of managing various services and
@@ -86,6 +86,9 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
+* Wed Jul 20 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.5.1
+- bugfix: extraneous log-related messages on 'sc list'
+
 * Wed Jul 20 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.5.0
 - feature: honor symlinking of .yaml files
 - misc bugfixes

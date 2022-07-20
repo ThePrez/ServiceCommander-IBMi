@@ -1,0 +1,71 @@
+
+
+name: Build new release
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - '*' # Push events to matching *, i.e. v1.0, v20.15.10
+
+env:
+  ssh_command: ssh ${{ secrets.IBMI_BUILD_USRPRF }}@${{ secrets.IBMI_BUILD_SYS }}
+  scp_dist_command: scp -r ${{ secrets.IBMI_BUILD_USRPRF }}@${{ secrets.IBMI_BUILD_SYS }}:/home/${{ secrets.IBMI_BUILD_USRPRF }}/rpmbuild/RPMS/ppc64/ .
+  remote_build_dir: /home/${{ secrets.IBMI_BUILD_USRPRF }}/build/${{ github.sha }}
+  rsync_command: rsync -a --exclude='.*' --exclude='runners' --rsync-path=/QOpenSys/pkgs/bin/rsync ./ ${{ secrets.IBMI_BUILD_USRPRF }}@${{ secrets.IBMI_BUILD_SYS }}:/home/${{ secrets.IBMI_BUILD_USRPRF }}/build/${{ github.sha }}/
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install private key
+      run: |
+        mkdir -p ~/.ssh
+        chmod 0755 ~
+        chmod 0700 ~/.ssh
+        echo  "${{ secrets.IBMI_BUILD_PVTKEY }}" > ~/.ssh/id_rsa
+        chmod 0600 ~/.ssh/id_rsa
+    - name: Disable strict host key checking
+      run: |
+        echo "Host *" > ~/.ssh/config
+        echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+    - name: Create build sandbox
+      run: $ssh_command "mkdir -p $remote_build_dir"
+    - name: Populate build sandbox
+      run: $rsync_command
+    - name: Get short SHA ID
+      run: |
+        echo "short_sha=$(echo ${{ github.sha }} | head -c 7)" >> $GITHUB_ENV
+        cat $GITHUB_ENV
+
+    - name: Create the release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release v${{ github.ref }}
+        draft: false
+        prerelease: false
+    - name: Perform remote build
+      run: $ssh_command "cd $remote_build_dir && rm -fr /home/${{ secrets.IBMI_BUILD_USRPRF }}/rpmbuild && PATH=/QOpenSys/pkgs/bin:/QOpenSys/usr/bin:/usr/bin time /QOpenSys/pkgs/bin/rpmbuild -ba service-commander.spec"
+    - name: Retrieve artifact
+      run: $scp_dist_command
+    - name: Cleanup remote build dir
+      if: always()
+      run: $ssh_command "rm -fr $remote_build_dir"
+    - name: List stuff
+      run: find ppc64 -name *.rpm
+    - name: Upload .zip file to release
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./ppc64/service-commander-${{ github.ref }}-0.ibmi7.3.ppc64.rpm
+        asset_name: service-commander-${{ github.ref }}-0.ibmi7.3.ppc64.rpm
+        asset_content_type: application/zip
