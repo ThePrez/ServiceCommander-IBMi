@@ -52,13 +52,14 @@ public class YamlServiceDef extends ServiceDefinition {
     public YamlServiceDef(final String _name, final File _file, final AppLogger _logger) throws SCException {
         m_logger = _logger;
         try {
+            File file = getCanonicalFileIfPossible(_logger, _file);
             _logger.println_verbose("Initializing service " + _name);
-            _logger.println_verbose("Loading yaml service definition from file " + _file);
-            m_source = _file;
-            m_name = ((null == _name) ? YamlServiceDefLoader.getServiceNameFromFile(_file) : _name);
+            _logger.println_verbose("Loading yaml service definition from file " + file);
+            m_source = file;
+            m_name = ((null == _name) ? YamlServiceDefLoader.getServiceNameFromFile(file) : _name);
             final Yaml yaml = new Yaml();
             final Map<String, Object> yamlData;
-            try (FileInputStream fis = new FileInputStream(_file)) {
+            try (FileInputStream fis = new FileInputStream(file)) {
                 yamlData = yaml.load(fis);
             }
 
@@ -144,6 +145,15 @@ public class YamlServiceDef extends ServiceDefinition {
             }
         } catch (final Exception e) {
             throw new SCException(_logger, SCException.FailureType.INVALID_SERVICE_CONFIG, "Invalid configuration for service '%s' from file [%s]: %s", _name, _file.getAbsolutePath(), e.getLocalizedMessage());
+        }
+    }
+
+    private File getCanonicalFileIfPossible(AppLogger _logger, File _file) {
+        try {
+            return _file.getCanonicalFile().getAbsoluteFile();
+        } catch(Exception e) {
+            _logger.printfln_warn_verbose("Couldn't get canonical path for file %s", _file.getAbsolutePath());
+            return _file.getAbsoluteFile();
         }
     }
 

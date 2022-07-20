@@ -61,17 +61,15 @@ public enum AppDirectories {
         }
         final File tmpLogsDir = new File(System.getProperty("java.io.tmpdir", "/tmp") + "/.sc_logs_" + _user.trim().toLowerCase());
         _logger.printfln_verbose("Using temporary directory '%s' for logs for user '%s'", tmpLogsDir.getAbsolutePath(), _user);
-        if (!tmpLogsDir.isDirectory()) {
-            if (!tmpLogsDir.mkdir()) {
-                throw new SCException(_logger, FailureType.GENERAL_ERROR, "ERROR: Unable to create log dir '%s'", tmpLogsDir.getAbsolutePath());
-            }
+        if (!tmpLogsDir.mkdir()) {
+            _logger.printfln_warn_verbose("WARNING: Unable to create log dir '%s'", tmpLogsDir.getAbsolutePath());
         }
         try {
             if (0 != quickExec("/QOpenSys/usr/bin/chown", _user.toLowerCase().trim(), tmpLogsDir.getAbsolutePath())) {
                 throw new SCException(_logger, FailureType.GENERAL_ERROR, "ERROR: Unable to change ownership of log dir '%s'", tmpLogsDir.getAbsolutePath());
             }
         } catch (final Exception e) {
-            throw e instanceof SCException ? (SCException) e : new SCException(_logger, FailureType.GENERAL_ERROR, "ERROR: Runtime error attempting to change ownership of log dir '%s'", tmpLogsDir.getAbsolutePath());
+            _logger.printfln_warn_verbose( "WARNING: Runtime error attempting to change ownership of log dir '%s'", tmpLogsDir.getAbsolutePath());
         }
         return tmpLogsDir;
     }
