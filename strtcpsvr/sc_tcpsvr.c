@@ -194,6 +194,8 @@ int main(int argc, char *argv[])
         instance[i] = tolower(instance[i]);
     }
     int is_ipl = FALSE;
+    char sc_all[3];
+    strcpy(sc_all, "-a");
 #define ISINSTANCE(name) (instance_len == sizeof(name) - 1 && memcmp(parm->instance, name, instance_len) == 0)
     if (ISINSTANCE("*DFT"))
     {
@@ -202,6 +204,7 @@ int main(int argc, char *argv[])
     else if (ISINSTANCE("*ALL"))
     {
         strcpy(instance, "group:all");
+        strcpy(sc_all, "");
     }
     else if (ISINSTANCE("*AUTOSTART"))
     {
@@ -270,7 +273,7 @@ int main(int argc, char *argv[])
     child_argv[2] = "-l";
     child_argv[3] = "-c";
     char sc_cmd[1024];
-    snprintf(sc_cmd, sizeof(sc_cmd), "exec /QOpenSys/pkgs/bin/sc -a %s %s %s 2>&1", sc_options, sc_operation, instance);
+    snprintf(sc_cmd, sizeof(sc_cmd), "exec /QOpenSys/pkgs/bin/sc %s %s %s %s 2>&1", sc_all, sc_options, sc_operation, instance);
     child_argv[4] = sc_cmd;
     child_argv[5] = NULL;
 
