@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.util.NoSuchElementException;
 import java.util.Stack;
 
@@ -39,9 +41,18 @@ public class NginxConfNode {
                     curStr = "";
                 } else if (';' == c) {
                     curStr = curStr.trim();
-                    final String property = curStr.replaceAll("\\s.*", "");
-                    final String value = curStr.replaceFirst("^[^\\s]*\\s+", "");
-                    currentNode.addProperty(property, value);
+                    Pattern pattern = Pattern.compile("^([^\\s]+)\\s*($|.*$)"); //"^(\\S*)\\s*($|.*$)"
+                    Matcher matcher = pattern.matcher(curStr);
+                    String property = null;
+                    String value = null;
+                    while (matcher.find()) {
+                        property = matcher.group(1);
+                        value = matcher.group(2);
+                    }
+                    System.out.println("PARSE CONFIG  >>>>>>>>>>>>>>>>>>>>>");
+                    System.out.println("\t" + "property: " + property);
+                    System.out.println("\t" + "value: " + value);
+                    currentNode.addProperty(property,  value);
                     curStr = "";
                 } else if ('}' == c) {
                     currentNode = stack.pop();
@@ -149,9 +160,15 @@ public class NginxConfNode {
     }
 
     void writeData(final PrintWriter _writer, final int _indent) {
+        // debug utils
+        String tName = Thread.currentThread().getName();
+        System.out.println(tName + ":NginxConfigNode:writeData >>>>>>>>>>>>>>>>>>>>>");
+
         final String indentStr = StringUtils.spacePad("", _indent * INDENTATION_LEN);
         final int childIndent = isRoot() ? 0 : 1 + _indent;
         final String childIndentStr = isRoot() ? "" : StringUtils.spacePad("", childIndent * INDENTATION_LEN);
+
+        
         if (m_properties.isEmpty() && m_childNodes.isEmpty()) {
             _writer.println(indentStr + m_name + " {}");
             return;
@@ -161,7 +178,14 @@ public class NginxConfNode {
         }
         try {
             for (final Entry<String, String> p : m_properties) {
-                _writer.println(childIndentStr + p.getKey() + " " + p.getValue() + ";");
+                String key = p.getKey();
+                String val = p.getValue();
+                if (val.isEmpty() || val == null) {
+                    System.out.println("non value directive ... ");
+                    _writer.println(childIndentStr + key + ";");
+                    continue;
+                }
+                _writer.println(childIndentStr + key + " " + val + ";");
             }
             for (final NginxConfNode child : m_childNodes) {
                 child.writeData(_writer, childIndent);
