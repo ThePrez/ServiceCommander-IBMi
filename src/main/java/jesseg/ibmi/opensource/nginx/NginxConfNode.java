@@ -14,14 +14,15 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.NoSuchElementException;
 import java.util.Stack;
+import com.github.theprez.jcmdutils.AppLogger;
 
 import com.github.theprez.jcmdutils.StringUtils;
 
 public class NginxConfNode {
     private static final int INDENTATION_LEN = 2;
 
-    public static NginxConfNode open(final File _file) throws IOException {
-        final NginxConfNode root = new NginxConfNode(null, true);
+    public static NginxConfNode open(final File _file, final AppLogger _logger) throws IOException {
+        final NginxConfNode root = new NginxConfNode(null, true, _logger);
         if (null == _file) {
             return root;
         }
@@ -43,16 +44,14 @@ public class NginxConfNode {
                     curStr = curStr.trim();
                     Pattern pattern = Pattern.compile("^([^\\s]+)\\s*($|.*$)"); //"^(\\S*)\\s*($|.*$)"
                     Matcher matcher = pattern.matcher(curStr);
-                    String property = null;
-                    String value = null;
-                    while (matcher.find()) {
-                        property = matcher.group(1);
-                        value = matcher.group(2);
+                    if (matcher.find()) {
+                        String property = matcher.group(1);
+                        String value = matcher.group(2);
+                        currentNode.addProperty(property,  value);
+                        root.m_logger.println_verbose("----------------------------------------------------------");
+                        root.m_logger.println_verbose("cluster.conf:property : " + property);
+                        root.m_logger.println_verbose("cluster.conf:value    : " + value);
                     }
-                    System.out.println("PARSE CONFIG  >>>>>>>>>>>>>>>>>>>>>");
-                    System.out.println("\t" + "property: " + property);
-                    System.out.println("\t" + "value: " + value);
-                    currentNode.addProperty(property,  value);
                     curStr = "";
                 } else if ('}' == c) {
                     currentNode = stack.pop();
@@ -74,6 +73,7 @@ public class NginxConfNode {
     private final LinkedList<NginxConfNode> m_childNodes = new LinkedList<NginxConfNode>();
     private final boolean m_isRoot;
     private final String m_name;
+    private final AppLogger m_logger;
 
     private final LinkedList<Entry<String, String>> m_properties = new LinkedList<Entry<String, String>>();
 
@@ -83,9 +83,11 @@ public class NginxConfNode {
         }
         m_name = _name;
         m_isRoot = false;
+        m_logger = null; 
     }
 
-    private NginxConfNode(final String _name, final boolean _isRoot) {
+    private NginxConfNode(final String _name, final boolean _isRoot, final AppLogger _logger) {
+        m_logger = _logger;
         m_isRoot = _isRoot;
         if (_isRoot) {
             m_name = null;
@@ -160,15 +162,9 @@ public class NginxConfNode {
     }
 
     void writeData(final PrintWriter _writer, final int _indent) {
-        // debug utils
-        String tName = Thread.currentThread().getName();
-        System.out.println(tName + ":NginxConfigNode:writeData >>>>>>>>>>>>>>>>>>>>>");
-
         final String indentStr = StringUtils.spacePad("", _indent * INDENTATION_LEN);
         final int childIndent = isRoot() ? 0 : 1 + _indent;
         final String childIndentStr = isRoot() ? "" : StringUtils.spacePad("", childIndent * INDENTATION_LEN);
-
-        
         if (m_properties.isEmpty() && m_childNodes.isEmpty()) {
             _writer.println(indentStr + m_name + " {}");
             return;
@@ -178,14 +174,9 @@ public class NginxConfNode {
         }
         try {
             for (final Entry<String, String> p : m_properties) {
-                String key = p.getKey();
                 String val = p.getValue();
-                if (val.isEmpty() || val == null) {
-                    System.out.println("non value directive ... ");
-                    _writer.println(childIndentStr + key + ";");
-                    continue;
-                }
-                _writer.println(childIndentStr + key + " " + val + ";");
+                String valString = (val.isEmpty() || val == null) ? "" : " " + val;
+                _writer.println(childIndentStr + p.getKey() + valString + ";");
             }
             for (final NginxConfNode child : m_childNodes) {
                 child.writeData(_writer, childIndent);
