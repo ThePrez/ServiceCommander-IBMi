@@ -427,7 +427,6 @@ public class OperationExecutor {
 
     private void populateNginxConfFile(final List<ServiceDefinition> _ignoredBackends, final boolean _callNginxReloadWhenDone) throws UnsupportedEncodingException, FileNotFoundException, IOException, InterruptedException {
         // TODO: properly synchronize this method
-        System.out.println("in Populate config file ...");
         final File nginxConf = new File(m_mainService.getEffectiveWorkingDirectory(), "cluster.conf");
         if (!nginxConf.canRead()) {
             try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(nginxConf), "UTF-8")) {
