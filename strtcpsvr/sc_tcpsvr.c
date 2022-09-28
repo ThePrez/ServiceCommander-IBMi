@@ -344,7 +344,6 @@ int main(int argc, char *argv[])
         {
             *linePtr = '\0';
             Qp0zLprintf("%s\n", line);
-            printf("%s\n", line);
             linePtr = line;
             memset(line, 0, sizeof(line));
         }
@@ -354,7 +353,6 @@ int main(int argc, char *argv[])
         }
     }
     Qp0zLprintf("%s\n", line);
-    printf("%s\n", line);
 
     // Close out the descriptor now that data from the pipe is fully consumed
     close(stdoutFds[0]);
