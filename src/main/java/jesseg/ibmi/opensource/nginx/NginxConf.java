@@ -48,7 +48,8 @@ public class NginxConf {
 
         NginxConf root;
         try {
-            root = new NginxConf(new File("C:\\nginx.in"), null);
+            final AppLogger logger = new AppLogger.DefaultLogger(false);
+            root = new NginxConf(new File("C:\\nginx.in"), logger);
             final LinkedList<String> upstreams = new LinkedList<String>();
             upstreams.add("127.0.0.1:3341");
             upstreams.add("127.0.0.1:3342");
