@@ -1,7 +1,0 @@
-[andrearibuoli]                                
-name=andrearibuoli                             
-baseurl=https://www.andrearibuoli.it/pase      
-enabled=1                                      
-gpgcheck=0                                     
-sslverify=1 
-skip_if_unavailable=1
