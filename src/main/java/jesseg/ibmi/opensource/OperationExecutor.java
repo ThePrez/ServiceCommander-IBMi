@@ -904,6 +904,7 @@ public class OperationExecutor {
         // semicolon-separated commands) in the start command for the service.
         m_logger.println_verbose("running command: " + bashCommand);
         final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/nohup", getBash(), "-c", bashCommand }, envp.toArray(new String[0]), directory);
+        p.waitFor();
         final long startTime = new Date().getTime();
         final OutputStream stdin = p.getOutputStream();
         ProcessLauncher.pipeStreamsToCurrentProcess(m_mainService.getName(), p, m_logger);
@@ -916,6 +917,16 @@ public class OperationExecutor {
             Thread.sleep(5000L);
         } else {
             Thread.sleep(1000L);
+        }
+
+        try {
+            int exitV = p.exitValue();
+            m_logger.println_verbose("exit value of: " + m_mainService + " " + exitV);
+            if (exitV != 0) {
+                throw new SCException(m_logger, FailureType.TIMEOUT_ON_SERVICE_STARTUP, "process failed, exit");
+            }
+        } catch (IllegalThreadStateException _ie) {
+            return;
         }
 
         final int secondsToWait = m_mainService.getStartupWaitTime();
