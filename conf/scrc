@@ -9,3 +9,21 @@
 # profiling time when gathering performance info:
 #
 # --sampletime=10
+#
+# ---- Customize Terminal Colors ----
+#
+# Terminal Color defaults used in sc:
+#   RUNNING: GREEN
+#   NOT_RUNNING: PURPLE
+#   INFO: CYAN
+#   WARNING: YELLOW
+#   ERROR: BRIGHT_RED
+#   PLAIN: WHITE
+#   STATUS: BLUE
+#
+# To override these colors, uncomment the following and
+# add comma separated list of contexts and colors to change:
+#
+# --color-scheme=[CONTEXT:COLOR], [CONTEXT:COLOR]
+#
+# ex. --color-scheme=RUNNING:BLUE, INFO=PURPLE
