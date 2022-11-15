@@ -329,7 +329,7 @@ public class ServiceCommander {
                     final OperationExecutor executioner = new OperationExecutor(_op, service, _serviceDefs, _logger);
                     executioner.execute();
                 } catch (SCException _e) {
-                    if (1 < _services.size() && Operation.START == _op) {
+                    if (1 < _services.size()) {
                         _logger.println_verbose("Service " + service + " failed to start, moving on");
                         continue;
                     }
