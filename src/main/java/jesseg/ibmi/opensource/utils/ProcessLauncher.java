@@ -72,10 +72,10 @@ public class ProcessLauncher {
          */
         public void prettyPrint() {
             for (final String stdout : m_stdout) {
-                System.out.println(StringUtils.colorizeForTerminal(stdout, TerminalColor.GREEN));
+                System.out.println(StringUtils.colorizeForTerminal(stdout, ColorSchemeConfig.get("SUCCESS")));
             }
             for (final String stderr : m_stderr) {
-                System.out.println(StringUtils.colorizeForTerminal(stderr, TerminalColor.BRIGHT_RED));
+                System.out.println(StringUtils.colorizeForTerminal(stderr, ColorSchemeConfig.get("ERROR")));
             }
         }
 

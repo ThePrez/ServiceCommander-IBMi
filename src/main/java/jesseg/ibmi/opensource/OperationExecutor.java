@@ -39,6 +39,8 @@ import jesseg.ibmi.opensource.utils.ProcessLauncher;
 import jesseg.ibmi.opensource.utils.QueryUtils;
 import jesseg.ibmi.opensource.utils.QueryUtils.DspJobDottedAttr;
 import jesseg.ibmi.opensource.utils.SbmJobScript;
+import jesseg.ibmi.opensource.utils.ColorSchemeConfig.ColorScheme;
+import jesseg.ibmi.opensource.utils.ColorSchemeConfig;
 
 /**
  * Where all the work happens
@@ -211,7 +213,7 @@ public class OperationExecutor {
                     printServiceStatus();
                     return null;
                 case LIST:
-                    m_logger.printf("%s (%s)\n", StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN), m_mainService.getFriendlyName());
+                    m_logger.printf("%s (%s)\n", StringUtils.colorizeForTerminal(m_mainService.getName(), ColorSchemeConfig.get("INFO")), m_mainService.getFriendlyName());
                     return null;
                 case INFO:
                     printInfo();
@@ -246,7 +248,7 @@ public class OperationExecutor {
         } finally {
             if (null != logFile) {
                 if (0 < logFile.length()) {
-                    m_logger.println("For details, see log file at: " + StringUtils.colorizeForTerminal(logFile.getAbsolutePath(), TerminalColor.CYAN));
+                    m_logger.println("For details, see log file at: " + StringUtils.colorizeForTerminal(logFile.getAbsolutePath(), ColorSchemeConfig.get("INFO")));
                 }
             }
         }
@@ -516,55 +518,55 @@ public class OperationExecutor {
     private void printInfo() {
         m_logger.println();
         m_logger.println();
-        m_logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
-        m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + ")");
+        m_logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", ColorSchemeConfig.get("PLAIN")));
+        m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), ColorSchemeConfig.get("INFO")) + " (" + m_mainService.getFriendlyName() + ")");
         m_logger.println();
         m_logger.println();
-        m_logger.println(StringUtils.colorizeForTerminal("Defined in: ", TerminalColor.CYAN) + m_mainService.getSource());
+        m_logger.println(StringUtils.colorizeForTerminal("Defined in: ", ColorSchemeConfig.get("INFO")) + m_mainService.getSource());
         m_logger.println();
         final String dir = m_mainService.getConfiguredWorkingDirectory();
         if (!StringUtils.isEmpty(dir)) {
-            m_logger.println(StringUtils.colorizeForTerminal("Working Directory: ", TerminalColor.CYAN) + dir);
+            m_logger.println(StringUtils.colorizeForTerminal("Working Directory: ", ColorSchemeConfig.get("INFO")) + dir);
             m_logger.println();
         }
-        m_logger.println(StringUtils.colorizeForTerminal("Startup Command: ", TerminalColor.CYAN) + m_mainService.getStartCommand());
-        m_logger.println(StringUtils.colorizeForTerminal("Startup Wait Time (s): ", TerminalColor.CYAN) + m_mainService.getStartupWaitTime());
+        m_logger.println(StringUtils.colorizeForTerminal("Startup Command: ", ColorSchemeConfig.get("INFO")) + m_mainService.getStartCommand());
+        m_logger.println(StringUtils.colorizeForTerminal("Startup Wait Time (s): ", ColorSchemeConfig.get("INFO")) + m_mainService.getStartupWaitTime());
         m_logger.println();
         final String shutdownCommand = m_mainService.getStopCommand();
         if (!StringUtils.isEmpty(shutdownCommand)) {
-            m_logger.println(StringUtils.colorizeForTerminal("Shutdown Command: ", TerminalColor.CYAN) + shutdownCommand);
+            m_logger.println(StringUtils.colorizeForTerminal("Shutdown Command: ", ColorSchemeConfig.get("INFO")) + shutdownCommand);
         }
-        m_logger.println(StringUtils.colorizeForTerminal("Shutdown Wait Time (s): ", TerminalColor.CYAN) + m_mainService.getShutdownWaitTime());
+        m_logger.println(StringUtils.colorizeForTerminal("Shutdown Wait Time (s): ", ColorSchemeConfig.get("INFO")) + m_mainService.getShutdownWaitTime());
         m_logger.println();
-        m_logger.println(StringUtils.colorizeForTerminal("Check-alive conditions: ", TerminalColor.CYAN) + m_mainService.getCheckAlivesHumanReadable());
+        m_logger.println(StringUtils.colorizeForTerminal("Check-alive conditions: ", ColorSchemeConfig.get("INFO")) + m_mainService.getCheckAlivesHumanReadable());
         final BatchMode batchMode = m_mainService.getBatchMode();
         if (BatchMode.NO_BATCH == batchMode) {
-            m_logger.println(StringUtils.colorizeForTerminal("Batch Mode: ", TerminalColor.CYAN) + "<not running in batch>");
+            m_logger.println(StringUtils.colorizeForTerminal("Batch Mode: ", ColorSchemeConfig.get("INFO")) + "<not running in batch>");
         } else {
-            m_logger.println(StringUtils.colorizeForTerminal("Batch Mode: ", TerminalColor.CYAN) + "<submitted to batch>");
+            m_logger.println(StringUtils.colorizeForTerminal("Batch Mode: ", ColorSchemeConfig.get("INFO")) + "<submitted to batch>");
             String batchJobName = m_mainService.getBatchJobName();
             if (StringUtils.isEmpty(batchJobName)) {
                 batchJobName = "<default>";
             }
-            m_logger.println(StringUtils.colorizeForTerminal("    Batch Job Name: ", TerminalColor.CYAN) + batchJobName);
+            m_logger.println(StringUtils.colorizeForTerminal("    Batch Job Name: ", ColorSchemeConfig.get("INFO")) + batchJobName);
             final String sbmjobOpts = m_mainService.getSbmJobOpts();
             if (!StringUtils.isEmpty(sbmjobOpts)) {
-                m_logger.println(StringUtils.colorizeForTerminal("    SBMJOB options: ", TerminalColor.CYAN) + sbmjobOpts);
+                m_logger.println(StringUtils.colorizeForTerminal("    SBMJOB options: ", ColorSchemeConfig.get("INFO")) + sbmjobOpts);
             }
         }
         final List<String> dependencies = m_mainService.getDependencies();
         if (!dependencies.isEmpty()) {
             m_logger.println();
-            m_logger.println(StringUtils.colorizeForTerminal("Depends on the following services:", TerminalColor.CYAN));
+            m_logger.println(StringUtils.colorizeForTerminal("Depends on the following services:", ColorSchemeConfig.get("INFO")));
             for (final String dependency : dependencies) {
                 m_logger.println("    " + dependency);
             }
         }
         m_logger.println();
-        m_logger.println(StringUtils.colorizeForTerminal("Inherits environment variables?: ", TerminalColor.CYAN) + m_mainService.isInheritingEnvironmentVars());
+        m_logger.println(StringUtils.colorizeForTerminal("Inherits environment variables?: ", ColorSchemeConfig.get("INFO")) + m_mainService.isInheritingEnvironmentVars());
         final List<String> envVars = m_mainService.getEnvironmentVars();
         if (!envVars.isEmpty()) {
-            m_logger.println(StringUtils.colorizeForTerminal("Custom environment variables:", TerminalColor.CYAN));
+            m_logger.println(StringUtils.colorizeForTerminal("Custom environment variables:", ColorSchemeConfig.get("INFO")));
             for (final String envVar : envVars) {
                 m_logger.println("    " + envVar);
             }
@@ -575,10 +577,10 @@ public class OperationExecutor {
     }
 
     private void printJobInfo() throws SCException, IOException {
-        m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + "):");
+        m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), ColorSchemeConfig.get("INFO")) + " (" + m_mainService.getFriendlyName() + "):");
         final List<String> jobs = getActiveJobsForService(false);
         if (jobs.isEmpty()) {
-            m_logger.println("    " + StringUtils.colorizeForTerminal("NO JOB INFO (either not running, or running in kernel task)", TerminalColor.PURPLE));
+            m_logger.println("    " + StringUtils.colorizeForTerminal("NO JOB INFO (either not running, or running in kernel task)", ColorSchemeConfig.get("NOT_RUNNING")));
         } else {
             for (final String job : jobs) {
                 m_logger.println("    " + job);
@@ -609,7 +611,7 @@ public class OperationExecutor {
         for (final String job : jobs) {
             try {
                 for (final String splf : QueryUtils.getSplfsForJob(job, m_logger)) {
-                    m_logger.println(m_mainService.getName() + ": " + StringUtils.colorizeForTerminal(splf, TerminalColor.CYAN));
+                    m_logger.println(m_mainService.getName() + ": " + StringUtils.colorizeForTerminal(splf, ColorSchemeConfig.get("INFO")));
                     isAnythingFound = true;
                 }
             } catch (final Exception e) {
@@ -633,10 +635,10 @@ public class OperationExecutor {
 
             final File logFile = new File(candidate);
             if (0 < logFile.length()) {
-                m_logger.println(m_mainService.getName() + ": " + StringUtils.colorizeForTerminal(candidate, TerminalColor.CYAN));
+                m_logger.println(m_mainService.getName() + ": " + StringUtils.colorizeForTerminal(candidate, ColorSchemeConfig.get("INFO")));
                 isAnythingFound = true;
             } else {
-                m_logger.println(m_mainService.getName() + ": " + StringUtils.colorizeForTerminal(candidate, TerminalColor.CYAN) + StringUtils.colorizeForTerminal(" (no data)", TerminalColor.YELLOW));
+                m_logger.println(m_mainService.getName() + ": " + StringUtils.colorizeForTerminal(candidate, ColorSchemeConfig.get("INFO")) + StringUtils.colorizeForTerminal(" (no data)", ColorSchemeConfig.get("WARNING")));
             }
         }
         if (!isAnythingFound) {
@@ -648,12 +650,12 @@ public class OperationExecutor {
 
     private void printPerfInfo() throws SCException, IOException {
         m_logger.println();
-        m_logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", TerminalColor.WHITE));
+        m_logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", ColorSchemeConfig.get("PLAIN")));
 
-        m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), TerminalColor.CYAN) + " (" + m_mainService.getFriendlyName() + ")");
+        m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName(), ColorSchemeConfig.get("INFO")) + " (" + m_mainService.getFriendlyName() + ")");
         final List<String> jobs = getActiveJobsForService(false);
         if (jobs.isEmpty()) {
-            m_logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", TerminalColor.PURPLE));
+            m_logger.println(StringUtils.colorizeForTerminal("NOT RUNNING", ColorSchemeConfig.get("NOT_RUNNING")));
         } else {
             m_logger.println();
             final List<PerfInfoFetcher> dataFetcherThreads = new LinkedList<PerfInfoFetcher>();
@@ -664,10 +666,10 @@ public class OperationExecutor {
                 dataFetcherThreads.add(new PerfInfoFetcher(job, "Backend job", m_logger, Float.parseFloat(System.getProperty(PROP_SAMPLE_TIME, "1.0"))));
             }
             for (final PerfInfoFetcher dataFetcherThread : dataFetcherThreads) {
-                m_logger.println(StringUtils.colorizeForTerminal(dataFetcherThread.m_eyecatcher + ": " + dataFetcherThread.m_job, TerminalColor.CYAN));
+                m_logger.println(StringUtils.colorizeForTerminal(dataFetcherThread.m_eyecatcher + ": " + dataFetcherThread.m_job, ColorSchemeConfig.get("INFO")));
                 final Map<String, String> perfInfo = dataFetcherThread.getResults();
                 for (final Entry<String, String> pi : perfInfo.entrySet()) {
-                    m_logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), TerminalColor.CYAN) + ": " + pi.getValue());
+                    m_logger.println("    " + StringUtils.colorizeForTerminal(pi.getKey(), ColorSchemeConfig.get("INFO")) + ": " + pi.getValue());
                 }
                 m_logger.println();
             }
@@ -691,7 +693,7 @@ public class OperationExecutor {
         }
         for (final String job : jobs) {
             final Map<String, String> envMap = QueryUtils.getJobEnvvars(job, m_logger);
-            m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName() + ": " + job + ":", TerminalColor.CYAN));
+            m_logger.println(StringUtils.colorizeForTerminal(m_mainService.getName() + ": " + job + ":", ColorSchemeConfig.get("INFO")));
             boolean isAnyFound = false;
             for (final Entry<String, String> l : envMap.entrySet()) {
                 if (l.getKey().startsWith("SCOMMANDER_")) {
@@ -709,23 +711,23 @@ public class OperationExecutor {
         final ServiceStatusInfo status = getServiceStatus();
         final String paddedStatusString;
         final String indent = m_mainService.isClusterBackend() ? "  " : "";
-        TerminalColor statusColor = TerminalColor.BLUE;
+        TerminalColor statusColor = ColorSchemeConfig.get("STATUS");
         final int statusPadSize = 18;
         switch (status.getStatus()) {
             case RUNNING:
-                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "RUNNING", statusPadSize), statusColor = TerminalColor.GREEN);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "RUNNING", statusPadSize), statusColor = ColorSchemeConfig.get("RUNNING"));
                 break;
             case NOT_RUNNING:
-                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "NOT RUNNING", statusPadSize), statusColor = TerminalColor.PURPLE);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(indent + "NOT RUNNING", statusPadSize), statusColor = ColorSchemeConfig.get("NOT_RUNNING"));
                 break;
             default:
                 final String statusString = String.format("" + indent + "PARTIAL (%d/%d)", status.m_runningList.size(), status.m_allList.size());
-                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(statusString, statusPadSize), statusColor = TerminalColor.YELLOW);
+                paddedStatusString = StringUtils.colorizeForTerminal(StringUtils.spacePad(statusString, statusPadSize), statusColor = ColorSchemeConfig.get("WARNING"));
                 break;
         }
         String partialInfo = "";
         if (status.isPartial()) {
-            partialInfo += StringUtils.colorizeForTerminal("[not running at -->" + ListUtils.toString(status.m_notRunningList, ", ") + "]", TerminalColor.YELLOW);
+            partialInfo += StringUtils.colorizeForTerminal("[not running at -->" + ListUtils.toString(status.m_notRunningList, ", ") + "]", ColorSchemeConfig.get("WARNING"));
         }
         m_logger.printfln("  %s | %s%s (%s) %s", paddedStatusString, indent, StringUtils.colorizeForTerminal(m_mainService.getName(), statusColor), m_mainService.getFriendlyName(), partialInfo);
     }

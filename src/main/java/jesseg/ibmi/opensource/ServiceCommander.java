@@ -18,7 +18,9 @@ import com.github.theprez.jcmdutils.StringUtils.TerminalColor;
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.ServiceDefinition.CheckAliveType;
+import jesseg.ibmi.opensource.utils.ColorSchemeConfig;
 import jesseg.ibmi.opensource.utils.QueryUtils;
+import jesseg.ibmi.opensource.utils.ColorSchemeConfig.ColorScheme;
 import jesseg.ibmi.opensource.yaml.YamlServiceDef;
 import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
 
@@ -137,9 +139,9 @@ public class ServiceCommander {
                 line += StringUtils.spacePad("" + port, 8);
                 line += svcDef.isClusterBackend() ? "  " : "";
                 if (svcDef.isAdHoc()) {
-                    line += StringUtils.colorizeForTerminal("port:" + port, TerminalColor.CYAN);
+                    line += StringUtils.colorizeForTerminal("port:" + port, ColorSchemeConfig.get("INFO"));
                 } else {
-                    line += StringUtils.colorizeForTerminal(svcDef.getName(), TerminalColor.CYAN);
+                    line += StringUtils.colorizeForTerminal(svcDef.getName(), ColorSchemeConfig.get("INFO"));
                     line += " (" + svcDef.getFriendlyName() + ")";
                 }
                 _logger.println(line);
@@ -231,6 +233,20 @@ public class ServiceCommander {
                 } catch (final Exception e) {
                     logger.printfln_warn("WARNING: Value specified for sample time argument is not valid: %s", remainingArg);
                 }
+            } else if (remainingArg.startsWith("--color-scheme=")) {
+                String colorSettings[] = remainingArg.replaceAll(".*=", "").split("\\s*, \\s*");
+                for (String kv : colorSettings) {
+                    try {
+                        String[] _settings = kv.split(":");
+                        String context = _settings[0];
+                        String color = _settings[1];
+                        ColorSchemeConfig.updateColor(context, color);
+                    } catch (Exception e) {
+                        logger.printf_warn("WARNING: something went wrong with color-scheme configuration: %s", remainingArg);
+                    }
+                }
+
+
             } else if (remainingArg.startsWith("-")) {
                 logger.printfln_warn("WARNING: Argument '%s' unrecognized and will be ignored", remainingArg);
             } else {
@@ -376,12 +392,12 @@ public class ServiceCommander {
         final String version = jesseg.ibmi.opensource.Version.s_scVersion;
         final String buildTime = jesseg.ibmi.opensource.Version.s_compileDateTime;
         if (StringUtils.isEmpty(version)) {
-            System.err.println(StringUtils.colorizeForTerminal("ERROR: Unknown version!", TerminalColor.BRIGHT_RED));
+            System.err.println(StringUtils.colorizeForTerminal("ERROR: Unknown version!", ColorSchemeConfig.get("ERROR")));
         } else {
             System.out.println("Version: " + version);
         }
         if (StringUtils.isEmpty(buildTime)) {
-            System.err.println(StringUtils.colorizeForTerminal("ERROR: Unknown build time!", TerminalColor.BRIGHT_RED));
+            System.err.println(StringUtils.colorizeForTerminal("ERROR: Unknown build time!", ColorSchemeConfig.get("ERROR")));
         } else {
             System.out.println("Build time: " + buildTime);
         }
