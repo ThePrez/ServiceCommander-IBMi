@@ -238,8 +238,8 @@ public class ServiceCommander {
                 for (String kv : colorSettings) {
                     try {
                         String[] _settings = kv.split(":");
-                        String context = _settings[0];
-                        String color = _settings[1];
+                        String context = _settings[0].toUpperCase();
+                        String color = _settings[1].toUpperCase();
                         ColorSchemeConfig.updateColor(context, color);
                     } catch (Exception e) {
                         logger.printf_warn("WARNING: something went wrong with color-scheme configuration: %s", remainingArg);
