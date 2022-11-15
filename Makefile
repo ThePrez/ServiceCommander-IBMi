@@ -76,6 +76,7 @@ install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar tar
 	install -m 444 -o qsys target/sc.jar ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/sc.jar
 	install -m 555 -o qsys target/scbash ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/native/scbash
 	install -m 555 -o qsys target/screbash ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/native/screbash
+	dos2unix ${INSTALL_ROOT}/QOpenSys/pkgs/bin/sc
 	cp -n samples/system_tcpsvr/* ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
 	cp -n samples/system_common/* ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
 	cp -n samples/host_servers/* ${INSTALL_ROOT}/QOpenSys/etc/sc/services/system
