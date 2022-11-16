@@ -10,9 +10,19 @@
 #
 # --sampletime=10
 #
-# ---- Customize Terminal Colors ----
+# ---------------- Customize Terminal Colors  ----------------
 #
-# Terminal Color defaults used in sc:
+# Here is a list of available colors for customization:
+#   - BLUE
+#   - BRIGHT_RED
+#   - CYAN
+#   - GREEN
+#   - PURPLE
+#   - RED
+#   - WHITE
+#   - YELLOW
+#
+# Terminal Color defaults and contexts used in sc:
 #   RUNNING: GREEN
 #   NOT_RUNNING: PURPLE
 #   INFO: CYAN

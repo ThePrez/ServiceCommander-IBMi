@@ -571,7 +571,7 @@ public class OperationExecutor {
                 m_logger.println("    " + envVar);
             }
         }
-        m_logger.println("---------------------------------------------------------------------");
+        m_logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", ColorSchemeConfig.get("PLAIN")));
         m_logger.println();
         m_logger.println();
     }
@@ -674,7 +674,7 @@ public class OperationExecutor {
                 m_logger.println();
             }
         }
-        m_logger.println("---------------------------------------------------------------------");
+        m_logger.println(StringUtils.colorizeForTerminal("---------------------------------------------------------------------", ColorSchemeConfig.get("PLAIN")));
         m_logger.println();
     }
 
