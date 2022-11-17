@@ -729,6 +729,7 @@ Example:
 ```
 
 Here is a list of the different contexts and default colors:
+
 ```cl
 Terminal Color defaults and contexts used in sc:
       RUNNING: GREEN
@@ -751,8 +752,6 @@ Here is a list of the avalaible colors for customization:
 - WHITE
 - YELLOW
 ```
-
-
 
 ## Demo (video)
 

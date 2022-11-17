@@ -293,6 +293,50 @@ http {
 }
 ```
 
+### Customize terminal Colors
+
+ServiceCommander offers color support for the terminal output in different contexts, such as displaying the list of running and non-running services with `sc check`. Service Commander supports two configuration files where command line options can be configured:
+
+- `/QOpenSys/etc/sc/scrc (global)`
+- `$HOME/.scrc (individual)`
+
+In order to configure terminal colors, add the following command with a comma separated list of `CONTEXT:COLOR`:
+
+```cl
+--color-scheme=[CONTEXT:COLOR], [CONTEXT:COLOR]
+```
+
+Example:
+
+```cl
+--color-scheme=NOT_RUNNING:BRIGHT_RED, INFO:YELLOW
+```
+
+Here is a list of the different contexts and default colors:
+```cl
+Terminal Color defaults and contexts used in sc:
+      RUNNING: GREEN
+      NOT_RUNNING: PURPLE
+      INFO: CYAN
+      WARNING: YELLOW
+      ERROR: BRIGHT_RED
+      PLAIN: WHITE
+      STATUS: BLUE
+```
+
+Here is a list of the avalaible colors for customization:
+
+```cl
+- BLUE
+- BRIGHT_RED
+- CYAN
+- GREEN
+- PURPLE
+- RED
+- WHITE
+- YELLOW
+```
+
 ## Testimonials
 *"I use this a lot for my own personal use. Might be useless for the rest of the world. I don't know, though."*
 
