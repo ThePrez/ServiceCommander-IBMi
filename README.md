@@ -41,6 +41,7 @@
     - [Special groups used by STRTCPSVR/ENDTCPSVR](#special-groups-used-by-strtcpsvrendtcpsvr)
     - [Running two or more STRTCPSVR commands simultaneously](#running-two-or-more-strtcpsvr-commands-simultaneously)
     - [Using with ADDJOBSCDE](#using-with-addjobscde)
+  - [Customize Terminal Colors](#customize-terminal-colors)
 - [Demo (video)](#demo-video)
 - [Have feedback or want to contribute?](#have-feedback-or-want-to-contribute)
 - [Testimonials](#testimonials)
@@ -707,6 +708,51 @@ running, every day at 01:00:
 ```cl
 ADDJOBSCDE JOB(SC) CMD(STRTCPSVR SERVER(*SC) INSTANCE('myapp')) FRQ(*WEEKLY) SCDDATE(*NONE) SCDDAY(*ALL) SCDTIME(010000)
 ```
+
+### Customize terminal Colors
+
+ServiceCommander offers color support for the terminal output in different contexts, such as displaying the list of running and non-running services with `sc check`. Service Commander supports two configuration files where command line options can be configured:
+
+- `/QOpenSys/etc/sc/scrc (global)`
+- `$HOME/.scrc (individual)`
+
+In order to configure terminal colors, add the following command with a comma separated list of `CONTEXT:COLOR`:
+
+```cl
+--color-scheme=[CONTEXT:COLOR], [CONTEXT:COLOR]
+```
+
+Example:
+
+```cl
+--color-scheme=NOT_RUNNING:BRIGHT_RED, INFO:YELLOW
+```
+
+Here is a list of the different contexts and default colors:
+```cl
+Terminal Color defaults and contexts used in sc:
+      RUNNING: GREEN
+      NOT_RUNNING: PURPLE
+      INFO: CYAN
+      WARNING: YELLOW
+      ERROR: BRIGHT_RED
+      PLAIN: WHITE
+      STATUS: BLUE
+```
+
+Here is a list of the avalaible colors for customization:
+```cl
+- BLUE
+- BRIGHT_RED
+- CYAN
+- GREEN
+- PURPLE
+- RED
+- WHITE
+- YELLOW
+```
+
+
 
 ## Demo (video)
 
