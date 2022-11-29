@@ -3,7 +3,7 @@ SC_VERSION := "Development Build (built with Make)"
 
 JAVA_SRCS := $(shell find src -type f)
 target/sc.jar: ${JAVA_SRCS}
-	JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11 /QOpenSys/pkgs/bin/mvn -Dsc.version=${SC_VERSION} package
+	JAVA_HOME=/QOpenSys/pkgs/lib/jvm/openjdk-11 /QOpenSys/pkgs/bin/mvn -Djava.net.preferIPv4Stack=true -Dsc.version=${SC_VERSION} package
 	cp target/sc-*-with-dependencies.jar target/sc.jar
 
 FORCE:
