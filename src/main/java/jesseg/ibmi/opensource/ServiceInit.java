@@ -19,6 +19,7 @@ import com.github.theprez.jcmdutils.StringUtils.TerminalColor;
 import jesseg.ibmi.opensource.OperationExecutor.Operation;
 import jesseg.ibmi.opensource.SCException.FailureType;
 import jesseg.ibmi.opensource.yaml.YamlServiceDefLoader;
+import jesseg.ibmi.opensource.utils.ColorSchemeConfig;
 
 public class ServiceInit {
 
@@ -109,7 +110,7 @@ public class ServiceInit {
 
             si.writeToFile(logger);
             final ServiceDefinitionCollection defs = new YamlServiceDefLoader().loadFromYamlFiles(new AppLogger.DeferredLogger(logger), false);
-            logger.println(StringUtils.colorizeForTerminal("\n\nPrinting information about the newly-defined service", TerminalColor.GREEN));
+            logger.println(StringUtils.colorizeForTerminal("\n\nPrinting information about the newly-defined service", ColorSchemeConfig.get("RUNNING")));
             new OperationExecutor(Operation.INFO, si.m_shortName, defs, logger).execute();
             defs.checkForCheckaliveConflicts(logger);
         } catch (final SCException e) {
