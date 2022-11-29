@@ -25,8 +25,7 @@ Requires: nginx >= 1.23.0
 Requires: openjdk-11
 Requires: python39-ibm_db
 
-#Source0: https://github.com/ThePrez/ServiceCommander-IBMi/archive/v%{version}.tar.gz
-Source0: https://github.com/ThePrez/ServiceCommander-IBMi/archive/refs/tags/v%{version}.tar.gz
+Source0: https://github.com/ThePrez/ServiceCommander-IBMi/archive/refs/tags/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
 
 %description
 A utility for unifying the daunting task of managing various services and
