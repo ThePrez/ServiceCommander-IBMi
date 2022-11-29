@@ -295,7 +295,7 @@ public class QueryUtils {
     private static List<String> getListeningJobsByPort(final int _port, final AppLogger _logger) throws IOException, SCException {
         final List<String> ret = new LinkedList<String>();
 
-        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "csv", "SELECT JOB_NAME,SLIC_TASK_NAME from QSYS2.NETSTAT_JOB_INFO where LOCAL_PORT = " + _port });
+        final Process p = Runtime.getRuntime().exec(new String[] { "/QOpenSys/pkgs/bin/db2util", "-o", "csv", "SELECT JOB_NAME,SLIC_TASK_NAME from QSYS2.NETSTAT_JOB_INFO where REMOTE_PORT = 0 and LOCAL_PORT = " + _port });
         final List<String> queryResults = ProcessLauncher.getStdout("db2util", p, _logger);
         for (final String queryResult : queryResults) {
             if (StringUtils.isEmpty(queryResult)) {
