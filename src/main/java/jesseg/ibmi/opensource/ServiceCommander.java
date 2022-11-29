@@ -341,8 +341,16 @@ public class ServiceCommander {
             _serviceDefs.validateNoCircularDependencies(_logger);
             for (final String service : _services) {
                 _logger.printf("Performing operation '%s' on service '%s'\n", _op.name(), service);
-                final OperationExecutor executioner = new OperationExecutor(_op, service, _serviceDefs, _logger);
-                executioner.execute();
+                try {
+                    final OperationExecutor executioner = new OperationExecutor(_op, service, _serviceDefs, _logger);
+                    executioner.execute();
+                } catch (SCException _e) {
+                    if (1 < _services.size()) {
+                        _logger.println_verbose("Service " + service + " failed to start, moving on");
+                        continue;
+                    }
+                    throw _e;                   
+                }
             }
         }
     }
