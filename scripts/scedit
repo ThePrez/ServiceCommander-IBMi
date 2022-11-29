@@ -8,7 +8,7 @@ fi
 
 echo "Configuration for '$1' found at $FILE_NAME"
 
-for FILE_EDITOR in "$EDITOR" "/QOpenSys/pkgs/bin/nano" "/QOpenSys/pkgs/bin/joe" "/QOpenSys/pkgs/bin/vim"
+for FILE_EDITOR in "$(which $EDITOR)" "/QOpenSys/pkgs/bin/nano" "/QOpenSys/pkgs/bin/joe" "/QOpenSys/pkgs/bin/vim"
 do
     :
     if [[ -x "$FILE_EDITOR" ]]
