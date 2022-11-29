@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 1.5.1
+Version: 1.6.0
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -21,7 +21,7 @@ BuildRequires: openjdk-11
 Requires: bash
 Requires: coreutils-gnu
 Requires: db2util
-Requires: nginx >= 1.16.1-4
+Requires: nginx >= 1.23.0
 Requires: openjdk-11
 Requires: python39-ibm_db
 
@@ -86,6 +86,16 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
+* Tue Nov 29 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.6.0
+- feature: enable color customization
+- feature: continue group processing if one fails
+- change: Make TCPSVR use joblog only - no stdout
+- bugfix: cluster mode configuration file malformation
+- bugfix: ending extra jobs connected to given port
+- bugfix: 'scedit' with non-fully-qualified $EDITOR
+- deps: bump maven-resources-plugin from 3.2.0 to 3.3.0
+- deps: bump snakeyaml from 1.30 to 1.33
+
 * Wed Jul 20 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.5.1
 - bugfix: extraneous log-related messages on 'sc list'
 
