@@ -60,6 +60,7 @@ public class QueryUtils {
 
     }
 
+    public static final String DB_TIMESTAMP_FORMAT = "yyyy-MM-dd-HH.mi.ss";
     public static final String DB_TIMESTAMP_FORMAT = "yyyy-MM-dd-HH.mm.ss";
     private static Set<Integer> s_cachedOpenPorts = null;
     private static final Object s_cacheLock = new ReentrantLock();
