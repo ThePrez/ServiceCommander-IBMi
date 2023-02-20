@@ -1,0 +1,9 @@
+#!/QOpenSys/pkgs/bin/bash
+FILE_NAME=$($(dirname $0)/sc loginfo $1)
+if [ -z "$FILE_NAME" ]
+then
+    >&2 echo "No configuration file found for '$1'"
+    exit 5
+fi
+
+echo "Configuration for '$1' found at $FILE_NAME"
