@@ -1,3 +1,45 @@
 #!/QOpenSys/pkgs/bin/bash
 
-/QOpenSys/pkgs/bin/sc loginfo $1 | /QOpenSys/pkgs/bin/cut -d ':' -f 2 | /QOpenSys/pkgs/bin/xargs tail -f
+if (($# == 0)); then
+    echo "usage: sctail [-f|--follow] <service name>"
+    exit 0
+fi
+
+POSITIONAL_ARGS=()
+HELP_MSG=NO
+FOLLOW=NO
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -f|--follow)
+      FOLLOW=YES
+      shift # past argument with no value
+      ;;
+    --help)
+      HELP_MSG=YES
+      shift # past argument with no value
+      ;;
+    -*|--*)
+      echo "Unknown option $1"
+      exit 1
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1") # save positional arg
+      shift # past argument
+      ;;
+  esac
+done
+set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
+
+if [ ${HELP_MSG} == YES ]; then
+	echo "usage: sctail [-f|--follow] <service name>"
+	exit 0
+fi
+
+/QOpenSys/pkgs/bin/sc loginfo $1
+
+if [ ${FOLLOW} == YES ]; then
+    /QOpenSys/pkgs/bin/sc loginfo $1 | /QOpenSys/pkgs/bin/cut -d ':' -f 2 | /QOpenSys/pkgs/bin/xargs tail -f
+else
+    /QOpenSys/pkgs/bin/sc loginfo $1 | /QOpenSys/pkgs/bin/cut -d ':' -f 2 | /QOpenSys/pkgs/bin/xargs tail
+fi
