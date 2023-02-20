@@ -1,9 +1,3 @@
 #!/QOpenSys/pkgs/bin/bash
-FILE_NAME=$($(dirname $0)/sc loginfo $1)
-if [ -z "$FILE_NAME" ]
-then
-    >&2 echo "No configuration file found for '$1'"
-    exit 5
-fi
 
-echo "Configuration for '$1' found at $FILE_NAME"
+/QOpenSys/pkgs/bin/sc loginfo $1 | /QOpenSys/pkgs/bin/cut -d ':' -f 2 | /QOpenSys/pkgs/bin/xargs tail -f
