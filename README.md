@@ -105,6 +105,8 @@ For most of the features of Service Commander, the following is required to be i
 - bash (`yum install bash`)
 - GNU coreutils (`yum install coreutils-gnu`)
 
+(click [here](docs/appendix1.md) to read more about the requirements for `db2util` and `openjdk-11`.)
+
 The performance information support (`perfinfo`) has additional requirements that are not automatically installed, including:
 
 - Python 3 with the ibm_db database connector (`yum install python3-ibm_db`)
