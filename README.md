@@ -783,3 +783,7 @@ Made with [contrib.rocks](https://contrib.rocks).
 > "Service Commander is a great tool that has helped us controlling the rising number of services, that we run on IBM i. Previously we had different commands for different services, but now we just define the services in Service Commander and let it control the (auto)start and stop of the services. Not at all useless!"
 >
 > &nbsp; --[@chrjorgensen](https://github.com/chrjorgensen/), IBM i System Administrator and contributor to Service Commander
+>
+> "A fantastic tool to manage our many TCPSVR and Node.js instances. It's got a great command line interface allowing us to run `sc` through our shell scripts. "
+>
+> &nbsp; --[@KerimG](https://github.com/KerimG), IBM i software developer and PASE for i enthusiast
