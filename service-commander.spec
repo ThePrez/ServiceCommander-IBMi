@@ -1,6 +1,6 @@
 %undefine _disable_source_fetch
 Name: service-commander
-Version: 1.6.0
+Version: 1.7.1
 Release: 0
 License: Apache-2.0
 Summary: Utility for managing services and applications on IBM i
@@ -85,6 +85,9 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
+- change: Cleanup env var printout in spooled files
+- bugfix: Wrong logfile names under certain conditions
+
 * Tue Nov 29 2022 Jesse Gorzinski <jgorzins@us.ibm.com> 1.6.0
 - feature: enable color customization
 - feature: continue group processing if one fails
