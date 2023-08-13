@@ -85,6 +85,7 @@ fi
 %{_mandir}/man1/sc_install_defaults.*
 
 %changelog
+* Sun Aug 13 2023 Jesse Gorzinski <jgorzins@us.ibm.com> 1.7.1
 - change: Cleanup env var printout in spooled files
 - bugfix: Wrong logfile names under certain conditions
 
