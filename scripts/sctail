@@ -1,0 +1,92 @@
+#!/QOpenSys/pkgs/bin/bash
+
+if [[ "$LC_ALL" != *UTF-8* ]]; then
+    # LC_ALL is not set. Set it to EN_US.UTF-8 if present
+    if [ -e /usr/lib/nls/loc/EN_US.UTF-8 ]; then
+        export LC_ALL=EN_US.UTF-8
+    else
+        # EN_US.UTF-8 is not present. Look for installed UTF-8 locale
+        INSTALLEDUTF8LOCALE=$(ls -b /usr/lib/nls/loc | grep -E '.UTF-8$' | tail -n 1)
+        if [[ "" = "$INSTALLEDUTF8LOCALE" ]]; then
+            >&2 echo "WARNING: Cannot find a UTF-8 locale installed on this system."
+        else
+            export LC_ALL=$INSTALLEDUTF8LOCALE
+        fi
+    fi
+fi
+
+if (($# == 0)); then
+    echo "usage: sctail [tail OPTION]... <service name>"
+    exit 0
+fi
+
+HELP_MSG=NO
+
+# Set the default arguments for tail
+TAIL_ARGS=""
+
+# Initialize variable for service name
+SERVICE=""
+
+# Declare an array to hold the arguments and their values
+declare -a ARGS=()
+
+# Loop through the command line arguments
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case $key in
+    -c|--bytes|-n|--lines|-s|--sleep-interval|--pid|--max-unchanged-stats)
+      # If the argument has a value, add it to the array
+      if [[ $# -gt 1 && "$2" != -* ]]; then
+        ARGS+=("$1 $2")
+        shift
+      else
+        ARGS+=("$1")
+      fi
+      ;;
+    -f|--follow|-F|--retry|-q|--quiet|--silent|-v|--verbose|-z|--zero-terminated|--version)
+      ARGS+=("$1")
+      ;;
+    --help)
+      HELP_MSG=YES
+      shift # past argument with no value
+      ;;
+    -*|--*)
+      echo "sctail: invalid option -- '$1'"
+      echo "usage: sctail [OPTION]... <service name>"
+      echo "Try 'sctail --help' for more information."
+      exit 1
+      ;;
+    *)
+
+      # If the argument doesn't start with a dash, set it as the SERVICE value
+      SERVICE="$1"
+      ;;
+  esac
+  shift
+done
+
+if [[ $HELP_MSG == YES ]]; then
+    echo "sctail usage: sctail [tail OPTION]... <service name]"
+    exec /QOpenSys/pkgs/bin/tail --help
+    exit 0
+fi
+
+
+if [[ ${#ARGS[@]} -gt 0 ]]; then
+    TAIL_ARGS+=" ${ARGS[*]}"
+fi
+
+
+echo "SERVICE:        $SERVICE"
+echo "TAIL_ARGS:      $TAIL_ARGS"
+
+LOG=$($(dirname $0)/sc loginfo $SERVICE | /QOpenSys/pkgs/bin/cut -d ':' -f 2 | awk '{ for (i=1; i<=NF; i++) print $i }')
+if [[ -z $LOG ]]; then
+    echo "No log file found for service $SERVICE"
+    exit 1
+fi
+
+echo "LOG:            $LOG"
+
+exec /QOpenSys/pkgs/bin/tail $TAIL_ARGS $LOG

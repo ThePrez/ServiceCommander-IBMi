@@ -71,6 +71,7 @@ install: scripts/sc scripts/scinit scripts/sc_install_defaults target/sc.jar tar
 	install -m 555 -o qsys scripts/sc ${INSTALL_ROOT}/QOpenSys/pkgs/bin/
 	install -m 555 -o qsys scripts/scinit ${INSTALL_ROOT}/QOpenSys/pkgs/bin/
 	install -m 555 -o qsys scripts/scedit ${INSTALL_ROOT}/QOpenSys/pkgs/bin/
+	install -m 555 -o qsys scripts/sctail ${INSTALL_ROOT}/QOpenSys/pkgs/bin/
 	install -m 555 -o qsys scripts/scopenports ${INSTALL_ROOT}/QOpenSys/pkgs/bin/
 	install -m 555 -o qsys scripts/sc_install_defaults ${INSTALL_ROOT}/QOpenSys/pkgs/bin/
 	install -m 444 -o qsys target/sc.jar ${INSTALL_ROOT}/QOpenSys/pkgs/lib/sc/sc.jar
