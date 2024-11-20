@@ -787,3 +787,7 @@ Made with [contrib.rocks](https://contrib.rocks).
 > "A fantastic tool to manage our many TCPSVR and Node.js instances. It's got a great command line interface allowing us to run `sc` through our shell scripts. "
 >
 > &nbsp; --[@KerimG](https://github.com/KerimG), IBM i software developer and PASE for i enthusiast
+>
+> "Service Commander is a phenomenal set of tools for IBM i. We use it and promote it in all our training courses, and it truly deserves to be a part of the IBM i OS build. It's that great!"
+>
+> &nbsp; --[@AndyYouens](https://github.com/AndyYouens), Managing Director [FormaServe Systems Ltd](https://www.formaserve.co.uk), &amp; Editor of [PowerWire](https://powerwire.uk)  &amp; contributor to Service Commander
